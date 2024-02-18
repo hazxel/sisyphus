@@ -14,3 +14,7 @@ public:
 	}
 };
 ```
+
+
+
+### CRTP (Curiously Recurring Template Pattern)

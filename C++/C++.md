@@ -1,3 +1,9 @@
+# Raw Expressions
+
+- 逗号表达式，逗号表达式的优先级最低，`(a, b)`这个表达式的值就是`b`
+
+
+
 # Pointer
 
 ##### Address related operator
@@ -48,9 +54,17 @@ Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr e
 | can be left or right operand of assigment | can only be left right operand of assigment |
 |    ++i (return reference of i)    | i++ (i has increased, return a saved temp value) |
 
-?Values are either *glvalue* (generalized left value) or *rvalue* (right value). 
+- Values are either *glvalue* (generalized left value) or *rvalue* (right value). 
+  - *glvalue*  inlcudes *lvalue* and *xvalue*
+  - *rvalue* includes *prvalue* and *xvalue*
+- Values are either lvalue ((non-expiring) left value), *prvalue* (pure right value) or *xvalue* (expiring value)
+  - *lvalue*: 能够用&取地址的表达式，以及字符串字面值
+  - *prvalue*: C++11之前的右值指的是C++11后的纯右值，包括字符串以外的所有字面值，不具名临时对象等
+  - *xvalue*: 。C++11中的将亡值是随着右值引用的引入而引入的。所谓的将亡值表达式，就是下列表达式：
+    - 返回右值引用的函数的调用表达式
+    - 转换为右值引用的转换函数的调用表达式(`move`, `forward`)
 
-?Values are either lvalue ((non-expiring) left value), *prvalue* (pure right value) or *xvalue* (expiring value)
+
 
 
 
@@ -73,8 +87,9 @@ Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr e
   - increament of reference increases the object, increament of the pointer makes the pointer point to the next address
  - reference has type check (safer)
 
-
 #### rvalue refrence (&&)
+
+本来引用不可以使用另一个引用初始化，但因为 c++11 引入了右值引用，现在可以
 
 C++11 标准中规定，通常情况下右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板中使用右值引用语法定义的参数来说，它不再遵守这一规定，既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用” universal reference）。
 
@@ -90,7 +105,7 @@ C++11 标准中规定，通常情况下右值引用形式的参数只能接收�
 
  C++11 标准中规定，通常情况下右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板中使用右值引用语法定义的参数来说，它不再遵守这一规定，既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。
 
- ```
+ ```c++
  template<class T>
  void wrapper(T&& arg)
  {
@@ -218,7 +233,7 @@ The `explicit` keyword is used to mark **constructors** or **conversion function
 
 The `typedef` keyword is used for aliasing existing data types, user-defined data types, and pointers to a more meaningful name. Typedefs allow you to give descriptive names to standard data types, which can also help you self-document your code.
 
-```
+```c++
 typedef std::vector<int> vInt;
 ```
 
@@ -385,6 +400,8 @@ The `auto` keyword directs the compiler to deduce the type of a variable from it
 
 more accurate type deduction than auto.
 
+
+
 ### lambda expression
 
 A convenient way of defining an anonymous function, full syntax:
@@ -439,6 +456,37 @@ but usually:
 >
 > The current object (*this) can be implicitly captured if either capture default is present. If implicitly captured, it is always captured by reference, even if the capture default is `=`. The implicit capture of *this when the capture default is `=` is deprecated.(since C++20)
 
+##### generic lambda (C++14)
+
+generic lambda has `auto` in its parameter list, it's equivalent to:
+
+```c++
+auto lambda = [](auto x, auto y) {return x + y;};
+
+struct unnamed_lambda
+{
+  template<typename T, typename U>
+    auto operator()(T x, U y) const {return x + y;}
+};
+auto lambda = unnamed_lambda();
+```
+
+？？？泛型闭包：
+
+```c++
+auto f3 = [](auto a) {
+  return [=]() mutable { return a = a + a; };
+};
+auto twice1 = f3(1);
+cout << twice1() << endl; // 2
+cout << twice1() << endl; // 4
+auto twice2 = f3(string{"a"});
+cout << twice2() << endl; // aa
+cout << twice2() << endl; // aaaa
+```
+
+
+
 ### Range-based for loop (since C++11)
 
 ```c++
@@ -465,17 +513,3 @@ for ( ; __begin != __end; ++__begin)
 统一初始化是使用大括号进行初始化的方式，其实是利用一个事实：编译器看到{t1, t2, …, tn}便会做出一个initializer_list，它关联到一个array<T, n>。调用构造函数的时候，该array内的元素会被编译器分解逐一传给函数。但若函数的参数就是initializer_list，则不会逐一分解，而是直接调用该参数的函数。
 
 所有的标准容器的构造函数都有以initializer_list为参数的构造函数。initizlizer_list的最广泛的使用就是不定长度同类型参数的情况。
-
-
-
-### Concept & Requires
-
-specify what's expected of template arguments, and get a nice clear compiler error message if misused
-
-```c++
-template<typename T> requires std::integral<T>  some_func(const T &a, const T &b) {};
-template<class T> concept integral = std::is_integral_v<T>;
-template<class _Tp> struct is_integral : _BoolConstant<__is_integral(_Tp)> {};
-template<bool _Val> using _BoolConstant _LIBCPP_NODEBUG = integral_constant<bool, _Val>;
-```
-

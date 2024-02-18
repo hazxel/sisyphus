@@ -13,13 +13,11 @@
 
 
 
-disk y00848154 clion 1 4 bin ninja linux x64 ninja
-
-
-
 ## Conan
 
 包管理器
+
+
 
 ## GDB
 

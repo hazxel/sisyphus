@@ -11,6 +11,8 @@ STL 的目标就是要把数据和算法分开，分别对其进行设计，之�
 
 必须强调的是，STL 只是一个标准，只对接口进行规范，其实现可以有不同版本。目前流行的 STL实现如 SGI STL 版本被 GCC 采用，此外还有如 Visual C++ 采用的 P.J. Plauger 版本等。
 
+
+
 # Traits
 
 Traits 就是为了萃取元素类型而在STL中广泛采用的技法，如`iterator_traits`,  `allocator_traits`, `type_traits` 等，都是为了在编译时进行类型信息的操作，方便在 iterator 或算法中定义中间变量或者返回类型等。以下是简化的 `iterator_traits` 的实现：
@@ -64,7 +66,7 @@ std::alloc 是SGI STL的默认配置器，它在`<memory>`中实现。他由两�
 
 
 
-# STL Funcitons
+# STL Functions
 
 ### Stream
 
@@ -91,7 +93,11 @@ A **stream** is a flow of data into or out of a program.
 Useful Functions: 
 
 - `getline`: defined in `<string>`, reads a line of characters (separated by `\n` or some other characters) from an input stream and places them into a string.
+
+  > `getline(ss, str, ',');` can be used to split a string with specified splitter
+
 - `operator>>`: usually read a word (separated by whitespace, `\n`, etc) from stream.
+
 - `flush`: ensures that all data that has been written to that stream is output, including clearing any that may have been buffered.
 
 
@@ -152,7 +158,9 @@ Stream based, just like `cin` and `cout`.
 
 ### function
 
-函数包装器，可包装调用实体如普通函数，函数对象，lamda表达式等：`std::function<int(int)> callback;`
+函数包装器，可包装各种类型的调用实体如：普通函数，对象方法，仿函数，lamda表达式等：`std::function<int(int)> callback;`
+
+STL中大量使用function作为算法的入参，如`sort`, `for_each`, `visit` 等
 
 ### ref
 
@@ -160,5 +168,22 @@ Stream based, just like `cin` and `cout`.
 
 
 
+# Variant (c++17)
+
+union在许多性能敏感场景下被使用，但它没有办法推断自己当前使用的类型，析构函数也不能被正常调用，而variant提供了一种类型安全的union类型。如果你正在处理一些底层的逻辑，并且只使用基本类型，那么union可能仍然是首选。但是对于其他的使用场景，std::variant是一种更好的方式。
+
+一些可能使用的场景：
+
+- 所有可能为单个变量获得几种类型的地方：解析命令行、ini文件、语言解析器等。
+- 有效地表达计算的几种可能结果：例如求解方程的根
+- 错误处理：例如，您可以返回`variant<Object, ErrorCode>`，如果返回值是有效的，则返回`Object`，否则分配一些错误码（C++23可以使用`std::expected`）。
+- 状态机
+- 不使用虚表和继承实现的多态（visiting pattern）
+
+https://zhuanlan.zhihu.com/p/607734474
 
 
+
+### visit
+
+可 visit 多个 variant

@@ -84,6 +84,8 @@ const T T::operator++(int);		// post-increase in T's namespace
 SOME_TYPE operator()(SOME_TYPE a);
 ```
 
+使类能像函数一样被调用，好处是可以存放状态
+
 ##### this
 
 当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是this指针。如果是用new创建的对象可以delete this指针。但是一经delete之后其所有成员都不能再被访问。
@@ -105,7 +107,9 @@ C++ allows multiple definitions for the same function name in the same scope. Th
 - **Static Binding** (dispatch) is to fix the function address in compile time. C++ is default to static binding.
 - **Dynamic Binding** (dispatch) means to decide which function to call based on the dynamic type of the object. In C++, dynamic binding is only possible with virtual functions
 
-##### Virtual Function
+
+
+### Virtual Function
 
 ```c++
 class MyClass {
@@ -127,7 +131,36 @@ A **pure virtual function** is a virtual function without implementation. A clas
 
 Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
 
-##### Inheritance
+##### Runtime Type Information（RTTI）
+
+In C++, RTTI can be used to do safe typecasts using the dynamic_cast<> operator, and to manipulate type information at runtime using the typeid operator and std::type_info class.
+
+RTTI是Runtime Type Identification的缩写，意思是运行时类型识别。C++引入这个机制是为了让程序在运行时能根据基类的指针或引用来获得该指针或引用所指的对象的实际类型。但是现在RTTI的类型识别已经不限于此了，它还能通过typeid操作符识别出所有的基本类型（int，指针等）的变量对应的类型。
+
+C++通过以下的两个操作提供RTTI：
+
+1. typeid运算符，该运算符返回其表达式或类型名的实际类型
+2. dynamic_cast运算符，该运算符将基类的指针或引用安全地转换为派生类类型的指针或引用
+
+
+
+### List Initialization (C++11)
+
+使用大括号 `{}` 来指定初始值，可以用于变量、数组、结构体、类等，他不允许窄化转换（不会隐式转换丧失精度），并且可读性更好。如果有构造函数接受一个 `std::initializer_list` 参数，列表初始化会优先选择这个构造函数。初始化对象是一个类的情况下需要满足：
+
+- 没有用户声明的构造函数
+- 没有用户提供的构造函数(允许显示预置或弃置的构造函数)
+- 没有私有或保护的非静态数据成员
+- 没有基类
+- 没有虚函数
+- 没有`{}`和`=`直接初始化的非静态数据成员
+- 没有默认成员初始化器
+
+
+
+### Inheritance
+
+default is private
 
 |            | public  | protected | private  |
 | --------------------- | --------- | --------- | --------- |
@@ -141,11 +174,20 @@ In multiple inheritance, a class may inherit from a superclass more than once. (
 
 虚继承的目的是让某个类做出声明，承诺愿意共享它的基类。其中，这个被共享的基类就称为虚基类（Virtual Base Class）。在这种机制下，不论虚基类在继承体系中出现了多少次，在派生类中都只包含一份虚基类的成员。
 
+##### using 
+
+用于引入基类中的成员函数或成员变量到派生类中，主要有以下几种场景：
+
+- 子类无法隐式使用父类的构造函数，需要写`Derived(int arg): Base(int arg) {}` 略麻烦
+- 子类的同名函数会隐藏基类的实现（即使是重载）
+
 ##### final
 
 Specifies that a virtual function cannot be overridden or a class cannot be derived from.
 
-##### Friend
+
+
+### Friend
 
 The`friend` keyword marked some functions or classes as *friends*, granting member-level access to functions and classes.
 
@@ -162,7 +204,9 @@ class MyClass {
 }
 ```
 
-##### Mutable
+
+
+### Mutable
 
 某些const函数内需要改变成员变量值，但又要保持const属性，被const对象调用。用mutable修饰成员变量，在const成员函数中也可修改。
 
