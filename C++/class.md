@@ -36,18 +36,16 @@ MyClass& operator= (const MyClass&);
 
 Assignment operator cannot be inherited. 
 
-##### Move Constructor & Move-Assignment operator
-
-> New in C++11
+##### Move Constructor & Move-Assignment operator (C++11)
 
 ```c++
 MyClass(const MyClass&&);
 MyClass& operator= (const MyClass&&);
 ```
 
-A move constructor enables the resources owned by an rvalue object to be moved into an lvalue without (deep) copying. This is usually faster than copy constuctor/copy-assignment operator when the input is an rvalue! 
+A move constructor enables the resources owned by an rvalue object to be moved into an lvalue without (deep) copying. This is usually faster than copy constuctor/copy-assignment operator when the input is an rvalue.
 
-> After moving, assign the data members of the source object to default values. This prevents the destructor from freeing resources (such as memory) multiple times.
+如果需要自定义 移动构造/移动赋值 函数，尽量定义为 `noexcept` 不抛出异常（编译器生成的版本会自动添加），否则 **不能高效使用标准库和语言工具**！例如，标准库容器 `std::vector` 在扩容时，会通过 `std::vector::reserve()` 重新分配空间，并转移已有元素。如果扩容失败，`std::vector` 满足强异常保证 (strong exception guarantee)，可以回滚到失败前的状态。为此，`std::vector` 使用 `std::move_if_noexcept()` 进行元素的转移操作。如果 没有定义移动构造函数 或 自定义的移动构造函数没有 `noexcept`，会导致 `std::vector` 扩容时执行无用的拷贝，不易发现。
 
 ##### Conversion Constructor
 

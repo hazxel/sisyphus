@@ -25,7 +25,7 @@ a[5] = 0;
 
 ##### NULL vs nullptr
 
-`nullptr` is introduced to resolve the ambiguity of `NULL`, because it's hard to tell if NULL is pointer or number. `nullptr` is a compile time constant, with type `nullptr_t`, and can be implicitly converted to any pointer type.
+`nullptr` is introduced to resolve the ambiguity of `NULL`, because it's hard to tell if `NULL` is pointer or number. `nullptr` is a compile time constant, with type `nullptr_t`, and can be implicitly converted to any pointer type.
 
 ```c++
 #define NULL ((void*)0) // definition in C
@@ -45,7 +45,14 @@ Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr e
 
 
 
-# lvalue vs rvalue
+#  Value vs Variable
+
+- 值有类别 (category, e.g. glvalue, rvalue, lvalue, prvalue, xvalue...) ，变量有类型 (type) 
+- 值不一定拥有身份 (identity???)，也不一定拥有变量名（e.g. 表达式中间结果）
+
+
+
+# lvalue vs rvalue 
 
 |         lvalue         |         rvalue         |
 | :--------------------------------------: | :--------------------------------------: |
@@ -54,11 +61,13 @@ Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr e
 | can be left or right operand of assigment | can only be left right operand of assigment |
 |    ++i (return reference of i)    | i++ (i has increased, return a saved temp value) |
 
+C++17细分概念：
+
 - Values are either *glvalue* (generalized left value) or *rvalue* (right value). 
   - *glvalue*  inlcudes *lvalue* and *xvalue*
   - *rvalue* includes *prvalue* and *xvalue*
 - Values are either lvalue ((non-expiring) left value), *prvalue* (pure right value) or *xvalue* (expiring value)
-  - *lvalue*: 能够用&取地址的表达式，以及字符串字面值
+  - *lvalue*: 能够用&取地址的表达式，以及字符串字面值（特例）
   - *prvalue*: C++11之前的右值指的是C++11后的纯右值，包括字符串以外的所有字面值，不具名临时对象等
   - *xvalue*: 。C++11中的将亡值是随着右值引用的引入而引入的。所谓的将亡值表达式，就是下列表达式：
     - 返回右值引用的函数的调用表达式
@@ -66,26 +75,19 @@ Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr e
 
 
 
-
-
 # Reference
 
 #### Reference vs Pointer
 
-- Same: they are both related to the address:
- - A pointer points to a memory address
- - A reference is an alias of a memory address 
-- Difference:
- - Initialization:
-  - Reference must be initialized, and **cannot be modified to refer to other objects**.
-  - Pointer can be initialized anytime, and can be modified anytime
- - Reference cannot be null, pointer can be null
- - No const reference (but reference to a const object is ok)
- - reference type must match with the object it is referring to (const reference is an exception)
- - increament operator (++) and sizeof() are different
-  - Size of reference is the size of the object; size of the pointer is the size of the pointer itself
-  - increament of reference increases the object, increament of the pointer makes the pointer point to the next address
- - reference has type check (safer)
+- A pointer points to a memory address; A reference is an alias of a memory address 
+
+- Reference **cannot be modified to refer to other objects** after init.
+- Reference cannot be null, and must be initialized, 悬垂引用 (dangling reference) is still possible
+- There is no const reference (reference is by definition immutable, but reference to a const object is ok)
+- reference type must match with the object it is referring to (const reference is an exception)
+- Size of reference is the size of the object; size of the pointer is the size of the pointer itself
+- increament of reference increases the object, increament of the pointer makes the pointer point to the next address
+- reference has type check (safer)
 
 #### rvalue refrence (&&)
 
@@ -93,7 +95,9 @@ Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr e
 
 C++11 标准中规定，通常情况下右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板中使用右值引用语法定义的参数来说，它不再遵守这一规定，既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用” universal reference）。
 
-> It might be confusing that lvalue reference and rvalue refrence themselves can be either lvalue or rvalue.
+### Confusing: whaaat? my rvalue reference itself is a lvalue? 
+
+*lvalue reference* and *rvalue refrence* themselves can be either *lvalue* or *rvalue*.
 
 #### move & forward (C11)
 
@@ -202,6 +206,8 @@ class optional {
 - static member variables: all instances share one copy, can be accessed without instances 
 - static member functions: can be accessed without instances, but cannot use non-static members
 
+
+
 # Global variable (C++ only, different from C)
 
 ```c++
@@ -286,6 +292,10 @@ typedef std::vector<int> vInt;
 Unlike `const`, `constexpr` can also be applied to functions and class constructors. `constexpr` indicates that the value, or return value, is constant and, where possible, is computed at compile time. When a value is computed at compile time instead of run time, it helps your program run faster and use less memory. (low latency!)
 
 when a constexpr function is called with only compile-time arguments, the result of the function will be computed at compile-time. If, however, any argument is notknown at compile-time, the computation will be executed at runtime, like a regular function.
+
+##### constexpr if (C++11?)
+
+???
 
 
 
@@ -508,8 +518,16 @@ for ( ; __begin != __end; ++__begin)
 - Choose `auto &x` when you want to work with original items and may modify them.
 - Choose `auto const &x` when you want to work with original items and will not modify them.
 
+
+
 ### Initializer list
 
 统一初始化是使用大括号进行初始化的方式，其实是利用一个事实：编译器看到{t1, t2, …, tn}便会做出一个initializer_list，它关联到一个array<T, n>。调用构造函数的时候，该array内的元素会被编译器分解逐一传给函数。但若函数的参数就是initializer_list，则不会逐一分解，而是直接调用该参数的函数。
 
 所有的标准容器的构造函数都有以initializer_list为参数的构造函数。initizlizer_list的最广泛的使用就是不定长度同类型参数的情况。
+
+
+
+### static_assert
+
+`static_assert` requires a compile-time predicate, and a message is displayed when the compile-time predicate fails. With C++17, the message is optional. With C++20, this compile-time predicates can be a requires expression.

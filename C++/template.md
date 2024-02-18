@@ -47,6 +47,54 @@ void FormatPrint(Args... args)
 
 specify what's expected of template arguments, and get a nice clear compiler error message if misused
 
+##### Usage with integer template parameter
+
+```c++
+template <unsigned int i>
+requires (i <= 20)         
+int sum(int j) { return i + j; }
+```
+
+##### Concept
+
+```c++
+template<typename T>
+concept Addable = requires (T a, T b) { a + b; }; // 检查 a 和 b 可加
+
+template<typename T>
+concept Printable = requires(T a) { 
+    // 检查 T 是否有一个名为print的成员函数，该函数接受一个类型为 std::ostream& 的参数，且返回类型为void
+    { a.print(std::cout) } -> std::same_as<void>;
+};
+```
+
+##### Require a concept
+
+```c++
+template<typename T>  
+requires Addable<T>
+auto add(T a, T b) { return a + b; }
+// or
+template<Printable T> 
+void print(const T& t) { t.print(std::cout); }
+
+template<typename T>                                        
+requires std::integral<T> // use std concepts whenever possible                
+auto gcd(T a, T b) { //... }
+```
+
+##### Requires anonymous concept
+
+You can define an anonymous concept and directly use it but it should be avoided. Anonymous concepts are less readable and not reuseable.
+
+```c++
+template<typename T>
+    requires requires (T x) { x + x; } 
+auto add(T a, T b) { return a + b; }
+```
+
+##### logic behind `concept`
+
 ```c++
 template<typename T> requires std::integral<T>  some_func(const T &a, const T &b) {};
 template<class T> concept integral = std::is_integral_v<T>;
