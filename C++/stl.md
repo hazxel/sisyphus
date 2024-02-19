@@ -58,6 +58,8 @@ STL 容器都带有默认 Allocator 参数：`template<class T, class Allocator 
 
 std::allocator部分符合STL标准，它在文件 defalloc.h 中实现。但是SGI STL的容器并不使用它，也不建议我们使用，它存在的意义仅在于为用户提供一个兼容老代码的折衷方法，其实现仅仅是对new和delete的简单包装。
 
+std::allocators don’t provide a resizing operation, thus may be less performant.
+
 ##### std::alloc 
 
 std::alloc 是SGI STL的默认配置器，它在`<memory>`中实现。他由两级空间配置器实现：

@@ -2,7 +2,8 @@
 
 ### Hierarchy
 
-- L1 Cache & L2 Cache: not shared between cores
+- L1 Cache: usually embedded in the processor chip as CPU cache.
+- L2 Cache: may be embedded on the CPU, or on a separate chip or coprocessor and have a high-speed alternative system bus connecting the cache and CPU. (not slowed by traffic on the main system bus)
 - L3 Cache: shared by all cpu
 
 ### Cache locality
