@@ -48,7 +48,7 @@ Obj fun() {
  Obj obj(1);
  return obj;
 }
-// 优化后调用方法：Obj o; fun(o);
+// 优化后等价的调用方法：Obj o; fun(o);
 void fun(Obj &_obj) {
  Obj obj(1);
  _obj.Obj::Obj(obj); 
@@ -59,17 +59,15 @@ void fun(Obj &_obj) {
 更彻底的：
 
 ```c++
-// 原函数
-Obj fun() {
+Obj fun() { // 原函数
  return Obj(1);
 }
-// 优化后
-void fun(Obj &_obj) {
+void fun(Obj &_obj) { // 优化后
  _obj.Obj::Obj(1);
 }
 ```
 
-Effective Modern C++ 中将 RVO 优化的条件概括为两点： 局部对象的类型和返回类型相同+局部对象就是返回值
+Effective Modern C++ 中将 RVO 优化的条件概括为两点： **局部对象**的类型和返回类型相同+局部对象就是返回值
 
 NRVO（Named RVO），与 RVO 的区别其实就是函数中返回的对象已经具名了，如：
 
@@ -83,6 +81,15 @@ Obj fun() {
 > **(N)RVO 受限的场景：** 
 >
 > - 作为返回值时，（Linux平台下）不能使用std::move()，否则会无法应用(N)RVO 优化。Adding `move` prevents the move being elided, because `return std::move(foo);` is *not* eligible for NRVO. 会多产生一次拷贝和一次析构。
+> - 但是如果不是 local 对象而是外部传入的类型，还是应当在必要时使用 move
+
+### Copy elision optimization
+
+```c++
+Foo f = Foo(); // copy ctor not called
+```
+
+???
 
 
 
@@ -104,6 +111,11 @@ Conclusion: for self defined header files, use `#include ""`
 - `#pragma pack (n)`: Specifies the value, in bytes, to be used for packing.
 - `#pragma pack (pop)`: Removes the record from the top of the internal compiler stack.
 - `#pragma once`: Specifies that the compiler includes the header file only once when compiling.
+
+### Macros
+
+- `__FILE__`: expand to the full path name of the current input file
+- `__LINE__`: expand to the current input line number
 
 
 

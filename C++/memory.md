@@ -58,15 +58,13 @@ C++使用全局new或delete可以很轻松的操控内存，但也很容易引�
 
 # Smart Pointers
 
-###### Thread Safe
+### Unique pointer
 
-smart pointers are not thread safe.
+赋值：由于unique_ptr对于内存的独占特性，unique_ptr不支持直接的赋值操作，而只能支持右值引用的赋值
 
-###### Unique pointer
+拷贝构造&移动构造：不支持拷贝构造，只支持移动构造
 
-赋值：由于unique_ptr对于内存的独占特性，unique_ptr不支持直接的赋值操作，而只能支持右值引用的赋值。当程序试图将一个 unique_ptr 赋值给另一个时，如果源 unique_ptr 是个临时右值，编译器允许这么做；如果源 unique_ptr 将存在一段时间，编译器将禁止这么做
-
-###### shared pointer、unique pointer 与 中间层
+### shared pointer、unique pointer 与 中间层
 
 shared_ptr在底层使用了两个技术，一个是引用计数，另一个是引入了一个中间层。为了管理目标对象，所创建的中间层被称为manager object。其中除了目标对象的裸指针，还有两个引用计数。一个用于shared_ptr，一个用于weak_ptr。当shared count减到0的时候，managed object就会被销毁。只有shared count和weak count都减到0的时候，manager object才会被销毁。
 
@@ -89,12 +87,67 @@ Implementation:
 
 
 
-##### dynamic_pointer_cast
+### dynamic_pointer_cast
 
-如果基类的指针指向派生类，想用派生类独有的函数，就会使 std::dynamic_pointer_cast ，但只可作用于 shared_ptr，不适合unique_ptr, 因为c++标准库根本没实现，违背了 unique_ptr 的唯一性。
+如果基类的指针指向派生类，想用派生类独有的函数，就会使 std::dynamic_pointer_cast ，但只可作用于 shared_ptr，可用于unique_ptr，因为c++标准库觉得此做法违背了 unique_ptr 的唯一性。
 
 
 
-### Allocator
+### Function parameter passing semantics (C++ Core Guideline R32-R35)
+
+- `void pass(unique_ptr<T>)` : pass ownership
+
+- `void share(shared_ptr<T>)`: share ownership
+
+- `void pass(unique_ptr<T> &&)` : pass ownership
+
+- `void pass(shared_ptr<T> &&)`: pass a share of ownership
+
+- `void reset(unique_ptr<T> &)`: modify the `unique_ptr`   itself (reset/release/swap)
+
+- `void reset(shared_ptr<T> &)`: modify the `shared_ptr`   itself (reset/release/swap)
+
+- const reference: maybe not, consider raw pointers or references
+
+  
+
+### Avoid smart pointers for general usage (C++ Core Guideline F.7)
+
+Any function that does not manipulate lifetime should take raw pointers or references instead. Reasons:
+
+- smart pointer add restrictions to caller function
+- passing shared pointer may introduce run-time overhead
+- `const unique_ptr<int>&` doesn't change ownership, but requires a particular ownership of the caller
+- Function arguments naturally live for the lifetime of the function call, and so have fewer lifetime problems.
+
+Bad example: function `f` only use the object, lifetime not used at all
+
+```c++
+void f(shared_ptr<widget>& w) { use(*w); };
+
+shared_ptr<widget> my_widget = /* ... */;
+f(my_widget); // ok
+widget stack_widget;
+f(stack_widget); // error, f is restricted to only accepting shared_ptr<widget>
+```
+
+Good example:
+
+```c++
+void f(widget& w) { use(w); };
+
+shared_ptr<widget> my_widget = /* ... */;
+f(*my_widget);
+widget stack_widget;
+f(stack_widget); // ok -- now this works
+```
+
+### Thread Safe
+
+smart pointers are not thread safe.
+
+
+
+# Allocator
 
 *glibc* memory allocator talks to the OS kernal, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)

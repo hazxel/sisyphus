@@ -77,7 +77,7 @@ C++17细分概念：
 
 # Reference
 
-#### Reference vs Pointer
+### Reference vs Pointer
 
 - A pointer points to a memory address; A reference is an alias of a memory address 
 
@@ -89,7 +89,7 @@ C++17细分概念：
 - increament of reference increases the object, increament of the pointer makes the pointer point to the next address
 - reference has type check (safer)
 
-#### rvalue refrence (&&)
+### rvalue refrence (&&)
 
 本来引用不可以使用另一个引用初始化，但因为 c++11 引入了右值引用，现在可以
 
@@ -99,7 +99,7 @@ C++11 标准中规定，通常情况下右值引用形式的参数只能接收�
 
 *lvalue reference* and *rvalue refrence* themselves can be either *lvalue* or *rvalue*.
 
-#### move & forward (C11)
+### move & forward (C11)
 
 > introduced in C11
 
@@ -107,20 +107,25 @@ C++11 标准中规定，通常情况下右值引用形式的参数只能接收�
 
 - `std::forward<T>` (perfect forwarding, 完美转发) When t is a forwarding reference (a function argument that is declared as an rvalue reference to a cv-unqualified function template parameter), this overload forwards the argument to another function with the value category it had when passed to the calling function. 
 
- C++11 标准中规定，通常情况下右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板中使用右值引用语法定义的参数来说，它不再遵守这一规定，既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。
+They both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference and `std:forward` for universal reference (only in template functions, `&&` reference can take either rvalue or lvalue, to avoid writing very similar functions twice) .
+
+### Universal Reference
+
+ 通常情况下右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板和`auto`中使用右值引用语法定义的参数来说，它既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。
 
  ```c++
+ auto&& var = container.get();
+ 
  template<class T>
- void wrapper(T&& arg)
- {
-   // arg is always lvalue
+ void wrapper(T&& arg) {
    foo(std::forward<T>(arg)); // Forward as lvalue or as rvalue, depending on T
  }
+ 
+ template<typename T>
+ void foo(std::vector<T>&& param); // this is not universal reference!!
  ```
 
-They both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference and `std:forward` for universal (only in template functions, `&&` reference can take either rvalue or lvalue) reference.
-
-#### reference collapsing
+### reference collapsing
 
 For the following code:
 
@@ -139,7 +144,7 @@ the acutal type of var is:
 | A&& | T& |   A&   |
 | A&& | T&& |   A&&   |
 
- #### reference qualifier 引用限定 C11
+ ### reference qualifier 引用限定 C11
 
  ```c++
 template <typename T>
@@ -155,7 +160,74 @@ class optional {
 };
  ```
 
+### Final Exam for argument passing 
 
+##### Pass by value - when you need a copy or accepting basic types
+
+```c++
+void Func(Data);
+Func(Data());								// only one ctor!!!
+Data d; Func(d);						// ctor + copy_ctor
+Data d; Func(std::move(d));	// ctor + move_ctor
+```
+
+##### Pass by reference - when modify the param or pass output
+
+```c++
+void Func(Data &);
+Func(Data());								// won't compile, lvalue ref cannot bind rvalue
+Data d; Func(d);						// compiles
+Data d; Func(std::move(d));	// won't compile, lvalue ref cannot bind rvalue
+```
+
+##### Pass by const reference - default choice for read-only params
+
+```c++
+void Func(const Data &);
+Func(Data());								// compiles
+Data d; Func(d);						// compiles
+Data d; Func(std::move(d));	// compiles
+```
+
+> ### lifetime extension of temporary objects:
+>
+> Currently, const lvalue reference, rvalue reference, and storing by named variable are 3 ways to extend the lifetime of a temporary object. **For any statement explicitly binding a reference to a temporary, the lifetime of the temporary would be extended to match the life time of reference.**
+>
+> Why not non-const reference? C++ doesn't want you to accidentally modify temporaries, because they will die soon. But calling a non-const member function on a modifiable (and non basic typed) rvalue is explicit, so it's allowed.
+>
+> Historical reason: It is proposed in 1993, before the existance of RVO. So binding of temporary to a reference will save one copy ctor in such circunstance: 
+>
+> ```c++
+> Foo bar();						// programming under old C++ standard in 1993
+> Foo f = bar();				// no (N)RVO back then, copy_ctor called
+> const Foo &f = bar();	// copy free
+> Foo f = Foo();				// no copy elision back then, copy_ctor called
+> const Foo &f = Foo();	// copy free
+> ```
+>
+> 
+
+##### Pass by rvalue reference - take ownership of the passed param
+
+```c++
+void Func(Data &&);
+Func(Data());								// compiles
+Data d; Func(d);						// won't compile to prevent lvalue accidently passed to it
+Data d; Func(std::move(d));	// compiles
+```
+
+##### Smart Pointers - be careful - see memory chapter
+
+##### Return type
+
+- for free functions, usually by value return is the only option, except for returning static/global objects
+- for member methods, value, const and non-const reference are all possible
+
+##### Not recommended
+
+- `void Func(const Data)`: The variable wiil be destroied when out of scope, why can't I modify it?
+- `void Func(const Data &&)`: So I took the ownership but still couldn't modify it?
+- raw pointers
 
 
 
@@ -188,10 +260,9 @@ class optional {
  ```
 
 - const member function:
-
- - such member function cannot modify member variables. (指针指向的对象是例外)
- - const instance can only call const member functions.
- - const member function cannot be static (static functions are independent on instances)
+  - such member function cannot modify member variables. (指针指向的对象是例外)
+  - const instance can only call const member functions.
+  - const member function cannot be static (static functions are independent on instances)
 
 - const return type: useful when returning a reference of class' internal member
 
@@ -200,8 +271,9 @@ class optional {
 # static (keyword)
 
 - static variables
- - normal variables are stored on stack
- - static variables are stored on static segment (scope remains the same), and invisible to other files
+  - normal variables are stored on stack
+  - static variables are stored on static segment (scope remains the same), and invisible to other files
+
 - static funcitons: only visible in current file, can be used to avoid conflicts
 - static member variables: all instances share one copy, can be accessed without instances 
 - static member functions: can be accessed without instances, but cannot use non-static members
