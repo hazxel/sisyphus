@@ -21,6 +21,10 @@
 
 - If no copy constructor, copy-assignment operator, move constructor, move-assignment operator, or destructor is explicitly declared, a move constructor and a move-assignment operator will be automatically generated.
 
+- 如果 没有定义 拷贝构造/拷贝赋值/移动构造/移动赋值/析构 函数的任何一个，编译器会 自动生成 移动构造/移动赋值 函数（rule of zero）
+  如果 需要定义 拷贝构造/拷贝赋值/移动构造/移动赋值/析构 函数的任何一个，不要忘了 移动构造/移动赋值 函数，否则对象会 不可移动（rule of five）
+  尽量使用=default 让编译器生成 移动构造/移动赋值 函数，否则 容易写错
+
 - Compiler calls super class's default constuctor implicitly if not called explicitly in program. If super class doesn't have default constructor, then one of the other constructor must be called explicitly.
 
  ```c++

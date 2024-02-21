@@ -60,30 +60,25 @@ C++使用全局new或delete可以很轻松的操控内存，但也很容易引�
 
 ### Unique pointer
 
+Allows exactly one owner of the underlying pointer.
+
 赋值：由于unique_ptr对于内存的独占特性，unique_ptr不支持直接的赋值操作，而只能支持右值引用的赋值
 
 拷贝构造&移动构造：不支持拷贝构造，只支持移动构造
 
-### shared pointer、unique pointer 与 中间层
+### shared pointer、weak pointer 与 control block
 
-shared_ptr在底层使用了两个技术，一个是引用计数，另一个是引入了一个中间层。为了管理目标对象，所创建的中间层被称为manager object。其中除了目标对象的裸指针，还有两个引用计数。一个用于shared_ptr，一个用于weak_ptr。当shared count减到0的时候，managed object就会被销毁。只有shared count和weak count都减到0的时候，manager object才会被销毁。
-
-Smart Pointers are used to help ensure that programs are free of memory and resource leaks and are exception-safe. In most cases, when you initialize a raw pointer or resource handle to point to an actual resource, pass the pointer to a smart pointer immediately.
-
-- `unique_ptr`: Allows exactly one owner of the underlying pointer.
 - `shared_ptr`: Reference-counted smart pointer. The raw pointer is not deleted until all `shared_ptr` owners have gone out of scope or have otherwise given up ownership.
-- `weak_ptr`: Special-case smart pointer for use in conjunction with `shared_ptr`. A `weak_ptr` provides access to an object that is owned by one or more `shared_ptr` instances, but does not participate in reference counting.
- - expired: Equivalent to use_count() == 0. The destructor for the managed object may not yet have been called, but this object's destruction is imminent (or may have already happened).
+- `weak_ptr`: Special-case smart pointer for use in conjunction with `shared_ptr`. A `weak_ptr` provides access to an object that is owned by one or more `shared_ptr` instances, but does not participate in reference counting. (no ownership)
 - `auto_ptr`: deprecated from C17, not recommended to use
 
-Implementation:
+shared_ptr在底层使用了control block。其中除了目标对象的裸指针，还有两个引用计数。一个用于shared_ptr，一个用于weak_ptr。当use_count减到0的时候，资源就会被销毁。只有use_count和weak_count都减到0的时候，control block 才会被销毁。??? delete this ???
 
-- Counting references
-- Destructor: when instance is out of scope, the destructor is called automatically
+ - `weak_ptr::use_count()`: get the use_count of the resource
+ - `weak_ptr::expired()`: Equivalent to use_count() == 0. The destructor for the managed object may not yet have been called, but this object's destruction is imminent (or may have already happened).
+ - `weak_ptr::lock()`: if not expired, create a temporary shared_ptr to access the resource
 
-```c++
-#include <memory>
-```
+##### shared_ptr aliasing constructor (C++20)
 
 
 
