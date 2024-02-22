@@ -61,3 +61,62 @@ The type of the underlying container to use to store the elements. The container
 ### begin，cbegin，rbegin
 
 分别为普通迭代器，只读迭代器，还有反向迭代器。降序排列元素可向 `std::sort()` 传送反向迭代器
+
+
+
+
+
+# Algorithms
+
+> \#include <algorithm>
+
+- swap: quick sort
+
+- find
+
+- sort
+
+ ```
+template< class RandomIt >
+void sort( RandomIt first, RandomIt last );
+// or
+template< class RandomIt, class Compare >
+constexpr void sort( RandomIt first, RandomIt last, Compare comp );
+ ```
+
+ a comparator like this needed:
+
+ ```
+bool compare(const MyClass& o1, const MyClass& o2);
+// or 
+ 
+ ```
+
+- for_each
+
+- transform: applies the given function to a range and stores the result in another range, keeping the original elements order and beginning at 3rd paremeter, 
+
+ - can be either in-place modify or non-implace.
+ - can be either unary operation or binary operation
+
+ ```c++
+ std::string s{"hello"};
+ std::transform(s.cbegin(), s.cend(),
+         s.begin(), // write to the same location
+         [](unsigned char c) { return std::toupper(c); });
+ // achieving the same with std::for_each (see Notes above)
+ std::string g{"hello"};
+ std::for_each(g.begin(), g.end(), [](char& c) // modify in-place
+ {
+   c = std::toupper(static_cast<unsigned char>(c));
+ });
+ // insert at back
+ std::vector<std::size_t> ordinals;
+ std::transform(s.cbegin(), s.cend(), std::back_inserter(ordinals),
+         [](unsigned char c) { return c; });
+ ```
+
+  
+
+- xxx
+

@@ -1,13 +1,17 @@
-# C Memory Alloocation
+# C Memory Allocation
 
 动态内存开辟主要有 malloc、calloc、realloc 几种
 
-- malloc：分配给定字节数大小的空间
-- calloc：在返回在堆区申请的那块动态内存的起始地址之前，会将每个字节都初始化为0，接受类型大小和个数两个参数
-- realloc：重新分配之前由 `malloc`、`calloc` 或 `realloc` 分配的内存块的大小
+- `malloc(size)`：分配给定字节数大小的空间，不初始化
+- `calloc(num,size)`：在返回在堆区申请的那块动态内存的起始地址之前，会将每个字节都初始化为0，接受类型大小和个数两个参数（历史原因需要两个参数，不用管，反正malloc一般也是 num*size 来用）
+- `realloc(ptr,new_size)`：重新分配之前由 `malloc`、`calloc` 或 `realloc` 分配的内存块的大小，可扩容或截断
 - `alloca`：在栈上分配内存，有些平台不支持
 
 调用 malloc 时，并不会真正申请物理内存，不会影响 RSS，只是移动 `brk` 指针，即一个表示进程虚拟内存空间中 `堆空间` 的顶部的指针。而且物理内存的申请延迟到对虚拟内存进行读写的时候，通过缺页异常来实现。
+
+内存操作：
+
+- `memcpy(dest,src,count)`
 
 # C++ Memory Layout & Management
 

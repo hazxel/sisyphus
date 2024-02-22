@@ -122,36 +122,6 @@ Stream based, just like `cin` and `cout`.
 
 
 
-# STL Algorithms
-
-> \#include <algorithm>
-
-- swap: quick sort
-
-- find
-
-- sort
-
- ```
- template< class RandomIt >
- void sort( RandomIt first, RandomIt last );
- // or
- template< class RandomIt, class Compare >
- constexpr void sort( RandomIt first, RandomIt last, Compare comp );
- ```
-
- a comparator like this needed:
-
- ```
- bool compare(const MyClass& o1, const MyClass& o2);
- // or 
-  
- ```
-
-
-
-
-
 # Functionals
 
 ### bind
