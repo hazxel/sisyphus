@@ -160,10 +160,42 @@ struct Tuple<Ty1, Ty2...> : Tuple<Ty2...> {
 
 # Any (C++17)
 
-`std::any` 的作用是存储任意类型的一段内存，并可以重复赋值，在赋值后可以使用 `std::any_cast` 将其所存储的值转换成特定类型，如果存储的类型与目标类型不匹配，则抛出 `std::bad_any_cast` 异常。
+`std::any` 的作用是存储任意类型的一段内存，并可以重复赋值(所以`any`不是模版类，而是有个模版化的构造/拷贝/析构函数)，在赋值后可以使用 `std::any_cast` 将其所存储的值转换成特定类型，如果存储的类型与目标类型不匹配，则抛出 `std::bad_any_cast` 异常。
 
 - 可以与模板元编程结合，实现更加灵活的编程技巧。
 - 可用于创建泛型容器。这种容器可以存储任意类型的对象，而不需要在编译期间知道这些对象的具体类型。例如`std::vector<std::any>`
+
+实现：
+
+基本都需要使用 `std::type_info` 来判断类型
+
+- 使用 lambda 来记忆类型信息
+
+  ```c++
+  struct any
+  {
+      void* data_;
+      std::type_info const& (*getType_)();
+      void* (*clone_)(void* otherData);
+      void (*destroy_)(void* data);
+  
+      template<typename T>
+      explicit any(T&& value)
+          : data_{new T{std::forward<T>(value)}}
+          , getType_{[]() -> std::type_info const&{ return typeid(T); }}
+          , clone_([](void* otherData) -> void* { return new T(*static_cast<T*>(otherData)); })
+          , destroy_([](void* data_) { delete static_cast<T*>(data_); }) {}
+  
+      any(any const& other)； // copy ctor， omitted
+      ~any() { destroy_(data_); }
+  };
+  ```
+
+  
+
+- MSVC：内部保存了 `std::type_info` 的指针。将内存分为 Trivial、Small、Big 三种，Trivial 内存直接对拷，Small 内存需要保存额外的拷贝、移动、销毁指针，具体操作是 in_place 的，Big 内存需要保存额外的拷贝、销毁指针，具体操作是堆内存的 new、delete。
+
+- GCC: 使用 `any::_S_manager` 模版类，区分 internal和external 存储？？？
 
 
 

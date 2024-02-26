@@ -103,3 +103,11 @@ template<bool _Val> using _BoolConstant _LIBCPP_NODEBUG = integral_constant<bool
 ```
 
 
+
+
+
+# Substitution failure is not an error (SFINAE)
+
+Substitution failure is not an error (SFINAE) is a principle in C++ where an invalid substitution of template parameters is not in itself an error. 
+
+当创建一个重载函数的候选集时，某些（或全部）候选函数是用模板实参替换（可能的推导）模板形参的模板实例化结果。如果某个模板的实参替换时失败，编译器将在候选集中删除该模板，而不是当作一个编译错误从而中断编译过程。如果一个或多个候选保留下来，那么函数重载的解析就是成功的，函数调用也是良好的。

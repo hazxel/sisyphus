@@ -44,6 +44,12 @@ public:
 
 
 
+# Type Punning
+
+- `reinterpret_cast`: avoid it, unless to access the `char[]` of a type `T`, and after profiling the program you realize the compiler was not able to optimize the `std::bit_cast` (or polyfill) operation, you can think about `reinterpret_cast`.
+- `bit_cast`
+- `memcpy`
+
 
 
 # Curiously Recurring Template Pattern (CRTP)

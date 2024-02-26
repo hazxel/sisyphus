@@ -1,10 +1,10 @@
 # Class
 
-##### Member Init order
+### Member Init order
 
 成员变量初始化的顺序为：先进行声明时初始化，然后进行初始化列表初始化，最后进行构造函数初始化
 
-##### Default Constructor/Copy Constructor/Assignment operator
+### Default Constructor/Copy Constructor/Assignment operator
 
 - If no constructors are declared in a class, the compiler provides an implicit `inline` default constructor. This can be desabled by defining it as `deleted`, or explicitly declared by `default`.
 
@@ -31,7 +31,7 @@
  Child (): Father() {} // this is an explicit call
  ```
 
-##### Copy constructor & Copy-Assignment operator
+### Copy constructor & Copy-Assignment operator
 
 ```c++
 MyClass(const MyClass&);
@@ -40,7 +40,7 @@ MyClass& operator= (const MyClass&);
 
 Assignment operator cannot be inherited. 
 
-##### Move Constructor & Move-Assignment operator (C++11)
+### Move Constructor & Move-Assignment operator (C++11)
 
 ```c++
 MyClass(const MyClass&&);
@@ -51,7 +51,7 @@ A move constructor enables the resources owned by an rvalue object to be moved i
 
 如果需要自定义 移动构造/移动赋值 函数，尽量定义为 `noexcept` 不抛出异常（编译器生成的版本会自动添加），否则 **不能高效使用标准库和语言工具**！例如，标准库容器 `std::vector` 在扩容时，会通过 `std::vector::reserve()` 重新分配空间，并转移已有元素。如果扩容失败，`std::vector` 满足强异常保证 (strong exception guarantee)，可以回滚到失败前的状态。为此，`std::vector` 使用 `std::move_if_noexcept()` 进行元素的转移操作。如果 没有定义移动构造函数 或 自定义的移动构造函数没有 `noexcept`，会导致 `std::vector` 扩容时执行无用的拷贝，不易发现。
 
-##### Conversion Constructor
+### Conversion Constructor
 
 Conversion constructor usually refer to constuctor declared without the function specifier `explicit`.
 
@@ -59,7 +59,7 @@ Conversion constructor usually refer to constuctor declared without the function
 MyClass(SOME_TYPE st);
 ```
 
-##### Conversion function
+### Conversion function
 
 Convert object to other type.
 
@@ -71,7 +71,7 @@ This function can be called implicitly. The return type of conversion function i
 
 > May lead to ambiguity sometimes if the receiver class also has a conversioin constructor.
 
-##### Increment operator
+### Increment operator
 
 ```c++
 T & operator++(T& t); 			// pre-increase
@@ -80,7 +80,7 @@ const T operator++(T& t, int); 	// post-increase
 const T T::operator++(int);		// post-increase in T's namespace
 ```
 
-##### Functor
+### Functor
 
 ```c++
 SOME_TYPE operator()(SOME_TYPE a);
@@ -88,21 +88,21 @@ SOME_TYPE operator()(SOME_TYPE a);
 
 使类能像函数一样被调用，好处是可以存放状态
 
-##### this
+### this
 
 当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是this指针。如果是用new创建的对象可以delete this指针。但是一经delete之后其所有成员都不能再被访问。
 
-##### Destructor
+### Destructor
 
-##### Can constructors be virtual?
+##### private dtor？
 
-No. When constructing the object, the virtual table does not exist.
+make dtor private will force the class to be only created by `new`. Similarly, overload and make `new` and `delete` private will force the class to be only created on stack.
 
-##### Overload (polymorphism at compile time)
+### Overload (polymorphism at compile time) 重载
 
 C++ allows multiple definitions for the same function name in the same scope. The definition of the function must differ from each other by the types and/or the number of arguments in the argument list. You cannot overload function declarations that differ only by return type.
 
-##### Override (polymorphism at run time)
+### Override (polymorphism at run time) 重写
 
 **Overriding** means the function in derived class implements its own version of the function in base class. There is an optional keyword `override` that can be added to the member function, used to prevent inadvertent inheritance behavior in your code. **Binding** means converting the variable and the function name to address. 
 
@@ -132,17 +132,6 @@ A virtual function is a member function that you expect to be redefined in deriv
 A **pure virtual function** is a virtual function without implementation. A class have one or more pure virtual funcitons is called **abstract class**. The subclass must implement the pure virtual function.  
 
 Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
-
-##### Runtime Type Information（RTTI）
-
-In C++, RTTI can be used to do safe typecasts using the dynamic_cast<> operator, and to manipulate type information at runtime using the typeid operator and std::type_info class.
-
-RTTI是Runtime Type Identification的缩写，意思是运行时类型识别。C++引入这个机制是为了让程序在运行时能根据基类的指针或引用来获得该指针或引用所指的对象的实际类型。但是现在RTTI的类型识别已经不限于此了，它还能通过typeid操作符识别出所有的基本类型（int，指针等）的变量对应的类型。
-
-C++通过以下的两个操作提供RTTI：
-
-1. typeid运算符，该运算符返回其表达式或类型名的实际类型
-2. dynamic_cast运算符，该运算符将基类的指针或引用安全地转换为派生类类型的指针或引用
 
 
 
@@ -181,7 +170,7 @@ In multiple inheritance, a class may inherit from a superclass more than once. (
 用于引入基类中的成员函数或成员变量到派生类中，主要有以下几种场景：
 
 - 子类无法隐式使用父类的构造函数，需要写`Derived(int arg): Base(int arg) {}` 略麻烦
-- 子类的同名函数会隐藏基类的实现（即使是重载）
+- 子类的同名函数会隐藏基类的实现（即使是参数列表不同的重载）
 
 ##### final
 

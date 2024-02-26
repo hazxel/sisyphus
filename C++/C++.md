@@ -1,3 +1,16 @@
+# Application Binary Interface(ABI)
+
+ABI 是编译器和链接器遵守的一组规则，以让编译后的程序可以正常工作。ABI里包含很多方面的内容，比较重要的有：
+
+- name decoration：编译后的函数名。C++需要名字修饰的原因是因为C++允许函数重载，同名函数在C语言中会冲突，必须想办法让他们在编译器层面区分开来（namespace、类名等在名字修饰中都会有体现）名字修饰发生在编译阶段，既目标文件中的符号已经是修饰之后的。名字修饰没有规范，直接调用修饰后的函数名很容易导致二进制不兼容。
+- Object Representation，一般说不稳定的 API，都是在说 内存布局不稳定···
+- Function Calling Sequence（函数调用约定）：函数调用约定里涉及到寄存器怎么使用，参数如何传递（堆栈还是寄存器），谁负责清理堆栈（调用者/被调用者），参数入栈的顺序（从右向左？），栈帧的布局等。
+- Data Representation：定义了系统基本类型的数据宽度，如 bool 类型定义以及 long 的字节数 （ILP） 等
+
+C语言也受ABI困扰，不同 libc 就有不同abi，导致需要重新编译。 C++里abi问题比较明显主要是因为语言设计就不考虑abi问题，而模板导致这个问题被放大，因为模板的设计就天然和abi冲突。
+
+
+
 # Raw Expressions
 
 - 逗号表达式，逗号表达式的优先级最低，`(a, b)`这个表达式的值就是`b`
@@ -297,17 +310,38 @@ extern const int i; // fileB.cpp, declaration only
 
 
 
-# Keywords
 
-### noexcept(keyword)
 
-The `noexcept` operator performs a compile-time check that returns true if an expression is declared to not throw any exceptions.
+# noexcept(operator & specifier)
 
-### explicit (keyword)
+- specifier: 声明为`noexcept` 的函数不用处理异常信息，可做编译优化。但仍可能抛出异常，不会生成异常类型信息，程序直接终止
+  - declare a function as `noexcept` means it's not allowed to throw exception
+  - declare a function as `noexcept(expr)` means it's not allowed to throw exception if expr evaluates to true
+- operator: check if a function is declared to be `noexcept`
+
+```c++
+void funA() noexcept; // 函数funA不抛出异常
+void (*fp)() noexcept(false); // fp指向的函数允许抛出异常
+// 此处第一个noexcept是specifier，第二个是操作符
+template <class T, class Alloc>
+    void swap(list<T,Alloc>& x, list<T,Alloc>& y)
+         noexcept(noexcept(x.swap(y)));
+```
+
+
+
+> make move ctor noexcept to facilitate STL useages, STL have optimizations for `nothrow_move_constructible` types and compilers can optimize `noexcept` functions
+>
+
+
+
+# explicit (keyword)
 
 The `explicit` keyword is used to mark **constructors** or **conversion functions** to not implicitly convert types in C++. It is optional for **constructors that take exactly one argument** and **conversion functions** since those are the only functions that can be used in typecasting.
 
-### typedef (keyword)
+
+
+# typedef (keyword)
 
 The `typedef` keyword is used for aliasing existing data types, user-defined data types, and pointers to a more meaningful name. Typedefs allow you to give descriptive names to standard data types, which can also help you self-document your code.
 
@@ -315,39 +349,9 @@ The `typedef` keyword is used for aliasing existing data types, user-defined dat
 typedef std::vector<int> vInt;
 ```
 
-### new/delete vs malloc/free
 
-- `malloc/free`: 
 
- - STL function of C/C++
- - only allocate memory, no initialization
- - if success, return `void*` pointers, require casting
- - if fail, return null pointer
-
-- `new/delete`: 
-
- - **operator** of C++ (can even be overridden to private)
-
- - Allocate memory and also call **default** constructors/ free memory and call destructors
-
-  > require default constructor, but can use "allocator" to call other constructors if default one doesn't exist 
-
- - if success, return pointers of the corresponding type; if fail, throw exception
-
- > placement new: 允许向 new 传递额外的地址参数，从而在预先指定的内存区域创建对象。
- >
- > ```c++
- > new (place_address) type
- > new (place_address) type (initializers)
- > new (place_address) type [size]
- > new (place_address) type [size] { braced initializer list }
- > ```
-
- > **new[] / delete[]:**
- >
- > For creating arrays of instances. 若是自定义的数据类型，用new []申请的空间，必须要用delete []来释放，因为delete []会逐一调用对象数组的析构函数，然后释放空间，如果用delete，则只会调用第一个对象的析构函数，但空间还是会被释放
-
-### sizeof (compile time operator)
+# sizeof (compile time operator)
 
 - size of an object of an **empty class** is 1, in order to "ensure that the addresses of two different objects will be different." And the size can be 1 because alignment doesn't matter here, as there is nothing to actually look at.
 - Existence of **virtual function(s)** will add 4 bytes of a virtual table pointer in the class. In this case, if the base class of the class already has virtual function(s) either directly or through its base class, then this additional virtual function won't add anything to the size of the class. Virtual table pointer will be common across the class hierarchy.
@@ -357,7 +361,9 @@ typedef std::vector<int> vInt;
 - ordering matters here because of byte padding (char, short, int -> 8 ; char, int, short -> 12)
 - char: 1, short: 2, int: 4, double: 8 (depends on GCC version, platform, etc.)
 
-### constexpr (keyword)
+
+
+# constexpr
 
 > The keyword constexpr was introduced in C++11 and improved in C++14. It means constant expression.
 
@@ -369,21 +375,55 @@ when a constexpr function is called with only compile-time arguments, the result
 
 ???
 
+##### constexpr new(C++20)
+
+???
+
 
 
 # cast
 
-- static_cast: 这个操作符相当于C语言中的强制类型转换的替代品。多用于**非多态类型**的转换，比如说将int转化为double。但是不可以将两个无关的类型互相转化。（在编译时期进行转换）
+### static_cast
+
+相当于C语言中的强制类型转换的替代品。多用于**非多态类型**的转换，比如说将int转化为double。但是不可以将两个无关的类型互相转化。（在编译时期进行转换）
 
  `static_cast` is used for cases where you basically want to reverse an implicit conversion, with a few restrictions and additions. static_cast performs no runtime checks. This should be used if **you know** that you refer to an object of a specific type, and thus a check would be unnecessary.
 
-- dynamic_cast: 可以安全的将父类转化为子类，子类转化为父类都是安全的。所以你可以用于安全的将基类转化为继承类，而且可以知道是否成功，如果强制转换的是指针类型，失败会返回NULL指针，如果强制转化的是引用类型，失败会抛出异常。dynamic_cast 转换符只能用于含有虚函数的类, because it uses virtual funciton table to trace super class.
+### dynamic_cast
+
+可以安全的将父类转化为子类，子类转化为父类都是安全的。所以你可以用于安全的将基类转化为继承类，而且可以知道是否成功，如果强制转换的是指针类型，失败会返回NULL指针，如果强制转化的是引用类型，失败会抛出异常。dynamic_cast 转换符只能用于含有虚函数的类, because it uses virtual funciton table to trace super class.
 
  `dynamic_cast` is useful when **you don't know** what the dynamic type of the object is. It returns a null pointer if the object referred to doesn't contain the type casted to as a base class (when you cast to a reference, a bad_cast exception is thrown in that case).
 
-- const_cast: const_cast这个操作符可以去掉变量const属性或者volatile属性的转换符，这样就可以更改const变量了
+### const_cast
 
-- reinterpret_cast: 重新解释（无理）转换。即要求编译器将两种无关联的类型作转换。
+const_cast这个操作符可以去掉变量const属性或者volatile属性的转换符，这样就可以更改const变量了
+
+### reinterpret_cast
+
+重新解释（无理）转换。即要求编译器将两种无关联的类型作转换。
+
+why should we **AVOID** reinterpret_cast: [weblink here](https://blog.hiebl.cc/posts/practical-type-punning-in-cpp/)
+
+C++ compiler is allowed to assume that when de-referenced, two pointers of incompatible types do not have the same value (i.e. do not point to the same chunk of memory). By using `reinterpret_cast` you break the compiler’s assumption, leading to undefined behavior.
+
+```c++
+int init_vars(int* a, float* b) {
+   *a = 42;
+   *b = 0.f;
+   return *a; // the compiler is allowed to assume 42 is returned
+}
+
+int main() {
+   int a_and_b{12};
+   // the compiler will optimize this to `return 42`
+   return init_vars(&a_and_b, reinterpret_cast<float*>(&a_and_b));
+}
+```
+
+### bit_cast(C++20): ???
+
+similar to reinterpret cast, but **MUCH** safer. Only allow conversion between closely related types that shares the same underlying memory layout. (e.g. int to float)
 
 
 
@@ -397,6 +437,16 @@ C++通过以下的两个操作提供RTTI：
 
 1. typeid运算符，该运算符返回其表达式或类型名的实际类型
 2. dynamic_cast运算符，该运算符将基类的指针或引用安全地转换为派生类类型的指针或引用
+
+### macro 开关
+
+RTTI可被编译时的宏开关启用或关闭，如 STL 源码中常见的`__cpp_rtti`,  `_LIBCPP_NO_RTTI` 等，可通过形如`-fno-rtti`的指令关闭。有些编译器默认关闭RTTI以消除性能开销。But usually without RTTI you can't use typeid, dynamic_cast, and some STL classes are compiled differently.
+
+### type_info
+
+The class type_info holds the **name** of the type and means to compare two types for equality or collating order(有时需要比较顺序因为可能作为key放入map). This is the class returned by the typeid operator.
+
+std::type_info对象是在编译的时候决定其内容的，作为静态数据存在于最终生成的目标代码里。编译器会在静态存储空间里为这些type_info对象分配空间，并生成代码来初始化它们的内容。对于遵循Itanium C++ ABI的编译器（例如GCC和Clang）来说，其中编译器给生成的初始化type_info的代码，本质上就跟自己在全局作用域里写个这样的C++代码类似 `type_info _ZTI3Foo("Foo");`, 然后根据ABI要求，将指向这些type_info对象的指针放进vtable即可。
 
 
 

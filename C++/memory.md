@@ -13,6 +13,8 @@
 
 - `memcpy(dest,src,count)`
 
+
+
 # C++ Memory Layout & Management
 
 the following segments are sorted from high address to low address (in **virtual memory**):
@@ -57,6 +59,43 @@ C++使用全局new或delete可以很轻松的操控内存，但也很容易引�
 - _aligned_malloc
 
 
+
+# new/delete vs malloc/free
+
+- `malloc/free`: 
+  - STL function of C/C++
+  - only allocate memory, no initialization
+  - if success, return `void*` pointers, require casting
+  - if fail, return null pointer
+
+- `new/delete`: 
+  - **operator** of C++ (can even be overridden to private)
+
+  - Allocate memory and also call **default** constructors/ free memory and call destructors
+
+
+  > require default constructor, but can use "allocator" to call other constructors if default one doesn't exist 
+
+ - if success, return pointers of the corresponding type; if fail, throw exception
+
+### placement new: 
+
+允许向 new 传递额外的地址参数，从而在预先指定的内存区域创建对象。可用于在栈上创建对象，缓解堆上开辟内存的开销
+
+ ```c++
+new (place_address) type
+new (place_address) type (initializers)
+new (place_address) type [size]
+new (place_address) type [size] { braced initializer list }
+ ```
+
+### new[] / delete[]:
+
+For creating arrays of instances. 若是自定义的数据类型，用new []申请的空间，必须要用delete []来释放，因为delete []会逐一调用对象数组的析构函数，然后释放空间，如果用delete，则只会调用第一个对象的析构函数，但空间还是会被释放
+
+### std::nothrow
+
+`std::nothrow_t`an empty class type used to disambiguate the overloads of throwing and non-throwing allocation functions(`new`). `std::nothrow` is a constant of this type. Usage: `int *p = new (std::nothrow) int[100];` 此种重载在分配失败时不抛出异常而是返回空指针
 
 
 

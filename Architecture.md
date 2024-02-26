@@ -80,3 +80,16 @@ cache is between CPU and memory, buffer is between memory and disk. cache accele
 # Numa
 
 ???
+
+
+
+
+
+# Data Representation
+
+### ILP model
+
+在32位和64位平台上，`float`都是 4 字节，`double`都是 8 字节。而标准C中并没有明确规定`long`类型的长度，只规定了`long long`至少占用32位，所以在操作系统的ABI中，要明确`long`类型的宽度。
+
+LP64，ILP64，LLP64 是 64 位平台上的字长模型，ILP32 和 LP32 是 32 位平台上的字长模型。其中I指`int`，L指`long`，LL指`long long`，P指`pointer`。（e.g. LP64 代表 long 和指针为64位，int没出现所以是32位，long long一般也最多64位 ）现今所有64位的类Unix平台均使用 LP64 ，而64位Windows使用 LLP64 。
+
