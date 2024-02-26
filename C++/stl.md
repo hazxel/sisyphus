@@ -144,6 +144,29 @@ STL中大量使用function作为算法的入参，如`sort`, `for_each`, `visit`
 
 
 
+# Tuple
+
+原理：继承+variadic templates, 会编译生成参数列表参数个数的类
+
+```c++
+template<>struct Tuple<> {};
+template<typename Ty1, typename ...Ty2>
+struct Tuple<Ty1, Ty2...> : Tuple<Ty2...> {
+    Ty1 val;
+};
+```
+
+
+
+# Any (C++17)
+
+`std::any` 的作用是存储任意类型的一段内存，并可以重复赋值，在赋值后可以使用 `std::any_cast` 将其所存储的值转换成特定类型，如果存储的类型与目标类型不匹配，则抛出 `std::bad_any_cast` 异常。
+
+- 可以与模板元编程结合，实现更加灵活的编程技巧。
+- 可用于创建泛型容器。这种容器可以存储任意类型的对象，而不需要在编译期间知道这些对象的具体类型。例如`std::vector<std::any>`
+
+
+
 # Variant (C++17)
 
 union在许多性能敏感场景下被使用，但它没有办法推断自己当前使用的类型，析构函数也不能被正常调用，而variant提供了一种类型安全的union类型。如果你正在处理一些底层的逻辑，并且只使用基本类型，那么union可能仍然是首选。但是对于其他的使用场景，std::variant是一种更好的方式。

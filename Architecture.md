@@ -68,3 +68,15 @@
 ### Cache vs Buffer
 
 cache is between CPU and memory, buffer is between memory and disk. cache accelerate the CPU's read/write, buffer reduces the frequency of I/O read/write.
+
+
+
+
+
+
+
+
+
+# Numa
+
+???

@@ -94,11 +94,11 @@ shared_ptr在底层使用了control block。其中除了目标对象的裸指针
 
 ### Function parameter passing semantics (C++ Core Guideline R32-R35)
 
-- `void pass(unique_ptr<T>)` : pass ownership
+- `void pass(unique_ptr<T>)` : pass ownership, recommended by 32 but no  by vital
 
 - `void share(shared_ptr<T>)`: share ownership
 
-- `void pass(unique_ptr<T> &&)` : pass ownership
+- `void pass(unique_ptr<T> &&)` : pass ownership, should be always better than pass-by-value because a move ctor is saved.
 
 - `void pass(shared_ptr<T> &&)`: pass a share of ownership
 
