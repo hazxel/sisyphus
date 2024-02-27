@@ -29,12 +29,12 @@ Apache Arrow定义了一个各语言通用（language-agnostic）的列式内存
 
 1. parquet::arrow::FileReader
 2. parquet::arrow::OpenFile
-3. parquet::arrow::FileReader::GetRecordBatchReader >> parquet::arrow::RowGroupRecordBatchReader
-4. arrow::RecordBatchReader::ReadAll 
+3. parquet::arrow::FileReader::GetRecordBatchReader >> parquet::arrow::RowGroupRecordBatchReader
+4. arrow::RecordBatchReader::ReadAll 
 
 arrow工程中，parquet::arrow::FileReaderImpl 继承自parquet::arrow::FileReader，持有 parquet::ParquetFileReader：
 
-> parquet::arrow::OpenFile 调用 FileReaderBuilder::Build 调用 FileReader::Make 来创建并返回 FileReaderImpl 
+> parquet::arrow::OpenFile 调用 FileReaderBuilder::Build 调用 FileReader::Make 来创建并返回 FileReaderImpl 
 
 > FileReader::GetRecordBatchReader 写的非常奇怪，实现了两种重载，一个参数是`shared_ptr<RecordBatchReader>*`，另一个参数是 `unique_ptr<RecordBatchReader>*`，反正不会跑到这里先不管了。。
 
@@ -49,33 +49,33 @@ parquet-cpp工程中，parquet::arrow::FileReader 持有 FileReader::Impl 持有
 ##### C Interface
 
 ```c
-struct ArrowSchema { // Array type(schema) description
- const char* format; // can be nested format struct/map, or int/string/date/... 
- const char* name;
- const char* metadata;
- int64_t flags;
- int64_t n_children;
- struct ArrowSchema** children; // array of children
- struct ArrowSchema* dictionary;
- void (*release)(struct ArrowSchema*); // Release callback (dtor), 为 NULL 代表已释放
- void* private_data; 					// Opaque producer-specific data
+struct ArrowSchema {	// Array type(schema) description
+ const char* format; 	// data type, can be nested format struct/map, or int/string/date/... 
+ const char* name;		// field name
+ const char* metadata;	// a binary string describe metadata in KV pairs
+ int64_t flags;		// a bitfield of flags enriching the type description
+ int64_t n_children;	// nested types have childern
+ struct ArrowSchema** children; // array of children
+ struct ArrowSchema* dictionary;// for and only for dictionary type
+ void (*release)(struct ArrowSchema*); // Release callback (dtor), 为 NULL 代表已释放
+ void* private_data; 					// Opaque producer-specific data
 };
 
 struct ArrowArray { // Array data description
- int64_t length;   // row number (length of array)
- int64_t null_count; // empty count (for optimization)
- int64_t offset;
- int64_t n_buffers;
- int64_t n_children;
- const void** buffers;			// array of buffers
- struct ArrowArray** children;	// array of children
- struct ArrowArray* dictionary;
- void (*release)(struct ArrowArray*); 	// Release callback (dtor), 为 NULL 代表已释放
- void* private_data; 					// Opaque producer-specific data
+ int64_t length;   // row number (length of array)
+ int64_t null_count; // empty count (for optimization)
+ int64_t offset;
+ int64_t n_buffers;
+ int64_t n_children;
+ const void** buffers;			// array of buffers
+ struct ArrowArray** children;	// array of children
+ struct ArrowArray* dictionary;
+ void (*release)(struct ArrowArray*); 	// Release callback (dtor), 为 NULL 代表已释放
+ void* private_data; 					// Opaque producer-specific data
 };
 ```
 
-
+- metadata: string format for KV pairs: `{int32:num_pairs,int32:key_len,key_0,int32:val_len,val_0}`the metadata `[('key1', 'value1')]` is encoded on a little-endian machine as: `\x01\x00\x00\x00\x04\x00\x00\x00key1\x06\x00\x00\x00value1`
 
 ##### C++ Interface
 
@@ -86,17 +86,17 @@ Object containing a pointer to a piece of contiguous memory with a particular si
 ```c++
 class ARROW_EXPORT Buffer {
 protected:
- bool is_mutable_;
- bool is_cpu_;
- const uint8_t* data_;
- int64_t size_;
- int64_t capacity_;
- DeviceAllocationType device_type_;	// CPU/CUDA/... depends on memory_manager_
- std::shared_ptr<Buffer> parent_; 		// null by default, but may be set
+ bool is_mutable_;
+ bool is_cpu_;
+ const uint8_t* data_;
+ int64_t size_;
+ int64_t capacity_;
+ DeviceAllocationType device_type_;	// CPU/CUDA/... depends on memory_manager_
+ std::shared_ptr<Buffer> parent_; 		// null by default, but may be set
 private:
- // private so that subclasses are forced to call SetMemoryManager()
- // default to CPUMemoryManager which uses default_system_memory_pool (C library malloc)
- std::shared_ptr<MemoryManager> memory_manager_; 
+ // private so that subclasses are forced to call SetMemoryManager()
+ // default to CPUMemoryManager which uses default_system_memory_pool (C library malloc)
+ std::shared_ptr<MemoryManager> memory_manager_; 
 }
 ```
 
@@ -106,17 +106,17 @@ This data structure is a self-contained representation of the memory and metadat
 
 ```c++
 struct ARROW_EXPORT ArrayData {
- std::shared_ptr<DataType> type;	// similar to C interface's "format"
- int64_t length = 0;				// row count
- mutable std::atomic<int64_t> null_count{0};
- // The logical start point into the physical buffers (in values, not bytes).
- // Note that, for child data, this must be *added* to the child data's own offset.
- int64_t offset = 0;
- std::vector<std::shared_ptr<Buffer>> buffers; // first buffer holds null bitmap (in LSB numbering)
- std::vector<std::shared_ptr<ArrayData>> child_data;
+ std::shared_ptr<DataType> type;	// similar to C interface's "format"
+ int64_t length = 0;				// row count
+ mutable std::atomic<int64_t> null_count{0};
+ // The logical start point into the physical buffers (in values, not bytes).
+ // Note that, for child data, this must be *added* to the child data's own offset.
+ int64_t offset = 0;
+ std::vector<std::shared_ptr<Buffer>> buffers; // first buffer holds null bitmap (in LSB numbering)
+ std::vector<std::shared_ptr<ArrayData>> child_data;
 
- // The dictionary for this Array, if any. Only used for dictionary type
- std::shared_ptr<ArrayData> dictionary;
+ // The dictionary for this Array, if any. Only used for dictionary type
+ std::shared_ptr<ArrayData> dictionary;
 }
 ```
 
@@ -127,9 +127,9 @@ Immutable data array with some logical type and some length. Any memory is owned
 ```c++
 class ARROW_EXPORT Array {
 protected:
- std::shared_ptr<ArrayData> data_;
-  // required if data_.null_count > 0, points to the first buffer
- const uint8_t* null_bitmap_data_ = NULLPTR; 
+ std::shared_ptr<ArrayData> data_;
+  // required if data_.null_count > 0, points to the first buffer
+ const uint8_t* null_bitmap_data_ = NULLPTR; 
 }
 ```
 
@@ -139,40 +139,54 @@ Use RecordBatch to store both schema and array, the base class:
 
 ```c++
 class ARROW_EXPORT RecordBatch {
- public:
- static std::shared_ptr<RecordBatch> Make(
-   std::shared_ptr<Schema> schema,
-   int64_t num_rows,
-   std::vector<std::shared_ptr<Array>> columns);
-   
- static std::shared_ptr<RecordBatch> Make(
-   std::shared_ptr<Schema> schema, int64_t num_rows,
-   std::vector<std::shared_ptr<ArrayData>> columns);
-   
- protected:
- RecordBatch(const std::shared_ptr<Schema>& schema, int64_t num_rows);
+ public:
+ static std::shared_ptr<RecordBatch> Make(
+   std::shared_ptr<Schema> schema,
+   int64_t num_rows,
+   std::vector<std::shared_ptr<Array>> columns);
+   
+ static std::shared_ptr<RecordBatch> Make(
+   std::shared_ptr<Schema> schema, int64_t num_rows,
+   std::vector<std::shared_ptr<ArrayData>> columns);
+   
+ protected:
+ RecordBatch(const std::shared_ptr<Schema>& schema, int64_t num_rows);
 
- std::shared_ptr<Schema> schema_;
- int64_t num_rows_;
+ std::shared_ptr<Schema> schema_;
+ int64_t num_rows_;
 };
 ```
 a default, basic, non-lazy in-memory record batch impl:
 
 ```c++
 class SimpleRecordBatch : public RecordBatch {
- public:
- SimpleRecordBatch(std::shared_ptr<Schema> schema, int64_t num_rows,
-  				std::vector<std::shared_ptr<Array>> columns)
-   : RecordBatch(std::move(schema), num_rows), boxed_columns_(std::move(columns));
+ public:
+ SimpleRecordBatch(std::shared_ptr<Schema> schema, int64_t num_rows,
+  				std::vector<std::shared_ptr<Array>> columns)
+   : RecordBatch(std::move(schema), num_rows), boxed_columns_(std::move(columns));
 
- SimpleRecordBatch(const std::shared_ptr<Schema>& schema, int64_t num_rows,
-          std::vector<std::shared_ptr<ArrayData>> columns)
-   : RecordBatch(std::move(schema), num_rows), columns_(std::move(columns));
+ SimpleRecordBatch(const std::shared_ptr<Schema>& schema, int64_t num_rows,
+          std::vector<std::shared_ptr<ArrayData>> columns)
+   : RecordBatch(std::move(schema), num_rows), columns_(std::move(columns));
 
- private:
- std::vector<std::shared_ptr<ArrayData>> columns_;
+ private:
+ std::vector<std::shared_ptr<ArrayData>> columns_;
 
- // Caching boxed array data, lazy boxing
- mutable std::vector<std::shared_ptr<Array>> boxed_columns_;
+ // Caching boxed array data, lazy boxing
+ mutable std::vector<std::shared_ptr<Array>> boxed_columns_;
 };
 ```
+
+
+
+### Conversion
+
+##### C <==> C++
+
+- **Import C++ DataType from the C data interface**: `ImportSchema`, `ImportField`, `ImportType`, `ImportArray`, `ImportRecordBatch`
+ - `SchemaImporter` will copy and release the C's struct `ArrowSchema` anyway (a guard member of the importer ensures the release function is called when importer destructed)
+ - `ArrayImporter` will copy the `ArrowArray` to a private instance and mark the original one as released. Then move its contents to C++ `Array`/`RecordBatch` (visitor pattern)
+- **Export C++ DataType to the C data interface format**: `ExportSchema`, `ExportField`, `ExportType`, `ExportArray`, `ExportRecordBatch`
+ - `SchemaExporter` will copy essential data to construct a new `ArrowSchema` struct, won't modify C++ Schema Instance
+ - `ArrayExporter` will move buffer by cooying pointers to construct new `ArrowArray` struct, the old C++ `ArrayData` who used to hold shared ownership of the buffer will be hold by a `ExportedArrayPrivateData` which will never be deleted.
+- xx
