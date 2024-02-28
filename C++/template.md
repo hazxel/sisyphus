@@ -127,22 +127,42 @@ Substitution failure is not an error (SFINAE) is a principle in C++ where an inv
 
 # STL helpers
 
-- `enable_if`: ???
-
-- `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`
-
-- `is_const`: 检测顶层const？？？
-
-- `remove_reference`: 3 overloads implementation
+- `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`,`is_const`: 检测顶层const？？？
 
   ```c++
-  template <class _Tp> struct remove_reference        {typedef _LIBCPP_NODEBUG _Tp type;};
-  template <class _Tp> struct remove_reference<_Tp&>  {typedef _LIBCPP_NODEBUG _Tp type;};
-  template <class _Tp> struct remove_reference<_Tp&&> {typedef _LIBCPP_NODEBUG _Tp type;};
+  template<class T> struct is_array : std::false_type {};
+  template<class T> struct is_array<T[]> : std::true_type {};
+  template<class T, std::size_t N> struct is_array<T[N]> : std::true_type {};
   ```
 
-  
+- `remove_reference`, `remove_cv`, `remove_const`, `remove_volatile`, ...
 
-- xxx
+  ```c++
+  template <class _Tp> struct remove_reference        {typedef _Tp type;};
+  template <class _Tp> struct remove_reference<_Tp&>  {typedef _Tp type;};
+  template <class _Tp> struct remove_reference<_Tp&&> {typedef _Tp type;};
+  template<class T> struct remove_cv { typedef T type; };
+  template<class T> struct remove_cv<const T> { typedef T type; };
+  template<class T> struct remove_cv<volatile T> { typedef T type; };
+  template<class T> struct remove_cv<const volatile T> { typedef T type; };
+  ```
 
-- 
+- `decay`: remove const, volatile, reference
+
+- `add_pointer`, `add_lvalue_reference`, `add_lvalue_reference`: 
+
+- `enable_if`: if true, have a public member typedef type, otherwise no member
+
+  ```c++
+  template<bool B, class T = void> struct enable_if {};
+  template<class T> struct enable_if<true, T> { typedef T type; };
+  ```
+
+- `conditional`: Provides conditional member `type`, depends on the first boolean template parameter
+
+  ```c++
+  template<bool B, class T, class F> struct conditional { using type = T; }; 
+  template<class T, class F> struct conditional<false, T, F> { using type = F; };
+  ```
+
+- Xxx

@@ -97,11 +97,9 @@ const Foo &f = Foo();	// copy free
 
 A Reference is not a object, but an alias ot an existing object or function. Since references are not objects, there are **no arrays** of references, **no pointers** to references, and **no references** to references.
 
-重新仔细思考下什么是引用？个人理解，引用符号某种意义上也是一种限定符(qualifier)，和 `const`, `volatile`, `mutable` 这些cv-qualifier类似，在真正的类型信息外提供额外的信息或约束，引用符号就是在传达：这个alias所绑定的对象已经存在了。
+个人理解，引用符号和cv-qualifier类似，提供类型信息以外的信息：alias所绑定的对象已经存在。右值引用进一步附加了信息：被绑定的对象是右值。
 
-引用绑定就是给被绑定的对象一个别名，这一动作涉及到的两个元素：被绑定的对象，它本身有type和value category；别名，别名的type需要体现被绑定对象的type+value category，但它自己本身的value category一定是lvalue。一旦绑定完成后，无论这个对象原本的 value category 如何，别名都会被编译器被视为lvalue。
-
-右值引用不仅意味着这是一个已经存在的对象，还意味着被绑定的对象是右值，也就是没有其他人在管理其生命周期（没有名字的临时值，或使用类似move的函数来放弃所有权）。这不是一个强约束，而是一种约定（就像move后理论上还是可能继续访问该对象），被右值引用接收后，编译器会保证该临时值的生命周期在该引用的生命周期内延续（`const T&` 也可以延续临时对象的生命周期，但不能修改）。
+引用绑定就是给被绑定的对象一个别名：被绑定的对象本身有type和value category；别名的type需要体现被绑定对象的type+value category，但它自己本身的value category一定是lvalue。
 
 ### reference collapsing
 
@@ -163,13 +161,12 @@ void foo(std::vector<T>&& param); // this is not!!!
   void bar(T&& arg) { foo(std::forward<T>(arg)); }
   ```
   
-  注意：
+  注意理解实现：借助万能引用推导后显式传入的 `_Tp` 的类型来决定返回左值引用还是右值引用，和形参的 value category无关
   
-  - 一般都是配合万能引用来使用
   - 万能引用匹配左值形参时，传入的 `_Tp`是万能引用推导出的 `Widget&`。根据引用折叠规则，返回值也被折叠为 `Widget&`，返回的匿名左值引用一定是左值。
   - 万能引用匹配右值形参时，传入的 `_Tp `是万能引用推导出的 `Widget`。返回值为 `Widget&&`，返回的匿名右值引用一定是右值
-  - 直接将具名引用传入`std::forward` 时一定是调用下列第一个左值形参的重载，因为左值引用和右值引用都是左值！这个重载接受右值引用后，forward 函数内的`__t`又变成了左值引用，然后再将其cast为右值引用返回。
-  - 如果将具名引用 move 后传给 forward，就会实例化第二个右值形参的重载，这里如果 `_Tp` 为左值引用的话就会报错
+  - 直接将具名引用传入`std::forward` 时一定是调用下列第一个左值形参的重载，因为具名左值引用和右值引用都是左值！（forward 函数内的`__t`有名字所以也是左值引用，若`_Tp`为右值引用类型则将其cast为右值引用且返回，相当于move）
+  - 如果将具名引用 move 后再传给 forward，就会实例化第二个右值形参的重载。（这个做法在我看来本身就比较奇怪，因为万能引用本身就是为了方便同时接收左值和右值，但这里又forward一个固定为右值的东西）注意 `_Tp` 不能为左值引用，编译器禁止把 rvalue 转发为 lvalue，只能显示把右值复制给左值。
   
   ```c++
   template <class _Tp>

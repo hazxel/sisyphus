@@ -108,7 +108,7 @@ Useful Functions:
 
 ### alpha
 
-- `boolaplha`???
+- `boolaplha` & `noboolaplha`: passed to any derived type of `std::basic_ostream` or receive any derived type of `std::basic_istream`. 
 
 
 

@@ -1,4 +1,4 @@
-# Type Erasure
+# Type Erasure & Pattern Matching
 
 把类型信息擦除。这种代码可以处理来自多个类或模板的对象，而不需要知道即将对其操作的对象的类型是什么。类型擦除主要用于泛型编程，可以编写出能接受任意类型参数的函数和类。
 
@@ -19,6 +19,60 @@
 ### 基于`std::variant`的实现
 
 `std::variant`提供一种类型安全并且在**编译期**的多态方案。`std::variant`可存储多种类型的对象，类型安全并且在编译期完成类型判断。但如果需要增加或者删除某些类型则需要修改大量代码，并且std::variant可能会造成内存浪费。节省了虚表跳转的开销，但variant自己似乎也需要存储并判断类型后寻找对应的函数代码？？？
+
+```c++
+#include <variant>
+#include <iostream>
+#include <cassert>
+
+template <typename... Fs>
+struct overload : Fs...
+{
+    overload(Fs&&... fs) : Fs{std::move(fs)}... { }
+    using Fs::operator()...;
+};
+
+template <typename... Branches>
+auto match(Branches&&... branches)
+{
+    return [o = overload{std::forward<Branches>(branches)...}](
+        auto&&... variants) -> decltype(auto)
+    {
+        return std::visit(o, std::forward<decltype(variants)>(variants)...);
+    };
+}
+
+int main()
+{
+    using VariantType = std::variant<int, float, char>;
+
+    auto vis = match(
+        [](int   x){ std::cout << x << "i\n"; },
+        [](float x){ std::cout << x << "f\n"; },
+        [](char  x){ std::cout << x << "c\n"; }
+    );
+
+    VariantType v0{10};
+    VariantType v1{10.f};
+    VariantType v2{'a'};
+
+    vis(v0);
+    vis(v1);
+    vis(v2);
+
+    auto value = match(
+        [](int){ return 100; }, 
+        [](float){ return 50; })(std::variant<int, float>(0));
+
+    assert(value == 100);
+
+    auto value2 = match(
+        [](int){ return 100; }, 
+        [](float){ return 50; })(std::variant<int, float>(0.f));
+
+    assert(value2 == 50);
+}
+```
 
 ### 基于CRTP的实现
 
@@ -105,13 +159,11 @@ void exampleUsage(const Base<T> &foo) { foo.interface(); }
 
  why not virtual method? Avoid the virtual calls here because the information of which class to use was **available at compile-time**. 
 
-- xx
-
 
 
 # Mixin
 
- Mixin is complementary to the CRTP. A Mixin template defines a generic behavior, and inherit from the type you wish to plug functionality onto.
+ Mixin is complementary to the CRTP. A Mixin template defines a generic behavior, and inherit from the type you wish to plug functionality onto. 
 
 ```c++
 class Name {
