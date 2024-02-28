@@ -38,6 +38,8 @@
     - `--stat`: list the modified files  
 
 
+- `git fetch --prune origin`: fetch and prune
+- `git remote prune origin`: prune only
 - xxx
 
  

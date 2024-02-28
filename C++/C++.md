@@ -81,8 +81,6 @@ const Foo &f = Foo();	// copy free
 
 
 
-
-
 # Reference
 
 ### Reference (vs Pointer)
@@ -99,11 +97,11 @@ const Foo &f = Foo();	// copy free
 
 A Reference is not a object, but an alias ot an existing object or function. Since references are not objects, there are **no arrays** of references, **no pointers** to references, and **no references** to references.
 
-重新仔细思考下什么是引用？个人理解，引用符号某种意义上也是一种限定符(qualifier)，和 `const`, `volatile`, `mutable` 这些cv-qualifier类似，在真正的类型信息外提供额外的信息或约束，被引用符号限定的类型，就是在传达这样的信息：这个alias所绑定的对象已经创建好了，且这个alias不负责管理其生命周期和所有权。
+重新仔细思考下什么是引用？个人理解，引用符号某种意义上也是一种限定符(qualifier)，和 `const`, `volatile`, `mutable` 这些cv-qualifier类似，在真正的类型信息外提供额外的信息或约束，引用符号就是在传达：这个alias所绑定的对象已经存在了。
 
-引用绑定就是给一个 object 一个别名，这一动作涉及到两个元素，一方是被绑定的对象，它本身有type和value category，另一方是别名，也有type，但有名字的东西一定是lvalue。
+引用绑定就是给被绑定的对象一个别名，这一动作涉及到的两个元素：被绑定的对象，它本身有type和value category；别名，别名的type需要体现被绑定对象的type+value category，但它自己本身的value category一定是lvalue。一旦绑定完成后，无论这个对象原本的 value category 如何，别名都会被编译器被视为lvalue。
 
-左值引用代表这是一个已经存在的对象/值的别名；右值引用代表这是一个已经存在的对象/值的别名，并且赋值方不再管理其生命周期，注意这不是一个强约束，而是一种约定，被右值引用接收后，该临时值的生命周期得以在该引用的生命周期内延续（`const T&` 也可以延续临时对象的生命周期，但不能修改）。
+右值引用不仅意味着这是一个已经存在的对象，还意味着被绑定的对象是右值，也就是没有其他人在管理其生命周期（没有名字的临时值，或使用类似move的函数来放弃所有权）。这不是一个强约束，而是一种约定（就像move后理论上还是可能继续访问该对象），被右值引用接收后，编译器会保证该临时值的生命周期在该引用的生命周期内延续（`const T&` 也可以延续临时对象的生命周期，但不能修改）。
 
 ### reference collapsing
 
@@ -119,26 +117,21 @@ lref& r1 = n;		// type of r1 is int&
 lref&& r2 = n;	// type of r2 is int&
 rref& r3 = n;		// type of r3 is int&
 rref&& r4 = 1;	// type of r4 is int&& !!!
-
-
 ```
 
-Reference collapsing and template arguemnt deduction rules make `std::forward` possible.
+Reference collapsing and template arguemnt deduction rules works together, so that universal reference and `std::forward` are possible.
 
 ### Universal Reference
 
-C++11 标准引入右值引用，规定右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板和`auto`中使用`T&&`语法定义的参数来说，它既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。这一特性目的是在参数增加时，避免指数级增长的定义，减少重复定义的模版的数量。如果只希望定义右值形参而禁用左值，可？？？
+C++11 标准引入右值引用，规定右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板和`auto`中使用`T&&`语法定义的参数来说，它既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。这一特性可在参数增加时，避免指数级增长的重复函数定义。如果只希望定义右值形参而禁用左值，可？？？
+
+万能引用其实是**模版自动类型推导**以及**引用折叠**一起作用而自然产生的结果：对于使用一个万能引用的函数模版 `template<typename T> void foo(T&&)`，如果需要匹配左值形参 `void foo(Widget&)`，则`T`可被推导为`Widget&`，这样`T&&`即 `Widget& &&` 就会被折叠为 `Widget&`；而对于右值形参 `void foo(Widget&&)`，`T`直接被推导为 `Widget`，`T&&` 则被推导为`Widget&&`。
 
  ```c++
-auto&& var = container.get();
-
 template<class T>
-void wrapper(T&& arg) {
-  foo(std::forward<T>(arg)); // Forward as lvalue or as rvalue, depending on T
-}
-
+void wrapper(T&& arg); // this is univeral reference
 template<typename T>
-void foo(std::vector<T>&& param); // this is not universal reference!!
+void foo(std::vector<T>&& param); // this is not!!!
  ```
 
 ### Confusing: whaaat? my rvalue reference itself is a lvalue? 
@@ -149,13 +142,50 @@ void foo(std::vector<T>&& param); // this is not universal reference!!
 
 ### move & forward (C11)
 
-> introduced in C11
+- `std::move` (move semantic, 移动语义) is used to indicate that an object may be "moved from", allowing efficient transfer of resources. 可以不显式指明模版类型`_Tp`，而是编译器查看形参类型利自动推导，以达成 universal reference.
 
-- `std::move` (move semantic, 移动语义) is used to indicate that an object may be "moved from", allowing efficient transfer of resources. 
+  implementation: remove reference and cast to `Widget&&`
 
-- `std::forward<T>` (perfect forwarding, 完美转发) 不具名的左值引用本身是左值，不具名的右值引用本身是右值。具名的左值引用本身是左值，**具名的右值引用也是左值**，这个比较反直觉。换言之，虽然右值引用本身可能为左值或者右值，但通过 forward 我们可以强制保证左值引用转换为左值，右值引用转换为右值。
+  ```c++
+  template<typename _Tp>																		// rvalue: _Tp deduced to T
+  typename remove_reference<_Tp>::type&& move(_Tp&& __t) { 	// lvalue: _Tp deduced to T&
+    typedef typename remove_reference<_Tp>::type _Up;
+    return static_cast<_Up&&>(__t);													// all cast to T&&
+  }
+  ```
 
-They both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference and `std:forward` for and only for universal reference scenarios.
+- `std::forward<T>` (perfect forwarding, 完美转发) 虽然右值引用本身可能为左值或者右值，但通过 forward 我们可以强制保证左值引用转换为左值，右值引用转换为右值。forward 必须显式指明模版参数，不可以推导
+
+  ```c++
+  template<class T>
+  void foo(T&& arg) { arg.DoSomething(); }
+  template<class T>
+  void bar(T&& arg) { foo(std::forward<T>(arg)); }
+  ```
+  
+  注意：
+  
+  - 一般都是配合万能引用来使用
+  - 万能引用匹配左值形参时，传入的 `_Tp`是万能引用推导出的 `Widget&`。根据引用折叠规则，返回值也被折叠为 `Widget&`，返回的匿名左值引用一定是左值。
+  - 万能引用匹配右值形参时，传入的 `_Tp `是万能引用推导出的 `Widget`。返回值为 `Widget&&`，返回的匿名右值引用一定是右值
+  - 直接将具名引用传入`std::forward` 时一定是调用下列第一个左值形参的重载，因为左值引用和右值引用都是左值！这个重载接受右值引用后，forward 函数内的`__t`又变成了左值引用，然后再将其cast为右值引用返回。
+  - 如果将具名引用 move 后传给 forward，就会实例化第二个右值形参的重载，这里如果 `_Tp` 为左值引用的话就会报错
+  
+  ```c++
+  template <class _Tp>
+  _Tp&& forward(typename remove_reference<_Tp>::type& __t) {
+    return static_cast<_Tp&&>(__t);
+  }
+  
+  template <class _Tp>
+  _Tp&& forward(typename remove_reference<_Tp>::type&& __t) {
+    static_assert(!is_lvalue_reference<_Tp>::value, "cannot forward rvalue as lvalue");
+    return static_cast<_Tp&&>(__t);
+  }
+  ```
+  
+
+They both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference conversion and `std:forward` for and **only for universal reference** scenarios.
 
  ### reference qualifier 引用限定 C11
 
@@ -386,7 +416,7 @@ when a constexpr function is called with only compile-time arguments, the result
 
 ### static_cast
 
-相当于C语言中的强制类型转换的替代品。多用于**非多态类型**的转换，比如说将int转化为double。但是不可以将两个无关的类型互相转化。（在编译时期进行转换）
+相当于C语言中的强制类型转换的替代品。多用于**非多态类型**的转换，比如说将int转化为double。但是不可以将两个无关的类型互相转化。（在编译时期进行转换）不能包含底层const
 
  `static_cast` is used for cases where you basically want to reverse an implicit conversion, with a few restrictions and additions. static_cast performs no runtime checks. This should be used if **you know** that you refer to an object of a specific type, and thus a check would be unnecessary.
 

@@ -128,6 +128,21 @@ Substitution failure is not an error (SFINAE) is a principle in C++ where an inv
 # STL helpers
 
 - `enable_if`: ???
+
 - `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`
+
 - `is_const`: 检测顶层const？？？
-- `remove_reference`:
+
+- `remove_reference`: 3 overloads implementation
+
+  ```c++
+  template <class _Tp> struct remove_reference        {typedef _LIBCPP_NODEBUG _Tp type;};
+  template <class _Tp> struct remove_reference<_Tp&>  {typedef _LIBCPP_NODEBUG _Tp type;};
+  template <class _Tp> struct remove_reference<_Tp&&> {typedef _LIBCPP_NODEBUG _Tp type;};
+  ```
+
+  
+
+- xxx
+
+- 
