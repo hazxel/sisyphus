@@ -1,5 +1,7 @@
 # C Memory Allocation
 
+> Originally defined in C Library's \<string.h>. Use \<cstring> when writing C++, which put everything in namespace `std`
+
 动态内存开辟主要有 malloc、calloc、realloc 几种
 
 - `malloc(size)`：分配给定字节数大小的空间，不初始化
@@ -12,6 +14,11 @@
 内存操作：
 
 - `memcpy(dest,src,count)`
+- `memset(dest,c,count)`: use fill byte `c` to fill a memory of length `count`
+
+> Never use `memcpy` to copy classes. (e.g. copy unique_ptr)
+>
+> Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr error) (`bzero` is deprecated)
 
 
 

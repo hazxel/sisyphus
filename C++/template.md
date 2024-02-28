@@ -24,7 +24,7 @@ void func(T... args) // args is a template parameter pack
 
 ### Fold Expressions (C++17)
 
-可以简化对参数包的处理：???似乎是直接就地展开
+可以简化对参数包的处理：???似乎是直接就地展开 ??? 和上一个有啥区别？？？
 
 ```c++
 template<typename T>
@@ -40,6 +40,17 @@ void FormatPrint(Args... args)
     (std::cout << ... << format(args)) << std::endl;
 }
 ```
+
+### 继承 variadic template
+
+如下面这个例子，多继承所有模版参数类，并显式启用所有functor。这种场景一般继承的是 lambda（variant 的 visit），如果出现基本类型会无法通过编译。
+
+```c++
+template<class... Ts>
+struct overloads : Ts... { using Ts::operator()...; };
+```
+
+
 
 
 
@@ -111,3 +122,12 @@ template<bool _Val> using _BoolConstant _LIBCPP_NODEBUG = integral_constant<bool
 Substitution failure is not an error (SFINAE) is a principle in C++ where an invalid substitution of template parameters is not in itself an error. 
 
 当创建一个重载函数的候选集时，某些（或全部）候选函数是用模板实参替换（可能的推导）模板形参的模板实例化结果。如果某个模板的实参替换时失败，编译器将在候选集中删除该模板，而不是当作一个编译错误从而中断编译过程。如果一个或多个候选保留下来，那么函数重载的解析就是成功的，函数调用也是良好的。
+
+
+
+# STL helpers
+
+- `enable_if`: ???
+- `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`
+- `is_const`: 检测顶层const？？？
+- `remove_reference`:

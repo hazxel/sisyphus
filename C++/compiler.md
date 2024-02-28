@@ -4,31 +4,44 @@ https://godbolt.org/
 
 1. Preprocessing: convert *.cpp/c.* files to *.i* files
 
-  Process`#` instructions: replace `#define`, delete comment, insert `#include` files, etc.
+   Process`#` instructions: replace `#define`, delete comment, insert `#include` files, etc.
 
 2. Compilation: convert *.i* files to *.s* files
 
-  Translate source code to target assembly code.
+   Translate source code to target assembly code.
 
 3. Assembly: convert *.s* files to *.o* files
 
-  Translate assenbly code to machine instructions (data seg + code seg) and symbol tables. 
+   Translate assenbly code to machine instructions (data seg + code seg) and symbol tables. 
 
-  > Only check **declaration**! In symbol table contents: 
-  >
-  > - symbol name
-  > - can/connot referenced by external (static is invisible to other object files)
-  > - defined/not defined (not defined variable/func will be checked in linking stage)
-  > - location - data/code segment
+   > Only check **declaration**! In symbol table contents: 
+   >
+   > - symbol name
+   > - can/connot referenced by external (static is invisible to other object files)
+   > - defined/not defined (not defined variable/func will be checked in linking stage)
+   > - location - data/code segment
 
 4. Linking: no specified output name, but default to *a.out*
 
-  Linker takes one or more object files, and combines them to an executable file, a library file, or another object file. Linker checks if, for every object file, every undefined symbol occurs **exactly once** in other object files. 
+   Linker takes one or more object files, and combines them to an executable file, a library file, or another object file. Linker checks if, for every object file, every undefined symbol occurs **exactly once** in other object files. 
 
-  > - Stabic linked library: statically included in executable files (linux -- *.a* file; windows -- *.lib* file)
-  > - Dynamic linked library: run-time dynamic link(linux -- *.so* file; windows -- *.dll* file)
+   > - Stabic linked library: statically included in executable files (linux -- *.a* file; windows -- *.lib* file)
+   > - Dynamic linked library: run-time dynamic link(linux -- *.so* file; windows -- *.dll* file)
 
-  > 函数的实现尽量不要放在头文件，不过事实上现在的C++编译器完全可以自动处理类实现写入.h文件的情况，即使实现的成员函数前面是virtual之类不能inline的类型也不会有问题。最多只是降低编译速度而已。
+   > 函数的实现尽量不要放在头文件，不过事实上现在的C++编译器完全可以自动处理类实现写入.h文件的情况，即使实现的成员函数前面是virtual之类不能inline的类型也不会有问题，最多只是降低编译速度而已。
+
+
+
+# Application Binary Interface(ABI)
+
+ABI 是编译器和链接器遵守的一组规则，以让编译后的程序可以正常工作。ABI里包含很多方面的内容，比较重要的有：
+
+- name decoration：编译后的函数名。C++需要名字修饰的原因是因为C++允许函数重载，同名函数在C语言中会冲突，必须想办法让他们在编译器层面区分开来（namespace、类名等在名字修饰中都会有体现）名字修饰发生在编译阶段，既目标文件中的符号已经是修饰之后的。名字修饰没有规范，直接调用修饰后的函数名很容易导致二进制不兼容。
+- Object Representation，一般说不稳定的 API，都是在说 内存布局不稳定···
+- Function Calling Sequence（函数调用约定）：函数调用约定里涉及到寄存器怎么使用，参数如何传递（堆栈还是寄存器），谁负责清理堆栈（调用者/被调用者），参数入栈的顺序（从右向左？），栈帧的布局等。
+- Data Representation：定义了系统基本类型的数据宽度，如 bool 类型定义以及 long 的字节数 （ILP） 等
+
+C语言也受ABI困扰，不同 libc 就有不同 ABI，导致需要重新编译。 C++里 ABI 问题比较明显主要是因为语言设计就不考虑abi问题，而模板导致这个问题被放大，因为模板的设计就天然和abi冲突。
 
 
 
@@ -85,6 +98,8 @@ Obj fun() {
 
 ### Copy elision optimization
 
+In C++17, copy elision was made mandatory in some situations
+
 ```c++
 Foo f = Foo(); // copy ctor not called
 ```
@@ -128,10 +143,6 @@ The `inline` keyword suggests the compiler to substitute the code within the fun
 Virtual functions can also be inlined, but only when compiler knows the "exact" class of the object. (e.g. non-dynamic resolved, local object, static/global object, etc.)
 
 编译器内部会有一个阈值，在编译一个函数的时候，会计算每条语句所贡献的值（这个值编译器内部有一个映射算法），加完看是否超过，超过就不做inline，不超过就inline。当然这中间还有一些check看看是否能inline之类的。不同的优化选项这个值会不一样，来tradeoff 性能和空间。
-
-### volatile (keyword)
-
-The `volatile` keyword can be applied to variables, in order to prevent the compiler to optimize on it.
 
 
 
@@ -222,7 +233,7 @@ Library directories: Flags specifying directories in which libraries are located
 
 
 
-# Undefined Behavior
+# Undefined Behavior (UB)
 
 ##### unsequenced modification and access
 

@@ -1,16 +1,3 @@
-# Application Binary Interface(ABI)
-
-ABI 是编译器和链接器遵守的一组规则，以让编译后的程序可以正常工作。ABI里包含很多方面的内容，比较重要的有：
-
-- name decoration：编译后的函数名。C++需要名字修饰的原因是因为C++允许函数重载，同名函数在C语言中会冲突，必须想办法让他们在编译器层面区分开来（namespace、类名等在名字修饰中都会有体现）名字修饰发生在编译阶段，既目标文件中的符号已经是修饰之后的。名字修饰没有规范，直接调用修饰后的函数名很容易导致二进制不兼容。
-- Object Representation，一般说不稳定的 API，都是在说 内存布局不稳定···
-- Function Calling Sequence（函数调用约定）：函数调用约定里涉及到寄存器怎么使用，参数如何传递（堆栈还是寄存器），谁负责清理堆栈（调用者/被调用者），参数入栈的顺序（从右向左？），栈帧的布局等。
-- Data Representation：定义了系统基本类型的数据宽度，如 bool 类型定义以及 long 的字节数 （ILP） 等
-
-C语言也受ABI困扰，不同 libc 就有不同abi，导致需要重新编译。 C++里abi问题比较明显主要是因为语言设计就不考虑abi问题，而模板导致这个问题被放大，因为模板的设计就天然和abi冲突。
-
-
-
 # Raw Expressions
 
 - 逗号表达式，逗号表达式的优先级最低，`(a, b)`这个表达式的值就是`b`
@@ -19,14 +6,14 @@ C语言也受ABI困扰，不同 libc 就有不同abi，导致需要重新编译�
 
 # Pointer
 
-##### Address related operator
+### Address related operator
 
 - Address-of operator `&`
 - Dereferencing operator `*`
 
-##### Pointers and arrays
+### Pointers and arrays
 
-Arrays work very much like pointers to their first elements, and, actually, an array can always be implicitly converted to the pointer of the proper type.
+Arrays work very much like pointers to their first elements. An array can always be **implicitly converted to the pointer** of the proper type.
 
 Brackets `[]` dereference the variable just as `*`. The following are equivalent:
 
@@ -36,7 +23,7 @@ a[5] = 0;
 *(a+5) = 0;
 ```
 
-##### NULL vs nullptr
+### NULL vs nullptr
 
 `nullptr` is introduced to resolve the ambiguity of `NULL`, because it's hard to tell if `NULL` is pointer or number. `nullptr` is a compile time constant, with type `nullptr_t`, and can be implicitly converted to any pointer type.
 
@@ -46,116 +33,129 @@ a[5] = 0;
 typedef decltype(nullptr) nullptr_t;
 ```
 
-##### void pointer
+### void pointer
 
 Can point to any kinds of variable. Some compiler forbid arithmatic (+/-) operation to void pointers. C allows a `void*` pointer to be assigned to any pointer type without a cast, while C++ does not.
 
-##### memory operations `memcpy` & `memset` (Standard C Library)
-
-Never use `memcpy` to copy classes. (e.g. copy unique_ptr)
-
-Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr error) (`bzero` is deprecated)
 
 
+# Value
 
-#  Value vs Variable
+Each C++ expression (an operator with its operands, a literal, a variable name, etc.) is characterized by two independent properties: a **type** and a **value category**. Each expression has some non-reference type, and each expression belongs to exactly one of the three primary value categories: prvalue, xvalue, and lvalue.
 
-- 值有类别 (category, e.g. glvalue, rvalue, lvalue, prvalue, xvalue...) ，变量有类型 (type) 
-- 值不一定拥有身份 (identity???)，也不一定拥有变量名（e.g. 表达式中间结果）
+### Value categories：lvalue vs rvalue (C++11)
+
+##### Primitive categories
+
+- **lvalue** (non-expiring lvalue): 能够用&取地址的表达式，以及字符串字面值（特例）
+- *prvalue* (pure rvalue): 纯右值，即 C++11前的“右值”，包括但不限于：
+  - 字符串以外的所有字面值
+  - 不具名临时对象如`a+b`, `a++`
+  - 返回非引用类型的函数调用，evaluate to 新建对象的表达式，如构造器等
+
+- *xvalue* (expiring value): 将亡值，随着右值引用的引入而新引入。将亡值表达式的形式：
+  - 返回右值引用的函数的调用表达式 (`move`, `forward`也算)
+
+##### Mixed categories：
+
+- *glvalue* (generalized left value): inlcudes *lvalue* and *xvalue*
+- **rvalue** (right value): includes *prvalue* and *xvalue*
+
+### lifetime extension of temporary objects:
+
+不准确但先这么理解：Temporary objects are rvalue. Temporary 就是不具名的临时对象
+
+Currently, const lvalue reference`const T&`, rvalue reference`T&&`, and storing by named variable(可能指的是基本类型，不然岂不是会调用构造函数?) are 3 ways to extend the lifetime of a temporary object. **For any statement explicitly binding a reference to a temporary, the lifetime of the temporary would be extended to match the life time of reference.**
+
+Why can‘t temporary bind to non-const reference? C++ doesn't want you to accidentally modify temporaries, because they will die soon. But calling a non-const member function on a modifiable (and non basic typed) rvalue is explicit, so it's allowed.
+
+Historical reason: "lifetime extension of temporary objects" is proposed in 1993, before the existance of RVO. So binding of temporary to a reference will save one copy ctor in such circunstance: 
+
+```c++
+Foo bar();						// programming under old C++ standard in 1993
+Foo f = bar();				// no (N)RVO back then, copy_ctor called
+const Foo &f = bar();	// copy free
+Foo f = Foo();				// no copy elision back then, copy_ctor called
+const Foo &f = Foo();	// copy free
+```
 
 
-
-# lvalue vs rvalue 
-
-|         lvalue         |         rvalue         |
-| :--------------------------------------: | :--------------------------------------: |
-|  points to a specific memory location  | in memory or register, can't get address |
-| live a longer life since they exist as variables |    temporary and short lived     |
-| can be left or right operand of assigment | can only be left right operand of assigment |
-|    ++i (return reference of i)    | i++ (i has increased, return a saved temp value) |
-
-C++17细分概念：
-
-- Values are either *glvalue* (generalized left value) or *rvalue* (right value). 
-  - *glvalue*  inlcudes *lvalue* and *xvalue*
-  - *rvalue* includes *prvalue* and *xvalue*
-- Values are either lvalue ((non-expiring) left value), *prvalue* (pure right value) or *xvalue* (expiring value)
-  - *lvalue*: 能够用&取地址的表达式，以及字符串字面值（特例）
-  - *prvalue*: C++11之前的右值指的是C++11后的纯右值，包括字符串以外的所有字面值，不具名临时对象等
-  - *xvalue*: 。C++11中的将亡值是随着右值引用的引入而引入的。所谓的将亡值表达式，就是下列表达式：
-    - 返回右值引用的函数的调用表达式
-    - 转换为右值引用的转换函数的调用表达式(`move`, `forward`)
 
 
 
 # Reference
 
-### Reference vs Pointer
-
-- A pointer points to a memory address; A reference is an alias of a memory address 
+### Reference (vs Pointer)
 
 - Reference **cannot be modified to refer to other objects** after init.
-- Reference cannot be null, and must be initialized, 悬垂引用 (dangling reference) is still possible
+- Reference cannot be null, and must be initialized, but 悬垂引用 (dangling reference) is still possible
 - There is no const reference (reference is by definition immutable, but reference to a const object is ok)
-- reference type must match with the object it is referring to (const reference is an exception)
+- reference type must match with the object it is referring to??? (const reference is an exception)
 - Size of reference is the size of the object; size of the pointer is the size of the pointer itself
 - increament of reference increases the object, increament of the pointer makes the pointer point to the next address
 - reference has type check (safer)
 
-### rvalue refrence (&&)
+### reference & rvalue refrence (&&)
 
-本来引用不可以使用另一个引用初始化，但因为 c++11 引入了右值引用，现在可以
+A Reference is not a object, but an alias ot an existing object or function. Since references are not objects, there are **no arrays** of references, **no pointers** to references, and **no references** to references.
 
-C++11 标准中规定，通常情况下右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板中使用右值引用语法定义的参数来说，它不再遵守这一规定，既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用” universal reference）。
+重新仔细思考下什么是引用？个人理解，引用符号某种意义上也是一种限定符(qualifier)，和 `const`, `volatile`, `mutable` 这些cv-qualifier类似，在真正的类型信息外提供额外的信息或约束，被引用符号限定的类型，就是在传达这样的信息：这个alias所绑定的对象已经创建好了，且这个alias不负责管理其生命周期和所有权。
+
+引用绑定就是给一个 object 一个别名，这一动作涉及到两个元素，一方是被绑定的对象，它本身有type和value category，另一方是别名，也有type，但有名字的东西一定是lvalue。
+
+左值引用代表这是一个已经存在的对象/值的别名；右值引用代表这是一个已经存在的对象/值的别名，并且赋值方不再管理其生命周期，注意这不是一个强约束，而是一种约定，被右值引用接收后，该临时值的生命周期得以在该引用的生命周期内延续（`const T&` 也可以延续临时对象的生命周期，但不能修改）。
+
+### reference collapsing
+
+由于 C++11 引入了右值引用，引用类型的引用被允许出现，但只允许出现在模版相关的编译器的内部推导（template, auto, decltype, ...）或者 typedef。以下代码 `int& && a;` 试图创建引用的引用，无法通过编译。
+
+refernece to reference follows the reference collapsing rule:
+
+```c++
+typedef int& lref;
+typedef int&& rref;
+int n;
+lref& r1 = n;		// type of r1 is int&
+lref&& r2 = n;	// type of r2 is int&
+rref& r3 = n;		// type of r3 is int&
+rref&& r4 = 1;	// type of r4 is int&& !!!
+
+
+```
+
+Reference collapsing and template arguemnt deduction rules make `std::forward` possible.
+
+### Universal Reference
+
+C++11 标准引入右值引用，规定右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板和`auto`中使用`T&&`语法定义的参数来说，它既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。这一特性目的是在参数增加时，避免指数级增长的定义，减少重复定义的模版的数量。如果只希望定义右值形参而禁用左值，可？？？
+
+ ```c++
+auto&& var = container.get();
+
+template<class T>
+void wrapper(T&& arg) {
+  foo(std::forward<T>(arg)); // Forward as lvalue or as rvalue, depending on T
+}
+
+template<typename T>
+void foo(std::vector<T>&& param); // this is not universal reference!!
+ ```
 
 ### Confusing: whaaat? my rvalue reference itself is a lvalue? 
 
-*lvalue reference* and *rvalue refrence* themselves can be either *lvalue* or *rvalue*.
+*lvalue reference* and *rvalue refrence* themselves can be either *lvalue* or *rvalue*. 具名的参数一定永远是左值。
+
+个人理解：右值只是为了告诉赋值给他的那一方，数据的所有权和生命周期被转交了，但对于接收的那一方，如函数的右值形参，在这个函数执行周期内这个值都是保证不会消亡的，所以其类型实际为 `T&`。
 
 ### move & forward (C11)
 
 > introduced in C11
 
-- `std::move` (move semantic, 移动语义) is used to indicate that an object may be "moved from", i.e. allowing the efficient transfer of resources from t to another object. 
+- `std::move` (move semantic, 移动语义) is used to indicate that an object may be "moved from", allowing efficient transfer of resources. 
 
-- `std::forward<T>` (perfect forwarding, 完美转发) When t is a forwarding reference (a function argument that is declared as an rvalue reference to a cv-unqualified function template parameter), this overload forwards the argument to another function with the value category it had when passed to the calling function. 
+- `std::forward<T>` (perfect forwarding, 完美转发) 不具名的左值引用本身是左值，不具名的右值引用本身是右值。具名的左值引用本身是左值，**具名的右值引用也是左值**，这个比较反直觉。换言之，虽然右值引用本身可能为左值或者右值，但通过 forward 我们可以强制保证左值引用转换为左值，右值引用转换为右值。
 
-They both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference and `std:forward` for universal reference (only in template functions, `&&` reference can take either rvalue or lvalue, to avoid writing very similar functions twice) .
-
-### Universal Reference
-
- 通常情况下右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板和`auto`中使用右值引用语法定义的参数来说，它既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。
-
- ```c++
- auto&& var = container.get();
- 
- template<class T>
- void wrapper(T&& arg) {
-   foo(std::forward<T>(arg)); // Forward as lvalue or as rvalue, depending on T
- }
- 
- template<typename T>
- void foo(std::vector<T>&& param); // this is not universal reference!!
- ```
-
-### reference collapsing
-
-For the following code:
-
-```c++
-typedef [SOME_TYPE] T;
-typedef [SOME_TYPE] TR;
-TR var;
-```
-
-the acutal type of var is:
-
-| T  | TR | Type of var |
-| :--: | :--: | :---------: |
-| A& | T& |   A&   |
-| A& | T&& |   A&   |
-| A&& | T& |   A&   |
-| A&& | T&& |   A&&   |
+They both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference and `std:forward` for and only for universal reference scenarios.
 
  ### reference qualifier 引用限定 C11
 
@@ -173,18 +173,20 @@ class optional {
 };
  ```
 
-### Final Exam for argument passing 
 
-##### Pass by value - when you need a copy or accepting basic types
+
+# Final Exam for argument passing 
+
+### Pass by value - when you need a copy or accepting basic types
 
 ```c++
 void Func(Data);
-Func(Data());								// only one ctor!!!
+Func(Data());								// best, only one ctor called in-place!!!
 Data d; Func(d);						// ctor + copy_ctor
 Data d; Func(std::move(d));	// ctor + move_ctor
 ```
 
-##### Pass by reference - when modify the param or pass output
+### Pass by reference - when modify the param or pass output
 
 ```c++
 void Func(Data &);
@@ -193,7 +195,7 @@ Data d; Func(d);						// compiles
 Data d; Func(std::move(d));	// won't compile, lvalue ref cannot bind rvalue
 ```
 
-##### Pass by const reference - default choice for read-only params
+### Pass by const reference - default choice for read-only params
 
 ```c++
 void Func(const Data &);
@@ -202,41 +204,24 @@ Data d; Func(d);						// compiles
 Data d; Func(std::move(d));	// compiles
 ```
 
-> ### lifetime extension of temporary objects:
->
-> Currently, const lvalue reference, rvalue reference, and storing by named variable are 3 ways to extend the lifetime of a temporary object. **For any statement explicitly binding a reference to a temporary, the lifetime of the temporary would be extended to match the life time of reference.**
->
-> Why not non-const reference? C++ doesn't want you to accidentally modify temporaries, because they will die soon. But calling a non-const member function on a modifiable (and non basic typed) rvalue is explicit, so it's allowed.
->
-> Historical reason: It is proposed in 1993, before the existance of RVO. So binding of temporary to a reference will save one copy ctor in such circunstance: 
->
-> ```c++
-> Foo bar();						// programming under old C++ standard in 1993
-> Foo f = bar();				// no (N)RVO back then, copy_ctor called
-> const Foo &f = bar();	// copy free
-> Foo f = Foo();				// no copy elision back then, copy_ctor called
-> const Foo &f = Foo();	// copy free
-> ```
->
-> 
-
-##### Pass by rvalue reference - take ownership of the passed param
+### Pass by rvalue reference - take ownership of the passed param
 
 ```c++
 void Func(Data &&);
 Func(Data());								// compiles
-Data d; Func(d);						// won't compile to prevent lvalue accidently passed to it
+Data d; Func(d);						// won't compile, prevent lvalue accidently passed to it
 Data d; Func(std::move(d));	// compiles
 ```
 
-##### Smart Pointers - be careful - see memory chapter
+### Smart Pointers - be careful - see memory chapter
 
-##### Return type
+### Return type
 
 - for free functions, usually by value return is the only option, except for returning static/global objects
 - for member methods, value, const and non-const reference are all possible
+- rvalue reference？？？
 
-##### Not recommended
+### Not recommended
 
 - `void Func(const Data)`: The variable wiil be destroied when out of scope, why can't I modify it?
 - `void Func(const Data &&)`: So I took the ownership but still couldn't modify it?
@@ -278,6 +263,22 @@ Data d; Func(std::move(d));	// compiles
   - const member function cannot be static (static functions are independent on instances)
 
 - const return type: useful when returning a reference of class' internal member
+
+
+
+# cv type qualifier???
+
+### const
+
+顶层const？？？top-level cv-qualified？？？
+
+### volatile
+
+The `volatile` keyword can be applied to variables, in order to prevent the compiler to optimize on it.
+
+### mutable
+
+
 
 
 

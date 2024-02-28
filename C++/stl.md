@@ -106,6 +106,12 @@ Useful Functions:
 
 
 
+### alpha
+
+- `boolaplha`???
+
+
+
 ### Files
 
 ##### C++ file operations
@@ -222,8 +228,57 @@ Variant cannot be directly used, but via non-member function:
 
 ### visit
 
-它允许我们对 `std::variant` 进行模式匹配，根据其存储的类型执行不同的操作。可 visit 多个 variant。
+它允许我们对 `std::variant` 进行模式匹配，根据其存储的类型执行不同的操作。Let the codes speak for themselves：
+
+##### Naive Usage: provide visit funcition for every types via a visitor class
+
+```c++
+struct MultiplyVisitor {
+    float mFactor;
+    MultiplyVisitor(float factor) : mFactor(factor) { }
+    void operator()(int& i) const { i *= static_cast<int>(mFactor); }
+    void operator()(float& f) const { f *= mFactor; }
+    void operator()(std::string& ) const { // nothing to do here...}
+};
+  
+std::variant<int, float, std::string> intFloatString{1};
+std::visit(MultiplyVisitor(0.5f), intFloatString);
+```
+
+##### provide callable for every types via lambda and a helper class
+
+```c++
+template<class... Ts>
+struct overloads : Ts... { using Ts::operator()...; };
+ 
+int main() {
+    std::variant<int, std::string> var1{42}, var2{"abc"};
+    auto use_int = [](int i){ std::cout << "int = " << i << '\n'; };
+    auto use_str = [](std::string s){ std::cout << "string = " << s << '\n'; };
+#if (__cpp_lib_variant >= 202306L)
+    var1.visit(overloads{use_int, use_str});
+    var2.visit(overloads{use_int, use_str});
+#else // not a member function before C++23
+    std::visit(overloads{use_int, use_str}, var1);
+    std::visit(overloads{use_int, use_str}, var2);
+#endif
+}
+```
+
+##### generic lambda to generate callable set
+
+```c++
+auto PrintVisitor = [](const auto& t) { std::cout << t << "\n"; };
+std::variant<int, float, std::string> intFloatString { "Hello" };
+std::visit(PrintVisitor, intFloatString);
+```
+
+##### 还可一次 visit 多个 variant。
 
 ### monostate
 
-使用 `std::monostate`表示“无值”或“空”状态的 `std::variant`。
+使用 `std::monostate`作为参数列表的一员，表示“无值”或“空”状态。默认情况下，variant对象使用第一种类型初始化被初始化。如果第一个类型没有默认构造函数时将会初始化失败，编译器会报错。但是在这种情况下，你可以将variant的第一种类型指定为`std::monostate`。
+
+### in_place
+
+`std::in_place`, `std::in_place_type`, and `std::in_place_index` are disambiguation tags that can be passed to the constructors of `std::expected`, `std::optional`, `std::variant`, and `std::any` to indicate that the contained object should be constructed in-place, and (for the latter two) the type of the object to be constructed.
