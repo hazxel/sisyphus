@@ -242,3 +242,9 @@ namespace CardGame_NonScoped
   }
 }
 ```
+
+
+
+# Object Slicing
+
+将 subclass 的对象赋值到 baseclass 对象时，或使用 baseclass 的拷贝构造函数拷贝派生类时，将发生对象切片：基类副本将没有在派生类中定义的任何成员变量。切片问题是 C++98 中默认按值传递名声不好的重要原因。

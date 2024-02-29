@@ -122,6 +122,8 @@ Conclusion: for self defined header files, use `#include ""`
 
 ### pragma
 
+**avoid using `pragma`, it's not part of C++ standard, it's merely compiler extension**
+
 - `#pragma pack (push)`: Pushes the current packing alignment value on the internal compiler stack.
 - `#pragma pack (n)`: Specifies the value, in bytes, to be used for packing.
 - `#pragma pack (pop)`: Removes the record from the top of the internal compiler stack.

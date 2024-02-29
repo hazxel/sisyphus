@@ -10,6 +10,10 @@ Dynamically manage memory for stl containers. 考虑到小型区域可能造成�
 
 A `std::array` is a very thin wrapper around a C-style array. It has friendly value semantics, so that it can be passed to or returned from functions by value. Its interface makes it more convenient to find the size, and use with STL-style iterator-based algorithms.
 
+`std::array`与其他容器最大的不同是，其元素直接存放在实例内部而不是堆上。`std::array`既可以作为函数返回值，又可以作为编译期常量。**它是编译期返回集合数据的首选**。
+
+`std::array`相比于内建数组几乎没有额外开销，但更安全，可读性和可维护性更高，应当尽量使用。 `std::array` 不会隐式转成指针（需显式调用` data()` ），可以方便地按值传递、按值返回、赋值。C++14~17 中 std::array 逐渐变得比内建数组更适合配合 constexpr，C++20中swap, sort等都constexpr了，编译期的计算正变得愈加容易。
+
 ### vector (dynamic array)
 
 ##### reserve vs resize
@@ -21,6 +25,10 @@ Resize: will insert or delete elements to the vector to make it given **size** (
 ##### Capacity Growth
 
 The capacity grows by double or 1.5 times of the previous size. Every time a vector's capacity grows the elements may need to be copied and all the itrators will becom invalid.
+
+##### Boolean vector: `std::vector<bool>`
+
+`std::vector<bool>`的`operator[]`不返回`bool&`，而是返回`std::vector<bool>::reference`对象。这是因为`std::vector<bool>`规定了使用一个打包形式（packed form）表示它的`bool`，每个`bool`占一个*bit*，但是C++禁止对`bit`s的引用，所以返回一个**行为类似于**`bool&`的对象`std::vector<bool>::reference`.
 
 ### list (doubly linked list)
 
@@ -48,11 +56,17 @@ The type of the underlying container to use to store the elements. The container
 
 ### Map, Set, Multiset, Multimap (red black tree)
 
-> set is using a **const iterator** because:
->
-> A set is like a map with no values but only keys. Those keys are used for a tree that accelerates operations on the set, they cannot change. Thus all elements must be const to keep the constraints of the underlying tree from being broken.
+
 
 ### unordered_map, unordered_set (hash map)
+
+
+
+### Constness of set and maps
+
+`set` is using a **const iterator** because: Elements form a tree that accelerates operations on the set, thus all elements must be const to keep the constraints of the underlying tree.
+
+A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Solution is elegant- use `auto`: `for(const auto& p : m)`.
 
 
 

@@ -301,7 +301,7 @@ Data d; Func(std::move(d));	// compiles
 
 ### volatile
 
-The `volatile` keyword can be applied to variables, in order to prevent the compiler to optimize on it.
+The `volatile` keyword can be applied to variables, in order to prevent the compiler to optimize on it. 通常用于驱动程序的开发中
 
 ### mutable
 
@@ -546,19 +546,6 @@ auto add(T t, U u) -> decltype(t + u) { // return type depends on template param
 > **Tailing Return Type Syntax:**
 >
 > The trailing return type feature removes a C++ limitation where the return type of a function template cannot be generalized if the return type depends on the types of the function arguments. For example, `a`and `b`are arguments of a function template `multiply(const A &a, const B &b)`, where `a`and `b`are of arbitrary types. Without the trailing return type feature, you cannot declare a return type for the `multiply`function template to generalize all the cases for `a*b`. With this feature, you can specify the return type after the function arguments. This resolves the scoping problem when the return type of a function template depends on the types of the function arguments.
-
-### auto
-
-The `auto` keyword directs the compiler to deduce the type of a variable from its initialization expression.
-
-- Using auto drops references `&`, `const` qualifiers, and `volatile` qualifiers.
-- use `auto` to simplify for iteration
-- use `auto` to declare and initialize a variable to a lambda expression.
-- Use `auto` together with `decltype` to write template libraries.
-
-### decltype(auto)
-
-more accurate type deduction than auto.
 
 
 
