@@ -8,11 +8,6 @@
 
 # Pointer
 
-### Address related operator
-
-- Address-of operator `&`
-- Dereferencing operator `*`
-
 ### Pointers and arrays
 
 Arrays work very much like pointers to their first elements. An array can always be **implicitly converted to the pointer** of the proper type.
@@ -423,6 +418,7 @@ when a constexpr function is called with only compile-time arguments, the result
   - 派生类指针转换为基类指针
   - 基类引用绑定派生类对象
   - 添加 cv-qualifier 的转换
+  - `T[]` to `T*`
 - 窄化转换：指**基本类型**之间的转换中，由于目标类型的表示范围小于源类型导致的精度丢失或数据溢出。合法，但会触发编译器警告。
 
 ### static_cast
