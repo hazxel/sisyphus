@@ -49,12 +49,18 @@ Each C++ expression (an operator with its operands, a literal, a variable name, 
 
 ##### Primitive categories
 
-- **lvalue** (non-expiring lvalue): 能够用&取地址的表达式，以及字符串字面值（特例），具名右值引用
+- **lvalue** (non-expiring lvalue): 能够用&取地址的表达式，以及字符串字面值（特例）
+
+  > 具名的参数，包括**具名右值引用**，一定永远是左值。
+  >
+  > 个人理解：右值只是为了告诉赋值给他的那一方，数据的所有权和生命周期被转交了，但对于接收的那一方，如函数的右值形参，在这个函数执行周期内这个值都是保证不会消亡的，所以其类型实际为 `T&`。
+
 - *prvalue* (pure rvalue): 纯右值，即 C++11前的“右值”，包括但不限于：
+  
   - 字符串以外的所有字面值
   - 不具名临时对象如`a+b`, `a++`
   - 返回非引用类型的函数调用，evaluate to 新建对象的表达式，如构造器等
-
+  
 - *xvalue* (expiring value): 将亡值，随着右值引用的引入而新引入。将亡值表达式的形式：
   - 返回右值引用的函数的调用表达式 (`move`, `forward`也算)
 
@@ -133,12 +139,6 @@ void wrapper(T&& arg); // this is univeral reference
 template<typename T>
 void foo(std::vector<T>&& param); // this is not!!!
  ```
-
-### Confusing: whaaat? my rvalue reference itself is a lvalue? 
-
-*lvalue reference* and *rvalue refrence* themselves can be either *lvalue* or *rvalue*. 具名的参数一定永远是左值。
-
-个人理解：右值只是为了告诉赋值给他的那一方，数据的所有权和生命周期被转交了，但对于接收的那一方，如函数的右值形参，在这个函数执行周期内这个值都是保证不会消亡的，所以其类型实际为 `T&`。
 
 ### move & forward (C11)
 
@@ -413,6 +413,18 @@ when a constexpr function is called with only compile-time arguments, the result
 
 # cast
 
+### Implicit conversion
+
+合法的隐式类型转换场景：
+
+- 安全转换：
+  - 不会导致精度丢失或数据溢出的基本类型转换
+  - 派生类对象转换为基类对象，可能导致对象切片 (object sclicing problem)
+  - 派生类指针转换为基类指针
+  - 基类引用绑定派生类对象
+  - 添加 cv-qualifier 的转换
+- 窄化转换：指**基本类型**之间的转换中，由于目标类型的表示范围小于源类型导致的精度丢失或数据溢出。合法，但会触发编译器警告。
+
 ### static_cast
 
 相当于C语言中的强制类型转换的替代品。多用于**非多态类型**的转换，比如说将int转化为double。但是不可以将两个无关的类型互相转化。（在编译时期进行转换）不能包含底层const
@@ -528,29 +540,6 @@ RAII 机制是一种对资源申请、释放这种成对的操作的封装，通
 
 # New Features (C11, C17, C23)
 
-### decltype (specifier)
-
-Inspects the declared type of an entity or the type and value category of an expression.
-
-```c++
-struct A { double x; };
-const A* a;
- 
-decltype(a->x) y;    // type of y is double (declared type)
-decltype((a->x)) z = y; // type of z is const double& (lvalue expression)
- 
-template<typename T, typename U>
-auto add(T t, U u) -> decltype(t + u) { // return type depends on template parameters
-  return t + u;            // return type can be deduced since C++14
-}
-```
-
-> **Tailing Return Type Syntax:**
->
-> The trailing return type feature removes a C++ limitation where the return type of a function template cannot be generalized if the return type depends on the types of the function arguments. For example, `a`and `b`are arguments of a function template `multiply(const A &a, const B &b)`, where `a`and `b`are of arbitrary types. Without the trailing return type feature, you cannot declare a return type for the `multiply`function template to generalize all the cases for `a*b`. With this feature, you can specify the return type after the function arguments. This resolves the scoping problem when the return type of a function template depends on the types of the function arguments.
-
-
-
 ### lambda expression
 
 A convenient way of defining an anonymous function, full syntax:
@@ -659,7 +648,56 @@ for ( ; __begin != __end; ++__begin)
 
 
 
-### Initializer list
+# Initialization
+
+### Basic Syntax
+
+```c++
+T declarator();								// direct init
+T declarator{};								// list init
+T declarator = <expression>;	// copy init
+T declarator = {};						// possible
+```
+
+- `{}` doesn't allow narrowing conversion (good thing)
+- `()` can't use no-param-ctor (*most vexing parse* : `Widget w();` initialization or function declaration?)
+- Non-copyable ojbects cannot use `=` to initialize
+
+### List Initialization (C++11)
+
+大括号初始化大部分时候是优于小括号初始化的。它能被用于各种不同的上下文，防止隐式窄化。但当对象拥有接收`std::initializer_list`的构造函数时，大括号初始化的语义比较混乱：
+
+Example: Changing braces to parentheses in initialization may change semantics：
+
+```c++
+std::vector<int> v1{5, 6}; // 2 elems: {5, 6}
+std::vector<int> v2(5, 6); // 5 elems: {6, 6, 6, 6, 6}
+```
+
+当没有构造函数包含`std::initializer_list`形参时，花括号初始化和圆括号初始化效果完全相同。而当有一个或多个构造函数包含一个如`std::initializer_list<T>`的形参时：
+
+- 花括号初始化优先尝试将实际参数转换为一个`std::initializer_list<P>`:
+  - 如果`T`不能转换为 `P` ，编译器才会考虑其他构造函数
+  - 如果`T`是基本类型且可以转换为 `P` ，即使存在类型匹配更准确的非`std::initializer_list`形参构造函数，也会被忽略
+    - 如果`T`需要窄化才可转换为`P`，编译器就会报错
+    - 如果`T`不需窄化就可转换为`P`， 编译器就会选择该函数
+- 想传入一个空的 `std::initializer_list`, 需要这么写：`Widget w({}); `
+- 在模板中使用花括号构造对象时情况会更麻烦，因为模版类通常不知道关于模版参数类是否有包含一个`std::initializer_list`形参的构造器。(e.g. `std::make_unique`, STL 的解决方案是使用圆括号，并记录至接口文档中)
+
+### STL initializer_list
+
+`std::initializer_list` is an array of `const T` objects. It will be automatically constructed when:
+
+- a *brace-init-list* is the right operand of `=` 
+- Pass a *brace-init-list* to a function, and the function accepts `std::initializer_list` parameter
+- Use a *brace-init-list* to construct an object and there's a ctor accepts `std::initializer_list` parameter 即使 `std::initializer_list`  的模版参数类型不匹配，编译器也会试图转换（然后失败）
+- a *brace-init-list* is bound to auto
+
+### Designated Initializers(C++20)
+
+
+
+
 
 统一初始化是使用大括号进行初始化的方式，其实是利用一个事实：编译器看到{t1, t2, …, tn}便会做出一个initializer_list，它关联到一个array<T, n>。调用构造函数的时候，该array内的元素会被编译器分解逐一传给函数。但若函数的参数就是initializer_list，则不会逐一分解，而是直接调用该参数的函数。
 
