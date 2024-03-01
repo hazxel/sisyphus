@@ -28,6 +28,8 @@ MyAllocList<Widget>::type lw;
 
 # Type Deduction
 
+> trick to get type duction at compile time - pass a type to an unimplemented template struct: `template<typename T> struct TD;` and get deducted type from compiler error message.
+
 ### Template deduction
 
 对函数模版`template<T> void f(ParamType param)`，编译器使用`f(expr);`中的`expr`进行针对`T`的和对`ParamType`的类型推导。这两个类型通常是不同的，因为`ParamType`包含一些修饰，比如`const`, `&`, `*`等。
@@ -38,7 +40,7 @@ MyAllocList<Widget>::type lw;
 
 ### `auto` deduction
 
-`auto` 不处理形参，但其原理和 template deduction 几乎一致。`auto` 前后也可以加修饰，`auto` 本身相当于`T`， 修饰后的整体类型 `ParamType`类似于函数的形参。(e.g. universal reference: `auto&& u = lvalue;`)类似的，不加修饰会被推导为传值，可能会产生拷贝等，需要注意。
+`auto` 不处理形参，但其推导规则和 template deduction 几乎一致。`auto` 前后也可以加修饰，`auto` 本身相当于`T`， 修饰后的整体类型 `ParamType`类似于函数的形参。(e.g. universal reference: `auto&& u = lvalue;`)类似的，不加修饰会被推导为传值，可能会产生拷贝等，需要注意。
 
 对于花括号的处理是`auto`类型推导和 template deduction 唯一不同的地方：`auto` 类型推导时总是会把花括号理解为`std::initializer_list`，而 template deduction 接收花括号形参时会报错。
 
@@ -46,26 +48,41 @@ MyAllocList<Widget>::type lw;
 
 ### `decltype` deduction
 
-`decltype` tells the type of a name or expression. 主要用于声明返回类型依赖于形参类型的模版函数。`decltype` 的推导规则更加准确，会关注const & 这种修饰符。
+`decltype` tells the type of a name or expression. 主要用于声明返回类型依赖于形参类型的模版函数。
+
+- for entity: *entity* refer to id-expression and member access (unparenthesized). yield the **declared type** of the entity, regardless of **value category**.
+- for expression: 
+  - prvalue expression yield `T`
+  - lvalue expression yield `T&`
+  - xvalue expression yield `T&&`
+- `decltype(auto)`  is equivalant to `decltype(expr)`, where `expr` is initializer or ones in return statement. `decltype(auto)` 不可再被其他modifier修饰
 
 ```c++
+struct A { double x; };
+const A* a;
+decltype(a->x) y;    		// type: double (declared type), rule for entity
+decltype((a->x)) z = y; // type: const double& (lvalue expr), rule for expr
+
 template<typename Container, typename Idx>	// c++11
 auto access(Container& c, Idx i)	// auto 标示返回值由类型自动推导而来
-	-> decltype(c[i]) { 						// decltype计算返回类型
+	-> decltype(c[i]) { 						// decltype 计算返回类型
     return c[i];				
 }
-
 template<typename Container, typename Idx>	// c++14  
-decltype(auto) access(Container& c, Idx i) {// decltype(auto)表示返回值由decltype的规则推导而来                                            
-    return c[i];														// decltype(auto)不可被其他modifier修饰
+decltype(auto) access(Container& c, Idx i) {                                           
+    return c[i];
 }
 ```
 
-注意：`decltype` 推导出的类型不取决于 value category 而是取决于 type，如果需要返回非引用类型的引用，可以在外层加上`()`。如：对于`int x;`，`decltype(x)`正常推导出`int`，但 `decltype((x))` 会推导出 `int&`.
+注意：`decltype` 推导非表达式时，如果需要返回非引用类型的对象的引用，可以在外层加上`()`, 使其成为一个表达式且 value category 不变，即 lvalue expr，可被推导为 `T&`。
 
 
 
-# (C++11) variadic templates
+
+
+
+
+# variadic templates (C++11)
 
 ```c++
 template <class... T>
@@ -178,11 +195,15 @@ template<bool _Val> using _BoolConstant _LIBCPP_NODEBUG = integral_constant<bool
 
 
 
+
+
 # Substitution failure is not an error (SFINAE)
 
 Substitution failure is not an error (SFINAE) is a principle in C++ where an invalid substitution of template parameters is not in itself an error. 
 
 当创建一个重载函数的候选集时，某些（或全部）候选函数是用模板实参替换（可能的推导）模板形参的模板实例化结果。如果某个模板的实参替换时失败，编译器将在候选集中删除该模板，而不是当作一个编译错误从而中断编译过程。如果一个或多个候选保留下来，那么函数重载的解析就是成功的，函数调用也是良好的。
+
+
 
 
 

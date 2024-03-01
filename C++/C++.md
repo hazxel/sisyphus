@@ -1,6 +1,8 @@
-# Raw Expressions
+# Operator & Expressions
 
-- 逗号表达式，逗号表达式的优先级最低，`(a, b)`这个表达式的值就是`b`
+- 逗号运算符：取最右边的表达式的值，其他值被丢弃 (`(a, b)`的值是`b`)，优先级最低
+- ...
+- 括号：Expressions in parenthesis `()` have the highest precedence. parenthesis preserve value, type, and value category.
 
 
 
@@ -47,7 +49,7 @@ Each C++ expression (an operator with its operands, a literal, a variable name, 
 
 ##### Primitive categories
 
-- **lvalue** (non-expiring lvalue): 能够用&取地址的表达式，以及字符串字面值（特例）
+- **lvalue** (non-expiring lvalue): 能够用&取地址的表达式，以及字符串字面值（特例），具名右值引用
 - *prvalue* (pure rvalue): 纯右值，即 C++11前的“右值”，包括但不限于：
   - 字符串以外的所有字面值
   - 不具名临时对象如`a+b`, `a++`
