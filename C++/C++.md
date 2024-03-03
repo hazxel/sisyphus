@@ -366,16 +366,6 @@ The `explicit` keyword is used to mark **constructors** or **conversion function
 
 
 
-# typedef (keyword)
-
-The `typedef` keyword is used for aliasing existing data types, user-defined data types, and pointers to a more meaningful name. Typedefs allow you to give descriptive names to standard data types, which can also help you self-document your code.
-
-```c++
-typedef std::vector<int> vInt;
-```
-
-
-
 # sizeof (compile time operator)
 
 - size of an object of an **empty class** is 1, in order to "ensure that the addresses of two different objects will be different." And the size can be 1 because alignment doesn't matter here, as there is nothing to actually look at.
@@ -488,31 +478,63 @@ std::type_info对象是在编译的时候决定其内容的，作为静态数据
 
 
 
+# using
+
+- using-directives for namespaces: `using namespace namespace-name;`
+
+  Allowed only in namespace scope and in block scope. Every name from `namespace-name` is visible until the end of the scope in which it appears. 
+
+  > **Don‘t do this in header files!** Including your header will introduces namespace to global namespace, may lead to conflicts! Use *using-declarations* to introduce single member instead.
+
+- using-declarations: `using ns::member;`
+
+  - In namespace and block scope: introduce a member of another namespace into the region
+  - In class definition: introduces a member of a base class into the derived class definition
+    - introduce base class constructors: `using BaseClassName::BaseClassName;`: For every constructor of BaseClass, compiler generates an identical constructor for derived class.
+    - Introduce other functions: `using BaseClassName::FuncName;` for every overload of the function name, generates an identical function for derived class;
+  - for enumerators (C++20) `using enum enum-class-name;`
+  
+- type alias: `using identifier = type-id;`
+
+  Similar to `typedef`, introduces a name which is a synonym for the type denoted by `type-id`. If used inside of a class or sturct, can introduce **member type alias**.
+
+- alias template (C++11): `template<T> using identifier = type-id;`
+
+  Like any template declaration, can only be declared at class or namespace scope.
+
+
+
+# typedef
+
+The `typedef` is a C style keyword help to aliasing types, help to give a more meaningful name to a type.
+
+```c++
+typedef std::vector<std::vector<int>> MatrixInt;
+```
+
+If used inside of a class or sturct, can define **member type alias**.
+
+### typedef vs using
+
+Almost the same, except that `using` is compatible with templates, whereas the C style `typedef` is not:
+
+```c++
+template<typename T>
+using MyAllocList = std::list<T, MyAlloc<T>>;
+MyAllocList<Widget> lw;
+
+template<typename T>        
+struct MyAllocList {   
+    typedef std::list<T, MyAlloc<T>> type;     
+};
+MyAllocList<Widget>::type lw;        
+```
+
+
+
 # Namespace
 
 Namespaces provide a method for preventing name conflicts in large projects.
-
-##### declaration for all the identifiers in a name space
-
-Do not do this in header files! If others include your header file, it means they are also using namespace std, which may lead to conflicts! 
-
-```c++
-using namespace std;
-```
-
-##### declaration for single identifier
-
-Only import one member of the namespace, recommended.
-
-```c++
-using std::cout;
-```
-
-> **Not namespace:**
->
-> `using BaseClassName::BaseClassName;`
->
-> For every constructor of BaseClass, compiler generates an identical constructor for derived class.
 
 #### operator ::
 
@@ -520,7 +542,7 @@ using std::cout;
 
 - `class-name::member-name` scope is some class
 
- > can be used to call super class' virtual functions!
+  > can be used to call super class' virtual functions!
 
 - `namespace-name::member-name` scope is some namespace
 
