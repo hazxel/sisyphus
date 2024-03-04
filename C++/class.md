@@ -135,20 +135,6 @@ Every class that has virtual function(s) has **a virtual function table** constr
 
 
 
-### List Initialization (C++11)
-
-使用大括号 `{}` 来指定初始值，可以用于变量、数组、结构体、类等，他不允许窄化转换（不会隐式转换丧失精度），并且可读性更好。如果有构造函数接受一个 `std::initializer_list` 参数，列表初始化会优先选择这个构造函数。初始化对象是一个类的情况下需要满足：
-
-- 没有用户声明的构造函数
-- 没有用户提供的构造函数(允许显示预置或弃置的构造函数)
-- 没有私有或保护的非静态数据成员
-- 没有基类
-- 没有虚函数
-- 没有`{}`和`=`直接初始化的非静态数据成员
-- 没有默认成员初始化器
-
-
-
 ### Inheritance
 
 default is private

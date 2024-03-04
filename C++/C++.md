@@ -8,21 +8,13 @@
 
 # Pointer
 
-### Pointers and arrays
+### operations
 
-Arrays work very much like pointers to their first elements. An array can always be **implicitly converted to the pointer** of the proper type.
-
-Brackets `[]` dereference the variable just as `*`. The following are equivalent:
-
-```c++
-int a[10];
-a[5] = 0;
-*(a+5) = 0;
-```
+`+` 和`-`对指针进行加减，步长是被指向的元素的大小。 `&` 为取地址(address of operator)，`*` 为解引用(dereference)。
 
 ### NULL vs nullptr
 
-`nullptr` is introduced to resolve the ambiguity of `NULL`, because it's hard to tell if `NULL` is pointer or number. `nullptr` is a compile time constant, with type `nullptr_t`, and can be implicitly converted to any pointer type.
+`nullptr` is a compile time constant, with type `nullptr_t`, and can be implicitly converted to any pointer type. `nullptr` resolves the ambiguity of `NULL`, because it's hard to tell if `NULL` is pointer or number. **Always** prefer `nullptr` in C++!
 
 ```c++
 #define NULL ((void*)0) // definition in C
@@ -32,13 +24,70 @@ typedef decltype(nullptr) nullptr_t;
 
 ### void pointer
 
-Can point to any kinds of variable. Some compiler forbid arithmatic (+/-) operation to void pointers. C allows a `void*` pointer to be assigned to any pointer type without a cast, while C++ does not.
+Can point to any kinds of variable. Some compiler forbid arithmatic (+/-) operation to void pointers. C allows a `void*` pointer to be assigned to any pointer type without a cast, while **C++ does not allow implicit conversion** of `void*`.
+
+### array
+
+- must be init with a brace-enclosed initializer
+
+ ```c++
+ int arr[10] = {};
+ int mat[][2] = {{1,2}, {3,4}}; // first level size can be omitted
+ int arr2[10] = arr;	// won't compile, must use {}
+ ```
+
+- `[]` dereference the variable just as `*`
+
+ ```c++
+ arr[5] = 0;
+ *(arr+5) = 0;		// equivalent
+ mat[1][1] = 4; 	// a[n][m] 表示 *(*(a+n)+m)
+ ```
+
+- implicitly convert to pointer
+
+ ```c++
+ int *ptrInt = arr;		
+ int (*ptrMat)[2] = mat;	// only consider the first layer
+ ```
+
+- `+` and `-`: step size is `sizeof()` element type 
+
+- `*` and `&`: actual type of pointer and reference
+
+ ```c++
+ int (*parr)[10] = &arr;	
+ int (&rarr)[10] = arr;
+ ```
+
+- 只能在数组定义所在的代码区中获得数组长度(in bytes)
+
+ ```c++
+ int size = sizeof(arr);	// 10 * sizeof(int)
+ auto foo = [](int[] arr) { 	// won't get the size of the array
+   std::cout << sizeof(arr) << std::endl; // sizeof(int*)
+ } 	// size of array doesn't follow when passed to function
+ ```
+
+- will call ctor and dtor automatically for non-built-in types:
+
+ ```c++
+ struct Foo {
+   int x;
+   Foo() = delete;
+   Foo(int) {}
+   Foo(int,int) {}
+ }
+ Foo a[100];		// won't compile, need to call DC() but deleted
+ Foo b[2]{1,2}; 	// call DC(int) twice
+ Foo c[1]{{1,2}};	// call DC(int,int) once
+ ```
 
 
 
 # Value
 
-Each C++ expression (an operator with its operands, a literal, a variable name, etc.) is characterized by two independent properties: a **type** and a **value category**. Each expression has some non-reference type, and each expression belongs to exactly one of the three primary value categories: prvalue, xvalue, and lvalue.
+Each C++ expression (an operator with its operands, a literal, a variable name, etc.) is characterized by two independent properties: a **type** and a **value category**. 
 
 ### Value categories：lvalue vs rvalue (C++11)
 
@@ -66,9 +115,9 @@ Each C++ expression (an operator with its operands, a literal, a variable name, 
 
 ### lifetime extension of temporary objects:
 
-不准确但先这么理解：Temporary objects are rvalue. Temporary 就是不具名的临时对象
+不准确但先这么理解：Temporary objects are rvalue. 就是不具名的临时对象
 
-Currently, const lvalue reference`const T&`, rvalue reference`T&&`, and storing by named variable(可能指的是基本类型，不然岂不是会调用构造函数?) are 3 ways to extend the lifetime of a temporary object. **For any statement explicitly binding a reference to a temporary, the lifetime of the temporary would be extended to match the life time of reference.**
+const lvalue reference`const T&`, rvalue reference`T&&`, and storing by named variable (可能指的是基本类型，不然岂不是会调用构造函数?) are 3 ways to extend the lifetime of a temporary object. **For any statement explicitly binding a reference to a temporary, the lifetime of the temporary would be extended to match the life time of reference.**
 
 Why can‘t temporary bind to non-const reference? C++ doesn't want you to accidentally modify temporaries, because they will die soon. But calling a non-const member function on a modifiable (and non basic typed) rvalue is explicit, so it's allowed.
 
@@ -78,7 +127,7 @@ Historical reason: "lifetime extension of temporary objects" is proposed in 1993
 Foo bar();						// programming under old C++ standard in 1993
 Foo f = bar();				// no (N)RVO back then, copy_ctor called
 const Foo &f = bar();	// copy free
-Foo f = Foo();				// no copy elision back then, copy_ctor called
+Foo f = Foo();				// copy_ctor called, no copy elision back then
 const Foo &f = Foo();	// copy free
 ```
 
@@ -86,19 +135,14 @@ const Foo &f = Foo();	// copy free
 
 # Reference
 
-### Reference (vs Pointer)
+A Reference is not a object, but an alias ot an existing object or function. Since references are not objects, there are **no arrays** of references, **no pointers** to references, and **no references** to references.
 
 - Reference **cannot be modified to refer to other objects** after init.
 - Reference cannot be null, and must be initialized, but 悬垂引用 (dangling reference) is still possible
 - There is no const reference (reference is by definition immutable, but reference to a const object is ok)
-- reference type must match with the object it is referring to??? (const reference is an exception)
-- Size of reference is the size of the object; size of the pointer is the size of the pointer itself
-- increament of reference increases the object, increament of the pointer makes the pointer point to the next address
-- reference has type check (safer)
+- reference has type check (safer than pointer)
 
 ### reference & rvalue refrence (&&)
-
-A Reference is not a object, but an alias ot an existing object or function. Since references are not objects, there are **no arrays** of references, **no pointers** to references, and **no references** to references.
 
 个人理解，引用符号和cv-qualifier类似，提供类型信息以外的信息：alias所绑定的对象已经存在。右值引用进一步附加了信息：被绑定的对象是右值。
 
@@ -457,18 +501,16 @@ similar to reinterpret cast, but **MUCH** safer. Only allow conversion between c
 
 # Runtime Type Information（RTTI）
 
-In C++, RTTI can be used to do safe typecasts using the dynamic_cast<> operator, and to manipulate type information at runtime using the typeid operator and std::type_info class.
+In C++, RTTI can be used to do safe typecasts using the `dynamic_cast<>` operator, and to manipulate type information at runtime using the `typeid` operator and `std::type_info` class.
 
-RTTI是Runtime Type Identification的缩写，意思是运行时类型识别。C++引入这个机制是为了让程序在运行时能根据基类的指针或引用来获得该指针或引用所指的对象的实际类型。但是现在RTTI的类型识别已经不限于此了，它还能通过typeid操作符识别出所有的基本类型（int，指针等）的变量对应的类型。
-
-C++通过以下的两个操作提供RTTI：
+C++引入这个机制是为了让程序在运行时能根据基类的指针或引用来获得该指针或引用所指的对象的实际类型。但是现在RTTI的类型识别已经不限于此了，它还能通过typeid操作符识别出所有的基本类型（int，指针等）的变量对应的类型。相关操作：
 
 1. typeid运算符，该运算符返回其表达式或类型名的实际类型
 2. dynamic_cast运算符，该运算符将基类的指针或引用安全地转换为派生类类型的指针或引用
 
 ### macro 开关
 
-RTTI可被编译时的宏开关启用或关闭，如 STL 源码中常见的`__cpp_rtti`,  `_LIBCPP_NO_RTTI` 等，可通过形如`-fno-rtti`的指令关闭。有些编译器默认关闭RTTI以消除性能开销。But usually without RTTI you can't use typeid, dynamic_cast, and some STL classes are compiled differently.
+RTTI可被编译时的宏开关启用或关闭，如 STL 源码中常见的`__cpp_rtti`, `_LIBCPP_NO_RTTI` 等，可通过形如`-fno-rtti`的指令关闭。有些编译器默认关闭RTTI以消除性能开销。But usually without RTTI you can't use typeid, dynamic_cast, and some STL classes are compiled differently.
 
 ### type_info
 
@@ -516,19 +558,7 @@ If used inside of a class or sturct, can define **member type alias**.
 
 ### typedef vs using
 
-Almost the same, except that `using` is compatible with templates, whereas the C style `typedef` is not:
-
-```c++
-template<typename T>
-using MyAllocList = std::list<T, MyAlloc<T>>;
-MyAllocList<Widget> lw;
-
-template<typename T>        
-struct MyAllocList {   
-    typedef std::list<T, MyAlloc<T>> type;     
-};
-MyAllocList<Widget>::type lw;        
-```
+`using` is compatible with templates, `typedef` is not. (typedef alias need to be a concrete type)
 
 
 
@@ -547,12 +577,6 @@ Namespaces provide a method for preventing name conflicts in large projects.
 - `namespace-name::member-name` scope is some namespace
 
 - Default: nearest scope
-
-
-
-# RAII (Resource acquisition is initialization)
-
-RAII 机制是一种对资源申请、释放这种成对的操作的封装，通过这种方式实现在局部作用域内申请资源然后便可以自动销毁资源
 
 
 
@@ -677,11 +701,34 @@ T declarator = <expression>;	// copy init
 T declarator = {};						// possible
 ```
 
-- `{}` doesn't allow narrowing conversion (good thing)
+- `{}` doesn't allow narrowing conversion (good thing), also called uniform initialization
 - `()` can't use no-param-ctor (*most vexing parse* : `Widget w();` initialization or function declaration?)
 - Non-copyable ojbects cannot use `=` to initialize
 
 ### List Initialization (C++11)
+
+##### Aggregate Initialization
+
+A special case of List Initialization. 使用花括号初始值列表初始化聚合类(Aggregate)的数据成员，初始值的顺序必须与声明的顺序一致，若初始值列表的元素个数少于类的成员数量，则靠后的成员被值初始化。聚合类型定义为：
+
+- 普通数组，如int[5]，char[]
+
+- 满足下列所有条件的 `class` , `struct` 或 `union`：
+
+ - 没有用户提供的构造函数 (允许 `default` 或 `delete`)
+
+ - 没有私有或保护的非静态数据成员
+
+ - 没有虚函数
+ - 如果有继承关系，必须是公开、非虚继承 (C++17)
+
+注意基类是否是聚合类型与派生类是否为聚合类型没有关系。
+
+标准库 `<type_traits>` 中提供了 `is_aggregate`，可帮助判断目标类型是否为聚合类型。
+
+> GCC 支持小括号初始化聚合类型，允许窄化转换，其他编译器不支持
+
+##### For non-aggregate types
 
 大括号初始化大部分时候是优于小括号初始化的。它能被用于各种不同的上下文，防止隐式窄化。但当对象拥有接收`std::initializer_list`的构造函数时，大括号初始化的语义比较混乱：
 
@@ -692,7 +739,9 @@ std::vector<int> v1{5, 6}; // 2 elems: {5, 6}
 std::vector<int> v2(5, 6); // 5 elems: {6, 6, 6, 6, 6}
 ```
 
-当没有构造函数包含`std::initializer_list`形参时，花括号初始化和圆括号初始化效果完全相同。而当有一个或多个构造函数包含一个如`std::initializer_list<T>`的形参时：
+若没有包含`std::initializer_list`形参的构造函数，花括号初始化和圆括号初始化效果完全相同。编译器看到 `{t1, t2, …, tn}`便会构造一个 `initializer_list`，它关联到一个 `array<T, n>`，该array内的元素会被编译器分解逐一传给构造函数。
+
+若有一个或多个构造函数包含一个如`std::initializer_list<T>`的形参时：
 
 - 花括号初始化优先尝试将实际参数转换为一个`std::initializer_list<P>`:
   - 如果`T`不能转换为 `P` ，编译器才会考虑其他构造函数
@@ -702,27 +751,23 @@ std::vector<int> v2(5, 6); // 5 elems: {6, 6, 6, 6, 6}
 - 想传入一个空的 `std::initializer_list`, 需要这么写：`Widget w({}); `
 - 在模板中使用花括号构造对象时情况会更麻烦，因为模版类通常不知道关于模版参数类是否有包含一个`std::initializer_list`形参的构造器。(e.g. `std::make_unique`, STL 的解决方案是使用圆括号，并记录至接口文档中)
 
-### STL initializer_list
+##### STL initializer_list
 
 `std::initializer_list` is an array of `const T` objects. It will be automatically constructed when:
 
 - a *brace-init-list* is the right operand of `=` 
 - Pass a *brace-init-list* to a function, and the function accepts `std::initializer_list` parameter
-- Use a *brace-init-list* to construct an object and there's a ctor accepts `std::initializer_list` parameter 即使 `std::initializer_list`  的模版参数类型不匹配，编译器也会试图转换（然后失败）
+- Use a *brace-init-list* to construct an object and exists a ctor accepts `std::initializer_list` （窄化转换会编译失败）
 - a *brace-init-list* is bound to auto
-
-### Designated Initializers(C++20)
-
-
-
-
-
-统一初始化是使用大括号进行初始化的方式，其实是利用一个事实：编译器看到{t1, t2, …, tn}便会做出一个initializer_list，它关联到一个array<T, n>。调用构造函数的时候，该array内的元素会被编译器分解逐一传给函数。但若函数的参数就是initializer_list，则不会逐一分解，而是直接调用该参数的函数。
 
 所有的标准容器的构造函数都有以initializer_list为参数的构造函数。initizlizer_list的最广泛的使用就是不定长度同类型参数的情况。
 
+##### Designated Initializers(C++20)
+
+？？？
 
 
-### static_assert
+
+# static_assert
 
 `static_assert` requires a compile-time predicate, and a message is displayed when the compile-time predicate fails. With C++17, the message is optional. With C++20, this compile-time predicates can be a requires expression.
