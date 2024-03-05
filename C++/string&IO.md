@@ -8,13 +8,21 @@ String literal is stored in data segment after compilation.
 
 
 
+# char array
+
+array都是在栈上储存，超出作用域会自动销毁
+
+
+
 # String
 
-??? SSO?
+??? SSO?https://zhuanlan.zhihu.com/p/547694685
 
 
 
 # String View(C++17)
+
+https://blog.csdn.net/MMTS_yang/article/details/130773313
 
 `std::string_view` 对象引用一个外部的字符序列，本质上是指针+长度。典型场景：
 
