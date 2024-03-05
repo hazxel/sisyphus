@@ -10,7 +10,7 @@ String literal is stored in data segment after compilation.
 
 # String
 
-???
+??? SSO?
 
 
 
