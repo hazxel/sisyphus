@@ -59,17 +59,13 @@ Conversion constructor usually refer to constuctor declared without the function
 MyClass(SOME_TYPE st);
 ```
 
-### Conversion function
-
-Convert object to other type.
+### Conversion function (C++11)
 
 ```c++
-operator SOME_TYPE() const;
+operator SOME_TYPE() const; // no arguments
 ```
 
-This function can be called implicitly. The return type of conversion function is implicitly set to "SOME_TYPE". Classes, structures, enumerations, and typedefs cannot be declared within the declaration of the conversion function.
-
-> May lead to ambiguity sometimes if the receiver class also has a conversioin constructor.
+Conversion functions can be called implicitly. May lead to ambiguity sometimes if the receiver class also has a conversioin constructor.
 
 ### Increment operator
 
@@ -96,7 +92,7 @@ SOME_TYPE operator()(SOME_TYPE a);
 
 ##### private dtor？
 
-make dtor private will force the class to be only created by `new`. Similarly, overload and make `new` and `delete` private will force the class to be only created on stack.
+make dtor private will force the class to be only created by `new`. Similarly, overload with private `new` and `delete` will force the class to be only created on stack.
 
 ### Overload (polymorphism at compile time) 重载
 

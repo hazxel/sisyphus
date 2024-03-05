@@ -31,6 +31,13 @@ https://blog.csdn.net/MMTS_yang/article/details/130773313
 
 **字符串视图远比字符串引用或者智能指针更危险**！它们的行为更近似于原生字符指针。在使用时必须保证引用的字符串序列是有效的，否则稍不注意就会产生运行时错误。
 
+```c++
+std::string_view bad_get() {
+  char ar[] = "bad example";
+	return ar;
+} // runtime error when cout << bad_get();
+```
+
 string view 本身是小值，应当 pass-by-value 传递，不要使用引用
 
 ### vs `const std::string&`
