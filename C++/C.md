@@ -10,7 +10,7 @@
 
 # Global variable 
 
-### C++ only, different from C
+### C++ rules
 
 ```c++
 int n = 3; // fileA.cpp, definition of non-const global variable
@@ -25,7 +25,7 @@ extern const int i; // fileB.cpp, declaration only
 - for **const** global variables, the `extern` keyword should be applied in all files
 - The idea of const global variables is to replace the old C style `#define` for constants.
 
-### C
+### C rules
 
 todo
 

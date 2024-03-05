@@ -350,29 +350,12 @@ Data d; Func(std::move(d));	// compiles
 
 
 
-# Global variable (C++ only, different from C)
+# noexcept (operator & specifier)
 
-```c++
-int n = 3; // fileA.cpp, definition of non-const global variable
-extern n; // fileB.cpp, global variable with external linkage
-extern const int i = 4; // fileA.cpp, extern const definition
-extern const int i; // fileB.cpp, declaration only 
-```
-
-- global variable is defined outside the function
-- `extern` specifies that the variable or function is defined in another translation unit. 
-- for **non-const** global variables, the `extern` keyword must be applied in all files **except** the one where the variable is defined.
-- for **const** global variables, the `extern` keyword should be applied in all files
-- The idea of const global variables is to replace the old C style `#define` for constants.
-
-
-
-# noexcept(operator & specifier)
-
-- specifier: 声明为`noexcept` 的函数不用处理异常信息，可做编译优化。但仍可能抛出异常，不会生成异常类型信息，程序直接终止
+- as specifier: 声明为`noexcept` 的函数不用处理异常信息，可做编译优化。但仍可能抛出异常，不会生成异常类型信息，程序直接终止
   - declare a function as `noexcept` means it's not allowed to throw exception
   - declare a function as `noexcept(expr)` means it's not allowed to throw exception if expr evaluates to true
-- operator: check if a function is declared to be `noexcept`
+- as operator: check if a function is declared to be `noexcept`
 
 ```c++
 void funA() noexcept; // 函数funA不抛出异常
@@ -382,8 +365,6 @@ template <class T, class Alloc>
     void swap(list<T,Alloc>& x, list<T,Alloc>& y)
          noexcept(noexcept(x.swap(y)));
 ```
-
-
 
 > make move ctor noexcept to facilitate STL useages, STL have optimizations for `nothrow_move_constructible` types and compilers can optimize `noexcept` functions
 >
@@ -402,9 +383,7 @@ template <class T, class Alloc>
 
 
 
-# constexpr
-
-> The keyword constexpr was introduced in C++11 and improved in C++14. It means constant expression.
+# constexpr (C++11)
 
 Unlike `const`, `constexpr` can also be applied to functions and class constructors. `constexpr` indicates that the value, or return value, is constant and, where possible, is computed at compile time. When a value is computed at compile time instead of run time, it helps your program run faster and use less memory. (low latency!)
 

@@ -26,7 +26,7 @@
 
 the following segments are sorted from high address to low address (in **virtual memory**):
 
-- Kernel space: map to same physical address for every process
+- Kernel space: shared, map to same physical address for every process
 
 - Stack segment: local variable (automatic, continuous memory, grow from high to low address)
 

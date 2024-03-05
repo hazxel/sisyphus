@@ -81,3 +81,24 @@ cout << twice2() << endl; // aa
 cout << twice2() << endl; // aaaa
 ```
 
+
+
+
+
+# STL Functionals
+
+### function
+
+函数包装器，可包装各种类型的调用实体如：普通函数，对象方法，实现了仿函数操作符的对象，lamda表达式等：`std::function<int(int)> callback;`
+
+STL中大量使用function作为算法的入参，如`sort`, `for_each`, `visit` 等
+
+> implementation in-deep: https://zhuanlan.zhihu.com/p/142175297
+
+### bind
+
+给函数绑定参数，使之变为另一个签名的函数
+
+### std::ref
+
+本质是一个wrapper，可以在使用bind的时候使之变为传引用（默认为传值）
