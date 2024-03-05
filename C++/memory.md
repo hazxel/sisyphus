@@ -40,7 +40,7 @@ the following segments are sorted from high address to low address (in **virtual
 
 - BSS (Block Started by Symbol) segment: **uninitialized** global variables and static variables (init to 0)
 
-- Data segment (read-only): **initialized** global variables, static variable, **virtual pointer table**
+- Data segment (read-only): **initialized** global variables, static variables, **virtual pointer table**
 
 - Code (text) segment: codes
 

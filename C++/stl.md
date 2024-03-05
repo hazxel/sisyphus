@@ -68,66 +68,6 @@ std::alloc 是SGI STL的默认配置器，它在`<memory>`中实现。他由两�
 
 
 
-# STL I/O
-
-### Stream
-
-A **stream** is a flow of data into or out of a program.
-
-- `<ios>`: Input-Output base classes like `ios_base` and `ios`.
-
-- `<istream>`: contains input stream `istream`; also `iostream` which inherits `istream` and `ostream`.
-
-- `<ostream>`: contains output stream `ostream`
-
-- `<iostream>`: `cin` is an instance of an `istream`; `cout`, `cerr` and `clog` are instances of `ostream`
-
- ```c++
- extern istream cin; // so as cout/cerr/clog
- ```
-
-- `<streambuf>`: Stream buffers represent input or output devices and provide a low level interface for unformatted I/O to that device.
-
-- `<fstream>`: contains `ifstream`, `ofstream`, `fstream` and `filebuf`, which inherit correspondingly `isteam`, `ostream`, `iostream` and `streambuf`. They are used to read/write data from/to files.
-
-- `<sstream>`: contains `istringstream`, `ostringstream`, `stringstream` and `stringbuf`, which inherit `isteam`, `ostream`, `iostream` and `streambuf`, and they provide advanced string operations.
-
-Useful Functions: 
-
-- `getline`: defined in `<string>`, reads a line of characters (separated by `\n` or some other characters) from an input stream and places them into a string.
-
-  > `getline(ss, str, ',');` can be used to split a string with specified splitter
-
-- `operator>>`: usually read a word (separated by whitespace, `\n`, etc) from stream.
-
-- `flush`: ensures that all data that has been written to that stream is output, including clearing any that may have been buffered.
-
-
-
-### alpha
-
-- `boolaplha` & `noboolaplha`: passed to any derived type of `std::basic_ostream` or receive any derived type of `std::basic_istream`. 
-
-
-
-### Files
-
-##### C++ file operations
-
-Stream based, just like `cin` and `cout`.
-
-- ofstream
-- ifstream
-- fstream
-
-##### C file operations
-
-- fopen & fclose
-- fputc & fgetc
-- fputs & fgets
-
-
-
 # Functionals
 
 ### function
