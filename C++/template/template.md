@@ -34,9 +34,12 @@ MyAllocList<Widget>::type lw;
 
 对函数模版`template<T> void f(ParamType param)`，编译器使用`f(expr);`中的`expr`进行针对`T`的和对`ParamType`的类型推导。这两个类型通常是不同的，因为`ParamType`包含一些修饰，比如`const`, `&`, `*`等。
 
-- 不加限定符号，也即`ParamType=T` 为时传值类型推导，本质上是拷贝，所以`const`和`volatile`实参修饰会被忽略
+- 不加限定符号时，也即`ParamType=T` 时，为传值类型推导，本质上是拷贝，所以`const`和`volatile`实参修饰会被忽略
 - 加 `&`modifier时为传引用推导，加`&&` modifier 时为万能引用
-- 数组名或者函数名实参在 `ParamType=T` 时 `T` 推导为 `Wdiget*`，在 `ParamType=T&` 时 `T` 推导为`Wdiget&`
+- 数组名或者函数名实参：
+  - 在 `ParamType=T`（无限定符号） 时 `T` 推导为 `Wdiget*`
+  - 在 `ParamType=T&` （引用）时 `T` 推导为`Wdiget&`
+
 
 ### `auto` deduction
 
@@ -138,7 +141,7 @@ requires (i <= 20)
 int sum(int j) { return i + j; }
 ```
 
-### Concept
+### Define a Concept
 
 ```c++
 template<typename T>
@@ -148,10 +151,12 @@ template<typename T>
 concept Printable = requires(T a) { 
     // 检查 T 是否有一个名为print的成员函数，该函数接受一个类型为 std::ostream& 的参数，且返回类型为void
     { a.print(std::cout) } -> std::same_as<void>;
+  	// 可以有多个条件，可以如下这样做编译期检查
+  	requires(std::is_same<T::type, std::int32_t>::value);
 };
 ```
 
-### Require a concept
+### Require a concept (use concept to validate template param)
 
 ```c++
 template<typename T>  
