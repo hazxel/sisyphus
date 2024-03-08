@@ -190,7 +190,10 @@ template<class _Tp> struct is_integral : _BoolConstant<__is_integral(_Tp)> {};
 template<bool _Val> using _BoolConstant _LIBCPP_NODEBUG = integral_constant<bool, _Val>;
 ```
 
+### STL built-in concepts
 
+- `same_as`, `convertible_to`: type requirements , evaluate to bool.
+- 
 
 
 
@@ -214,9 +217,7 @@ This rule applies during overload resolution of function templates: When substit
 
 # STL helpers
 
-- `is_same`
-
-- `same_as`, `convertible_to`: for type checking, evaluate to bool.
+- `is_same<T,U>`: check if `T` and `U` are same types (considering cv-qualifiers)
 
 - `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`,`is_const`: 检测顶层const？？？
 

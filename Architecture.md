@@ -79,9 +79,7 @@ cache is between CPU and memory, buffer is between memory and disk. cache accele
 
 # Numa
 
-???
-
-
+在传统的统一内存访问架构（UMA，Uniform Memory Access）下，所有处理器共享同一块内存，导致内存带宽成为瓶颈。在现代多处理器系统中，大多采用非统一内存访问架构（NUMA， Non-Uniform Memory Access），在NUMA架构下，多个CPU被封装在一起，这种封装被称为CPU Socket（插槽），每个CPU Socket拥有自己的本地内存，访问速度比访问其他Socket的远端内存更快。
 
 
 
