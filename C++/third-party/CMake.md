@@ -1,3 +1,25 @@
+# Built-in Variable
+
+- `CMAKE_BINARY_DIR`: top level dir of the CMake build tree, specified by `-B` argument 
+- `CMAKE_SOURCE_DIR`: top level dir of the CMake source tree, specified by `-S` argument
+- `CMAKE_CURRENT_LIST_DIR`: 
+
+
+
+# Key Commands
+
+- `add_library`: define a target library with flag (shared/static) and source files
+- `add_executable`: define a target exetutable with source files
+- `target_include_directories`: add dependent header files for target
+- `target_link_libraries`: add dependent libraries for target
+- `aux_source_directory`: define source file directories
+- `include_directories`: Add the given directories for compiler to search for include files. 
+- `link_directories`: Add directories in which the linker will look for libraries.
+- `add_subdirectory`: a subdirectory to the build(has its own CMakeLists.txt)
+- `include`: Loads and runs CMake code from the file given
+
+
+
 ### With Clion
 
 - when not compiling using clion, "在 Clion 根目录下的 CMakeLists.txt 上右键 Reload Cmake Project"，后方可正确跳转定义等
@@ -15,7 +37,7 @@
 
 ## Conan
 
-包管理器
+C++跨平台包管理器
 
 
 
