@@ -68,6 +68,14 @@ std::alloc 是SGI STL的默认配置器，它在`<memory>`中实现。他由两�
 
 
 
+# Optional
+
+manages an optional contained value. Common use is return value for a function that may fail.
+
+
+
+
+
 # Tuple
 
 原理：继承+variadic templates, 会编译生成参数列表参数个数的类

@@ -172,7 +172,7 @@ Reference collapsing and template arguemnt deduction rules works together, so th
 
 ### Universal Reference
 
-C++11 标准引入右值引用，规定右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板和`auto`中使用`T&&`语法定义的参数来说，它既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。这一特性可在参数增加时，避免指数级增长的重复函数定义。如果只希望定义右值形参而禁用左值，可？？？
+C++11 标准引入右值引用，规定右值引用形式的参数只能接收右值，不能接收左值。但对于函数模板和`auto`中使用`T&&`语法定义的参数来说，它既可以接收右值，也可以接收左值（此时的右值引用又被称为“万能引用”）。这一特性可在参数增加时，避免指数级增长的重复函数定义。
 
 万能引用其实是**模版自动类型推导**以及**引用折叠**一起作用而自然产生的结果：对于使用一个万能引用的函数模版 `template<typename T> void foo(T&&)`，如果需要匹配左值形参 `void foo(Widget&)`，则`T`可被推导为`Widget&`，这样`T&&`即 `Widget& &&` 就会被折叠为 `Widget&`；而对于右值形参 `void foo(Widget&&)`，`T`直接被推导为 `Widget`，`T&&` 则被推导为`Widget&&`。
 
@@ -182,6 +182,19 @@ void wrapper(T&& arg); // this is univeral reference
 template<typename T>
 void foo(std::vector<T>&& param); // this is not!!!
  ```
+
+如果只希望定义右值形参而禁用左值，可使用 `std::enable_if` 实现：
+
+```c++
+template<typename T, 
+	typename = std::enable_if<
+		!std::is_same<T, 
+			typename std::decay<T>::type
+    >::value
+	>::type
+>
+void (T &&foo) {};
+```
 
 ### move & forward (C11)
 
@@ -228,76 +241,6 @@ void foo(std::vector<T>&& param); // this is not!!!
   
 
 They both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference conversion and `std:forward` for and **only for universal reference** scenarios.
-
- ### reference qualifier 引用限定 C11
-
- ```c++
-template <typename T>
-class optional {
- // version of value for non-const lvalues
- constexpr T& value() &；
- // version of value for const lvalues
- constexpr T const& value() const&；
- // version of value for non-const rvalues... are you bored yet?
- constexpr T&& value() &&；
- // you sure are by this point
- constexpr T const&& value() const&&；
-};
- ```
-
-
-
-# Final Exam for argument passing 
-
-### Pass by value - when you need a copy or accepting basic types
-
-```c++
-void Func(Data);
-Func(Data());								// best, only one ctor called in-place!!!
-Data d; Func(d);						// ctor + copy_ctor
-Data d; Func(std::move(d));	// ctor + move_ctor
-```
-
-### Pass by reference - when modify the param or pass output
-
-```c++
-void Func(Data &);
-Func(Data());								// won't compile, lvalue ref cannot bind rvalue
-Data d; Func(d);						// compiles
-Data d; Func(std::move(d));	// won't compile, lvalue ref cannot bind rvalue
-```
-
-### Pass by const reference - default choice for read-only params
-
-```c++
-void Func(const Data &);
-Func(Data());								// compiles
-Data d; Func(d);						// compiles
-Data d; Func(std::move(d));	// compiles
-```
-
-### Pass by rvalue reference - take ownership of the passed param
-
-```c++
-void Func(Data &&);
-Func(Data());								// compiles
-Data d; Func(d);						// won't compile, prevent lvalue accidently passed to it
-Data d; Func(std::move(d));	// compiles
-```
-
-### Smart Pointers - be careful - see memory chapter
-
-### Return type
-
-- for free functions, usually by value return is the only option, except for returning static/global objects
-- for member methods, value, const and non-const reference are all possible
-- rvalue reference？？？
-
-### Not recommended
-
-- `void Func(const Data)`: The variable wiil be destroied when out of scope, why can't I modify it?
-- `void Func(const Data &&)`: So I took the ownership but still couldn't modify it?
-- raw pointers
 
 
 

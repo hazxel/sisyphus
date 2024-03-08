@@ -1,10 +1,18 @@
-# Class
-
-### Member Init order
+# Member Init order
 
 成员变量初始化的顺序为：先进行声明时初始化，然后进行初始化列表初始化，最后进行构造函数初始化
 
-### Default Constructor/Copy Constructor/Assignment operator
+
+
+# `this` pointer
+
+当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是this指针。如果是用new创建的对象可以delete this指针。但是一经delete之后其所有成员都不能再被访问。
+
+
+
+# Ctor, Dtor and assignment operator
+
+### Compiler default ctor, dtor, assignment operator
 
 - If no constructors are declared in a class, the compiler provides an implicit `inline` default constructor. This can be desabled by defining it as `deleted`, or explicitly declared by `default`.
 
@@ -51,7 +59,17 @@ A move constructor enables the resources owned by an rvalue object to be moved i
 
 如果需要自定义 移动构造/移动赋值 函数，尽量定义为 `noexcept` 不抛出异常（编译器生成的版本会自动添加），否则 **不能高效使用标准库和语言工具**！例如，标准库容器 `std::vector` 在扩容时，会通过 `std::vector::reserve()` 重新分配空间，并转移已有元素。如果扩容失败，`std::vector` 满足强异常保证 (strong exception guarantee)，可以回滚到失败前的状态。为此，`std::vector` 使用 `std::move_if_noexcept()` 进行元素的转移操作。如果 没有定义移动构造函数 或 自定义的移动构造函数没有 `noexcept`，会导致 `std::vector` 扩容时执行无用的拷贝，不易发现。
 
-### Conversion Constructor
+### Destructor
+
+##### private dtor？
+
+make dtor private will force the class to be only created by `new`. Similarly, overload with private `new` and `delete` will force the class to be only created on stack.
+
+
+
+# Conversion 
+
+### Conversion constructor
 
 Conversion constructor usually refer to constuctor declared without the function specifier `explicit`.
 
@@ -67,6 +85,10 @@ operator SOME_TYPE() const; // no arguments
 
 Conversion functions can be called implicitly. May lead to ambiguity sometimes if the receiver class also has a conversioin constructor.
 
+
+
+# Operator
+
 ### Increment operator
 
 ```c++
@@ -76,7 +98,13 @@ const T operator++(T& t, int); 	// post-increase
 const T T::operator++(int);		// post-increase in T's namespace
 ```
 
-### Functor
+### `->` operator
+
+???
+
+
+
+# Functor
 
 ```c++
 SOME_TYPE operator()(SOME_TYPE a);
@@ -84,15 +112,7 @@ SOME_TYPE operator()(SOME_TYPE a);
 
 使类能像函数一样被调用，好处是可以存放状态
 
-### this
 
-当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是this指针。如果是用new创建的对象可以delete this指针。但是一经delete之后其所有成员都不能再被访问。
-
-### Destructor
-
-##### private dtor？
-
-make dtor private will force the class to be only created by `new`. Similarly, overload with private `new` and `delete` will force the class to be only created on stack.
 
 ### Overload (polymorphism at compile time) 重载
 
@@ -107,31 +127,7 @@ C++ allows multiple definitions for the same function name in the same scope. Th
 
 
 
-### Virtual Function
-
-```c++
-class MyClass {
-public:
- virtual void virtualFunc() {}
- virtual void pureVirtualFunc() = 0 // no definition, but subclass must implement it
-}
-```
-
-A virtual function is a member function that you expect to be redefined in derived classes. When you refer to a derived class object using a pointer or a reference to the base class, you can call a virtual function for that object and execute the derived class's version of the function. 
-
-> **Constructor** cannot be virtual, since it's impossible to use a super class pointer to call a child class' constructor. Also, when constucting an instance, vptr has not been initialized, can't find the virtual function.
->
-> On the other hand, **destructors** could be, and are often virtual.
-
-> Avoid calling virtual function in constuctors. 当构造函数被调用时，它做的首要的事情之一就是初始化VPTR。然而，它只能知道它属于“当前”类——即构造函数所在的类，完全不知道这个对象是否是基于其它类。构造函数会先调用父类构造函数，此时子类还没有构造，所以此时的对象还是父类的，不会触发多态。(构造和析构期间，virtual函数不是virtual函数)
-
-A **pure virtual function** is a virtual function without implementation. A class have one or more pure virtual funcitons is called **abstract class**. The subclass must implement the pure virtual function.  
-
-Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
-
-
-
-### Inheritance
+# Inheritance
 
 default is private
 
@@ -160,7 +156,31 @@ Specifies that a virtual function cannot be overridden or a class cannot be deri
 
 
 
-### Friend
+# Virtual Function
+
+```c++
+class MyClass {
+public:
+ virtual void virtualFunc() {}
+ virtual void pureVirtualFunc() = 0 // no definition, but subclass must implement it
+}
+```
+
+A virtual function is a member function that you expect to be redefined in derived classes. When you refer to a derived class object using a pointer or a reference to the base class, you can call a virtual function for that object and execute the derived class's version of the function. 
+
+> **Constructor** cannot be virtual, since it's impossible to use a super class pointer to call a child class' constructor. Also, when constucting an instance, vptr has not been initialized, can't find the virtual function.
+>
+> On the other hand, **destructors** could be, and are often virtual.
+
+> Avoid calling virtual function in constuctors. 当构造函数被调用时，它做的首要的事情之一就是初始化VPTR。然而，它只能知道它属于“当前”类——即构造函数所在的类，完全不知道这个对象是否是基于其它类。构造函数会先调用父类构造函数，此时子类还没有构造，所以此时的对象还是父类的，不会触发多态。(构造和析构期间，virtual函数不是virtual函数)
+
+A **pure virtual function** is a virtual function without implementation. A class have one or more pure virtual funcitons is called **abstract class**. The subclass must implement the pure virtual function.  
+
+Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
+
+
+
+# Friend???
 
 The`friend` keyword marked some functions or classes as *friends*, granting member-level access to functions and classes.
 
@@ -185,12 +205,36 @@ class MyClass {
 
 
 
+# Syntax for non-static member functions
+
+### cv-qualifier???
+
+ ### ref-qualifier 引用限定 (C++11)
+
+成员函数默认不区分左值和右值 receiver。
+
+ ```c++
+template <typename T>
+class optional {
+ // version of value for non-const lvalues
+ constexpr T& value() &；
+ // version of value for const lvalues
+ constexpr T const& value() const&；
+ // version of value for non-const rvalues... are you bored yet?
+ constexpr T&& value() &&；
+ // you sure are by this point
+ constexpr T const&& value() const&&；
+};
+ ```
+
+
+
 # Struct vs Class vs Union
 
 | Class                         | Struct                        | Union                         |
 | ----------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
-| default to private                  | default to public                   | default to public                   |
-| can use inheritance                  | can use inheritance                  | no inheritance                    |
+| member default to private           | member default to public            | member default to public            |
+| can inheritance                  | can inheritance                  | no inheritance                    |
 | can have member functions, constuctor, and destructor | can have member functions, constuctor, and destructor | can have member functions, constuctor, and destructor |
 
 `struct` is a group of passive data, `class` is for objects that have behavior, and `union` is for very special cases where different data requires to be accessed as different types.
@@ -204,24 +248,15 @@ class MyClass {
 An enumeration is a user-defined type that consists of a set of named integral constants that are known as enumerators.
 
 ```c++
-namespace CardGame_Scoped
-{
-  enum class Suit { Diamonds, Hearts, Clubs, Spades };
-
-  void PlayCard(Suit suit) {
-    if (suit == Suit::Clubs) // Enumerator must be qualified by enum type
-    { /*...*/}
-  }
+// Scoped
+enum class Suit { Diamonds, Hearts, Clubs, Spades };
+void PlayCard(Suit suit) {
+  if (suit == Suit::Clubs) { /*...*/ }
 }
-
-namespace CardGame_NonScoped
-{
-  enum Suit { Diamonds, Hearts, Clubs, Spades };
-
-  void PlayCard(Suit suit) {
-    if (suit == Clubs) // Enumerator is visible without qualification
-    { /*...*/}
-  }
+// NonScoped
+enum Suit { Diamonds, Hearts, Clubs, Spades };
+void PlayCard(Suit suit) {
+  if (suit == Clubs) { /*...*/ }
 }
 ```
 

@@ -1,3 +1,59 @@
+# function
+
+### argument passing 
+
+Pass by value - when you need a copy or accepting basic types
+
+```c++
+void Func(Data);
+Func(Data());								// best, only one ctor called in-place!!!
+Data d; Func(d);						// ctor + copy_ctor
+Data d; Func(std::move(d));	// ctor + move_ctor
+```
+
+Pass by reference - when modify the param or pass output
+
+```c++
+void Func(Data &);
+Func(Data());								// won't compile, lvalue ref cannot bind rvalue
+Data d; Func(d);						// compiles
+Data d; Func(std::move(d));	// won't compile, lvalue ref cannot bind rvalue
+```
+
+Pass by const reference - default choice for read-only params
+
+```c++
+void Func(const Data &);
+Func(Data());								// compiles
+Data d; Func(d);						// compiles
+Data d; Func(std::move(d));	// compiles
+```
+
+Pass by rvalue reference - take ownership of the passed param
+
+```c++
+void Func(Data &&);
+Func(Data());								// compiles
+Data d; Func(d);						// won't compile, prevent lvalue accidently passed to it
+Data d; Func(std::move(d));	// compiles
+```
+
+Smart Pointers - be careful - see memory chapter
+
+Not recommended:
+
+- `void Func(const Data)`: The variable wiil be destroied when out of scope, why can't I modify it?
+- `void Func(const Data &&)`: So I took the ownership but still couldn't modify it?
+- raw pointers
+
+### return type
+
+- for free functions, usually by value return is the only option, except for returning static/global objects
+- for member methods, value, const and non-const reference are all possible
+- rvalue reference？？？
+
+
+
 # lambda
 
 A convenient way of defining an anonymous function, full syntax:

@@ -209,6 +209,10 @@ This rule applies during overload resolution of function templates: When substit
 
 # STL helpers
 
+- `is_same`
+
+- `same_as`, `convertible_to`: for type checking, evaluate to bool.
+
 - `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`,`is_const`: 检测顶层const？？？
 
   ```c++
