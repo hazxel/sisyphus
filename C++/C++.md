@@ -1,6 +1,6 @@
 this document contains C++ basic topics, or those hard to categorize.
 
-
+Cpp的复杂性来源：零开销抽象&编译期求值，既要可读性，抽象，又要性能
 
 # Operator & Expressions
 
