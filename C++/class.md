@@ -243,22 +243,27 @@ class optional {
 
 # Enum
 
-### enum
-
-An enumeration is a user-defined type that consists of a set of named integral constants that are known as enumerators.
+An enumeration is a user-defined type that consists of a set of named constants known as enumerators.
 
 ```c++
-// Scoped
+// Scoped enum, C++!1
 enum class Suit { Diamonds, Hearts, Clubs, Spades };
 void PlayCard(Suit suit) {
   if (suit == Suit::Clubs) { /*...*/ }
 }
-// NonScoped
+// NonScoped, C++98
 enum Suit { Diamonds, Hearts, Clubs, Spades };
 void PlayCard(Suit suit) {
   if (suit == Clubs) { /*...*/ }
 }
 ```
+
+Scoped enum is usually better because it:
+
+- reduce name conflicts
+- no implicit conversion, always need cast
+- 限域`enum`总是可以前置声明，因为他们的默认底层类型是 `int`。非限域`enum`由于出现较早，仅当指定它们的底层类型时才能前置。不能前置声明最大的缺点就是可能增加编译依赖（改动头文件触发大量重新编译）
+- 至少有一种情况下非限域`enum`是很有用的：使用`std::tuple`时替换`std::get<1>`使之更有可读性
 
 
 

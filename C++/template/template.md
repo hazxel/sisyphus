@@ -243,6 +243,8 @@ This rule applies during overload resolution of function templates: When substit
   template<class T> struct remove_cv<const volatile T> { typedef T type; };
   ```
 
+- `underlying_type`: provide the underlying type of `T` if `T` is a complete enum type, otherwise UB
+
 - `decay`: remove const, volatile, reference
 
 - `add_pointer`, `add_lvalue_reference`, `add_lvalue_reference`: 
