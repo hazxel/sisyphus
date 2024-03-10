@@ -28,7 +28,7 @@ typedef decltype(nullptr) nullptr_t;
 
 ### void pointer
 
-Can point to any kinds of variable. Some compiler forbid arithmatic (+/-) operation to void pointers. C allows a `void*` pointer to be assigned to any pointer type without a cast, while **C++ does not allow implicit conversion** of `void*`.
+Can point to any kinds of variable. Some compiler forbid arithmatic (+/-) operation to void pointers. **C++ does not allow implicit conversion** of `void*`, while C allows.
 
 ### array
 

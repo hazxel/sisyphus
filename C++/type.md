@@ -114,9 +114,10 @@ typedef std::vector<std::vector<int>> MatrixInt;
 
 If used inside of a class or sturct, can define **member type alias**.
 
-### typedef vs using
+### typedef vs using - using is always better
 
-`using` is compatible with templates, `typedef` is not. (typedef alias need to be a concrete type)
+- `using` is compatible with templates, `typedef` is not. (typedef alias need to be a concrete type)
+- `typedef` sometimes result in *dependent type* (type that dependent on template param`T`). When using dependent type, template tell if `T::A` is a type or is a member of T, so `typename` needed.
 
 
 

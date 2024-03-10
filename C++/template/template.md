@@ -217,6 +217,10 @@ This rule applies during overload resolution of function templates: When substit
 
 # STL helpers
 
+注意类型转换尾部的`::type`。如果你在一个模板内部将他们施加到类型形参上，你也需要在它们前面加上`typename`。至于为什么要这么做是因为这些C++11的*type traits*是通过在`struct`内嵌套`typedef`来实现，而正如我之前所说这比别名声明要差。
+
+关于为什么这么实现是因为标准委员会没有及时认识到别名声明是更好的选择，所以直到C++14它们才提供了使用别名声明的版本。这些别名声明有一个通用形式：以 `_t` 结尾，例如`std::transformation<T>::type`在C++14中变成了`std::transformation_t`。
+
 - `is_same<T,U>`: check if `T` and `U` are same types (considering cv-qualifiers)
 
 - `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`,`is_const`: 检测顶层const？？？
