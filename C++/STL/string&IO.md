@@ -16,6 +16,18 @@ array都是在栈上储存，超出作用域会自动销毁
 
 # String
 
+### Split
+
+STL string don't have a split function. Current work around is:
+
+```c++
+istringstream ss{str};
+string field;
+while (getline(ss, field, ';')) { // or ss >> field with splitter set to ' '
+    cout << field << '\n';
+}
+```
+
 ??? SSO?https://zhuanlan.zhihu.com/p/547694685
 
 
