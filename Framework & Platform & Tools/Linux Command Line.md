@@ -23,15 +23,11 @@
 
 
 
-
-
 # Text Commands
 
-##### Streams: Stdin(0), Stdout(1), and Stderr(2)
+##### Streams and redirection: Stdin(0), Stdout(1), and Stderr(2)
 
 The corresponding numerical identifier values of stdin, stdout, and stderr are 0, 1, and 2.
-
-##### redirection
 
 - `>`& `1>`: redirect stdout to ...
 - `2>`: redirect stderr to ...
@@ -84,7 +80,7 @@ The corresponding numerical identifier values of stdin, stdout, and stderr are 0
   - *.tar.xz* files: `tar xf FileName.tar.xz`
   - 去掉外层文件夹：`--strip-components=1`
 
-##### ln 链接
+### ln 链接
 
 - 软链接，全称是软链接文件，英文叫作 symbolic link。需要提供`-s` 参数来创建，非常类似于 Windows 里的快捷方式，这个软链接文件（假设叫 VA）的内容，其实是另外一个文件（假设叫 B）的路径和名称，当打开 A 文件时，实际上系统会根据其内容找到并打开 B 文件。
 
@@ -92,11 +88,28 @@ The corresponding numerical identifier values of stdin, stdout, and stderr are 0
 
 - 硬链接，全称叫作硬链接文件，英文名称是 hard link。`ln`默认创建的是硬链接，这类文件比较特殊，会拥有自己的 inode 节点和名称，其 inode 会指向文件内容所在的数据块。与此同时，该文件内容所在的数据块的引用计数会加 1。当此数据块的引用计数大于等于 2 时，则表示有多个文件同时指向了这一数据块。一个文件修改，多个文件都会生效。当删除其中某个文件时，对另一个文件不会有影响，仅仅是数据块的引用计数减 1。当引用计数为 0 时，则系统才会清除此数据块。
 
-
-
 ### Users and groups
 
+> When creating a new user, the default behavior of the `useradd` command is to create a group with the same name as the username, and same GID as UID. The `-g` (`--gid`) option allows you to create a user with a specific initial login group. You can specify either the group name or the GID number. The group name or GID must already exist.
 
+```sh
+# Check users and groups
+cat /etc/passwd
+cat /etc/group
+groups $your_user_name
+groups $your_group_name
+#Create your own account
+sudo adduser $your_user_name
+sudo passwd $your_user_name
+# authorize home dir
+sudo chown $your_user_name:$your_user_name -R /home/$your_home_dir
+# Add your account to docker group
+sudo usermod -aG docker $your_user_name
+sudo newgrp docker
+sudo su $your_user_name
+```
+
+### Files & users & permission
 
 - 修改所有者: `chown -R 1003:1003 /path/to/dir`
 - 变更访问权限: `chmod -R 777 /path/to/dir`
@@ -176,7 +189,6 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 
 
-
 # C/C++ related
 
 ##### gcc/g++
@@ -218,9 +230,14 @@ nm -A /usr/lib/* 2>/dev/null | grep "T memset"
 
 ##### LDD
 
-检查依赖库是否齐全
+LDD (List Dynamic Dependencies) is a unix utility that prints the shared libraries required by each program or shared library specified on the command line. 检查依赖库是否齐全
 
+LDD Search:
 
+1. **Standard library search paths:** The dynamic linker maintains a list of standard search paths where it looks for shared objects. These paths are typically defined in the linker configuration files (`/etc/ld.so.conf` or `/etc/ld.so.conf.d/*.conf`) and include directories like `/lib`, `/usr/lib`, and `/usr/lib64`.
+2. **Environment variable `LD_LIBRARY_PATH`:** If set, the `LD_LIBRARY_PATH` environment variable specifies a list of additional search paths for shared objects. These paths are searched before the standard paths.
+3. **RPATH**: Some executables or shared objects may contain an embedded RPATH (runtime path) that specifies additional search paths for their dependencies. This information is extracted from the ELF header of the file. Using the `readelf -d <so_file>` command to display the ELF header of a shared object, which includes the RPATH.
+4. **Explicit path provided to `ldd`:** When you run `ldd` with an explicit path to a file, it directly searches for dependencies using that path. This can be useful for debugging or troubleshooting issues with shared libraries.
 
 
 
@@ -230,6 +247,14 @@ nm -A /usr/lib/* 2>/dev/null | grep "T memset"
 
 - apt withou root: `apt download <pkg>` & `dpkg -x <pkg>.deb <dir>`
 
+- 定时任务: Crontab
+  - vim编辑创建定时任务：`crontab -e`
+
+  - 从文件导入：`crontab filename`
+
+  - 查看单个用户任务：`crontab -l -u usrname`
+
+  - 查看所有用户的任务：`cat /etc/passwd | cut -f 1 -d : |xargs -I {} crontab -l -u {}`
 
 
 
@@ -247,6 +272,4 @@ nm -A /usr/lib/* 2>/dev/null | grep "T memset"
 - `LIBS` or `LDLIBS`: 告诉链接器要链接哪些库文件，如LIBS = -lpthread -liconv
 
 PATH变量的分隔符是`:`，其他的是空格
-
-
 

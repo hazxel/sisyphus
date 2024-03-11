@@ -24,3 +24,8 @@ Unix哲学KISS：keep it simple, stupid。在Linux系统里，一切看上去十
 - T (TASK_STOPPED or TASK_TRACED)，暂停状态或跟踪状态
 - X：退出状态，进程即将被销毁
 
+
+
+# Service
+
+- SSH: default to 22 port, *sshd* stand for SSH daemon and is the server-side process for SSH, configuration in `/etc/ssh/sshd_config`
