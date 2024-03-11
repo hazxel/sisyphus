@@ -1,22 +1,20 @@
 # Git Commands
 
-- `git checkout`: updates the HEAD to point to either the specified branch or commit
-
 - `git checkout -b newb` = `git branch newb` + `git checkout newb`
+
 - `git push -X ours` vs `git pull -X ours`
+
 - `git push --set-upstream origin master`
+
 - `git add -u`
+
 - `git stash` (or `git stash save`) & `git stash pop`
-- `git reset HEAD XXX/XXX/XXX.java`: undo add op
-- `git reset --hard origin/master`: reset branch to master
-- `git reset --soft HEAD^`: undo last commit op
+
 - `git clean -xfd`: remove f(untracked files), d(directory), x(file in .gitignore)
-- `git show HEAD`: check the status of the Head
-- `git show-ref --head`: List references in a local repository, including HEAD reference
 
-- `git update-ref <dst> <src>`: update the dst ref with the src provided
+- `git show <commit-id/HEAD/...>`: check a commit
 
-  > e.g. when head is detached, you can update the branch reference `refs/heads/your_branch` with `HEAD` to make head attached
+- `git log -p -- file.name`: check history of a file
 
 - `git remote -v`: list of remotes
 
@@ -37,13 +35,48 @@
 
 
 - `git fetch --prune origin`: fetch and prune
+
 - `git remote prune origin`: prune only
-- `git reflog`: 查看命令提交历史记录
-- `get reset HEAD@{xxx}`: 根据编号回溯至某个commit
+
+  
 
  
 
-# Multi-Account
+# HEAD & commit tree
+
+Head is git's term referring to current snapshot
+
+- `git checkout`: updates the HEAD to point to either the specified branch or commit
+
+- `git reset HEAD XXX/XXX/XXX.java`: undo add op
+
+- `git reset --hard origin/master`: reset branch to master
+
+- `git reset --soft HEAD^`: undo last commit op
+
+- `git show-ref --head`: List references in a local repository, including HEAD reference
+
+- `git update-ref <dst> <src>`: update the dst ref with the src provided
+
+  > e.g. when head is detached, you can update the branch reference `refs/heads/your_branch` with `HEAD` to make head attached
+
+- `git reflog`: 查看命令提交历史记录
+
+- `get reset HEAD@{xxx}`: 根据编号回溯至某个commit
+
+
+
+# Login & Account
+
+### 对当前仓库
+
+###  都记录在`.git/config` 
+
+- 记住用户名邮箱：`git config user.name xxx` , `git config user.email xxx`
+- 记住密码：`git config credential.helper cache` or `git config credential.helper store`
+- xxx
+
+### Multi-Account
 
 1. Remove setting for global account
 

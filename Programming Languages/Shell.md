@@ -95,7 +95,7 @@ Useful commands
    - `$1 .. $9`: the first 9 additional parameters the script was called with.
 3. List
    - `[@]`: all elements
-   - ​
+   - 
 4. Function:`funname() {}` or `function funname() {}`
 5. Backtick (`) symbol: Everything you type between backticks is evaluated (executed) by the shell before the main command and the *output* of that execution is used by that command, just as if you'd type that output at that place in the command line.
 6. If & for & ...
@@ -112,4 +112,4 @@ Useful commands
   - File descriptor 1 is the standard output (`stdout`)
   - File descriptor 2 is the standard error (`stderr`).
 - `/dev/null`: a null device file in Linux, discards anything written to it, and return EOF on reading.
-- ​
+- 
