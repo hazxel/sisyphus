@@ -61,6 +61,10 @@ cat file.txt >> file2.txt 	#重定向
 
 用于字符串的输出，可显示字符串（可转义），环境变量等
 
+##### diff
+
+比较文件或文件夹（需要添加`-r`参数）
+
 ##### print linux system information: 
 
 `lsb_release -a` or `cat /etc/issue` for example:

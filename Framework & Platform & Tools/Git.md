@@ -2,13 +2,11 @@
 
 - `git checkout`: updates the HEAD to point to either the specified branch or commit
 
-  > HEAD is Git's way of referring to the current snapshot
-
 - `git checkout -b newb` = `git branch newb` + `git checkout newb`
 - `git push -X ours` vs `git pull -X ours`
 - `git push --set-upstream origin master`
 - `git add -u`
-- `git stash` (`git stash save`) & `git stash pop`
+- `git stash` (or `git stash save`) & `git stash pop`
 - `git reset HEAD XXX/XXX/XXX.java`: undo add op
 - `git reset --hard origin/master`: reset branch to master
 - `git reset --soft HEAD^`: undo last commit op
@@ -40,7 +38,8 @@
 
 - `git fetch --prune origin`: fetch and prune
 - `git remote prune origin`: prune only
-- xxx
+- `git reflog`: 查看命令提交历史记录
+- `get reset HEAD@{xxx}`: 根据编号回溯至某个commit
 
  
 
@@ -85,8 +84,6 @@
 - `git submodule update`
 - `git submodule update --init --recursive`: equivalent to two previous commands
 - `git submodule update --remote`: pull latest commits
-
-## 
 
 
 

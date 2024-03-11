@@ -1,11 +1,3 @@
-### Single Instruction/Multiple Data (SIMD)
-
-SIMD operations refers to a computing method that enables processing of multiple data with a single instruction. Also called **vector** instructions. In contrast, the conventional sequential approach using one instruction to process each individual data is called **scalar** operations.
-
-
-
-
-
 # Thread
 
 ### pthread vs std::thread
