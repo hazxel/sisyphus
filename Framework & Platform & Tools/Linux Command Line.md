@@ -60,9 +60,16 @@ The corresponding numerical identifier values of stdin, stdout, and stderr are 0
 
 - wc: count total words, lines, characters. `-l` count total lines
 
+- tr: replace string `tr '\n' ','` 换行变逗号
+
 - awk: 一个强大的文本分析工具
 
   - 获取第一个字段：`ask '{print $1}'`
+  
+- sed: 也是强大的字符串处理工具
+
+  - 替换：`sed 's/find-str/replace-to/g'`
+  
 
 
 
@@ -184,6 +191,7 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
   - IP/port usage: `netstat -tulpn | grep LISTEN`
   - specific ports: `lsof -i:10002`
   - Check ssh service: `ps -ef | grep ssh`
+  - capture tcp packet: `tcpdump -i any 'dst port 31220'`
 
 - system service: `service --status-all`
 
@@ -243,7 +251,7 @@ LDD Search:
 
 # other commands
 
-- print linux system information: `lsb_release -a` or `cat /etc/issue` 
+- print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat/etc/euleros-latest`
 
 - apt withou root: `apt download <pkg>` & `dpkg -x <pkg>.deb <dir>`
 
