@@ -210,16 +210,19 @@ void (T &&foo) {};
   }
   ```
 
-- `std::forward<T>` (perfect forwarding, 完美转发) 虽然右值引用本身可能为左值或者右值，但通过 forward 我们可以强制保证左值引用转换为左值，右值引用转换为右值。forward 必须显式指明模版参数，不可以推导
+  - 对`const`对象的移动会转化为拷贝操作，因为`const T&&`不匹配移动操作的入参`T&&`，重载决议为拷贝
+  - 对不可移动类型的移动也能通过编译和运行，但会调用拷贝操作，因为根本没有接受 `T&&`的重载版本
+
+- `std::forward<T>` (perfect forwarding, 完美转发) 引用本身可能为左值或者右值。通过 forward 我们可以强制保证左值引用转换为左值，右值引用转换为右值。forward 必须显式指明模版参数，不可以推导
 
   ```c++
-  template<class T>
+  template<class T> // 万能引用将值完美转发给另一个万能引用
   void foo(T&& arg) { arg.DoSomething(); }
   template<class T>
   void bar(T&& arg) { foo(std::forward<T>(arg)); }
   ```
   
-  注意理解实现：借助万能引用推导后显式传入的 `_Tp` 的类型来决定返回左值引用还是右值引用，和形参的 value category无关
+  注意理解实现：本质上是借助万能引用推导后显式传入的 `_Tp` 的类型来决定返回左值引用还是右值引用，和形参的 value category无关
   
   - 万能引用匹配左值形参时，传入的 `_Tp`是万能引用推导出的 `Widget&`。根据引用折叠规则，返回值也被折叠为 `Widget&`，返回的匿名左值引用一定是左值。
   - 万能引用匹配右值形参时，传入的 `_Tp `是万能引用推导出的 `Widget`。返回值为 `Widget&&`，返回的匿名右值引用一定是右值

@@ -4,66 +4,68 @@
 
 
 
-# `this` pointer
+# this
 
-当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是this指针。如果是用new创建的对象可以delete this指针。但是一经delete之后其所有成员都不能再被访问。
+当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是 `this` 指针。如果是用 `new` 创建的对象可以`delete this`指针。但是一经`delete`之后其所有成员都不能再被访问。
 
 
 
-# Ctor, Dtor and assignment operator
+# special member functions
 
-### Compiler default ctor, dtor, assignment operator
+1. Default Constructor (DftCtor) `Widget();` : 
 
-- If no constructors are declared in a class, the compiler provides an implicit `inline` default constructor. This can be desabled by defining it as `deleted`, or explicitly declared by `default`.
+   Implicit definition of DftCtor: empty body, empty initializer list, calls DftCtor of base classes, and of non-static members. ??? what if they don't have DftCtor? or is basic type?
+
+2. Copy constructor (CCtor) `Widget(const Widget&);` 默认为逐成员拷贝
+
+3. Copy-Assignment operator (CAssOp) `Widget& operator= (const Widget&);` 默认为逐成员拷贝
+
+4. Move Constructor (MCtor) `Widget(const Widget&&);` 默认为逐成员移动
+
+5. Move-Assignment operator (MAssOp) `Widget& operator= (const Widget&&);` 默认为逐成员移动
+
+   > 如果需要自定义 移动构造/移动赋值 函数，尽量定义为 `noexcept` 不抛出异常（编译器生成的版本会自动添加），否则 **不能高效使用标准库和语言工具**！例如，标准库容器 `std::vector` 在扩容时，会通过 `std::vector::reserve()` 重新分配空间，并转移已有元素。如果扩容失败，`std::vector` 满足强异常保证 (strong exception guarantee)，可以回滚到失败前的状态。为此，`std::vector` 使用 `std::move_if_noexcept()` 进行元素的转移操作。如果 没有定义移动构造函数 或 自定义的移动构造函数没有 `noexcept`，会导致 `std::vector` 扩容时执行无用的拷贝，不易发现。
+
+6. Destructor (Dtor) `~Widget();`
+
+   默认生成的版本：默认为`noexcept`，且是否为 `virtual` 与基类(如果有)的析构函数一致
+
+   > make dtor private/delete will force the class to be only created by `new`. Similarly, overload with private `new` and `delete` will force the class to be only created on stack.
+
+### Implicit definition of special memeber functions & Rule of 3/5/0
+
+Copmiler implicitly defines a default inline version for the 6 special member functions except:
+
+- If exists any kind of custom Ctor, DftCtor won't be implicitly defined.
+- If any of Dtor, CCtor, CAssOp, **MCtor** or **MAssOp** is defined by user, **MCtor** and **MAssOp** won't be implicitly defined. 此时如果不定义移动构造/移动赋值，对象会不可移动。移动构造和移动赋值，如果你声明了其中一个，编译器就不再生成另一个。
+- If MCtor or MAssOp is defined by user, CCtor and CAssOp will be implicitly defined as **DELETED**!!
+
+> 注意：1. **成员函数模版**不会阻止编译器生成特殊成员函数。2. `=delete`&`=default`也属于用户定义实现
+
+这么设计的核心逻辑就是，如果资源管理很简单，编译器就用 trival 的方法代替你来实现；反之你如果定义了析构函数，拷贝或者移动，编译器就觉得你是要自己实现复杂的管理，默认的实现多半不适用了
+
+**Rule of Three**: If a class requires a custom Dtor, a custom CCtor, or a custom CAssOp, it almost certainly requires all three. (Otherwise may lead to incorrect management of resources)
+
+**Rule of Five**: Because a custom Dtor, CCtor or CAssOp prevents the  implicit definition of the MCtor and the MAssOp, Rule of Three can expand to Rule of Five if move semantics are desirable. (Otherwise lose potential optimization of move)
+
+**Rule of Zero**: Classes that have custom Dtors, CCtor, MCtor, CAssOp or MAssOp should deal exclusively with ownership (which follows from the Single Responsibility Principle). Other classes should not have any custom versions of those five. (C++ Core Guidelines - C.20: Avoid defining default operations if possible.)
+
+### Delete and default
+
+Only special member functions can be `default`. All functions can be `delete`, even non-member ones.
+
+deleted 函数不能被使用，但还是会被纳入重载决议。这样的好处是可以在编译期拒绝一些不合适的函数调用。
 
  ```c++
- MyClass() = delete;
- MyOtherClass() = default;
+MyClass() = delete;
+MyOtherClass() = default;
  ```
+
+尽量使用 `default` , 增强可读性，且防止偶然定义阻止了 MCtor 或 MAssOp 的生成。
+
+尽量使用 `delete` 代替 undefined private, 前者报错信息更明确，且后者有时还是会延迟到链接期才报错（成员函数或友元的调用）。此外还应将 `delete`的函数声明为`public`，防止错误信息被 `private` 错误覆盖
 
  > If a class doesn't have a default constructor, it's not possible to create an array of it using brackets `[]` **alone**.
-
-- If no virtual destructors is declared, the compiler provides an default destructor.
-
-- If no move constructor or move-assignment operator is explicitly declared, a copy constructor and a copy-assignment operator will be automatically generated.
-
-- If no copy constructor, copy-assignment operator, move constructor, move-assignment operator, or destructor is explicitly declared, a move constructor and a move-assignment operator will be automatically generated.
-
-- 如果 没有定义 拷贝构造/拷贝赋值/移动构造/移动赋值/析构 函数的任何一个，编译器会 自动生成 移动构造/移动赋值 函数（rule of zero）
-  如果 需要定义 拷贝构造/拷贝赋值/移动构造/移动赋值/析构 函数的任何一个，不要忘了 移动构造/移动赋值 函数，否则对象会 不可移动（rule of five）
-  尽量使用=default 让编译器生成 移动构造/移动赋值 函数，否则 容易写错
-
-- Compiler calls super class's default constuctor implicitly if not called explicitly in program. If super class doesn't have default constructor, then one of the other constructor must be called explicitly.
-
- ```c++
- Child (): Father() {} // this is an explicit call
- ```
-
-### Copy constructor & Copy-Assignment operator
-
-```c++
-MyClass(const MyClass&);
-MyClass& operator= (const MyClass&);
-```
-
-Assignment operator cannot be inherited. 
-
-### Move Constructor & Move-Assignment operator (C++11)
-
-```c++
-MyClass(const MyClass&&);
-MyClass& operator= (const MyClass&&);
-```
-
-A move constructor enables the resources owned by an rvalue object to be moved into an lvalue without (deep) copying. This is usually faster than copy constuctor/copy-assignment operator when the input is an rvalue.
-
-如果需要自定义 移动构造/移动赋值 函数，尽量定义为 `noexcept` 不抛出异常（编译器生成的版本会自动添加），否则 **不能高效使用标准库和语言工具**！例如，标准库容器 `std::vector` 在扩容时，会通过 `std::vector::reserve()` 重新分配空间，并转移已有元素。如果扩容失败，`std::vector` 满足强异常保证 (strong exception guarantee)，可以回滚到失败前的状态。为此，`std::vector` 使用 `std::move_if_noexcept()` 进行元素的转移操作。如果 没有定义移动构造函数 或 自定义的移动构造函数没有 `noexcept`，会导致 `std::vector` 扩容时执行无用的拷贝，不易发现。
-
-### Destructor
-
-##### private dtor？
-
-make dtor private will force the class to be only created by `new`. Similarly, overload with private `new` and `delete` will force the class to be only created on stack.
 
 
 
@@ -129,7 +131,7 @@ C++ allows multiple definitions for the same function name in the same scope. Th
 
 # Inheritance
 
-default is private
+default specifier is private.
 
 |            | public  | protected | private  |
 | --------------------- | --------- | --------- | --------- |
@@ -139,9 +141,9 @@ default is private
 
 ##### Virtual Inheritance
 
-In multiple inheritance, a class may inherit from a superclass more than once. (think of diamond inheritance graph). Virtual inheritance is a C++ technique that ensures only one copy of a base class's member variables are inherited by grandchild derived classes. In this case, Constructor of repeated superclass **must** be called by the **smallest** subclass' constructor directly, and only once. (An exception is when the subclass has a default empty constructor.)
+In multiple inheritance, a class may inherit from a superclass more than once. (think of diamond inheritance graph). Virtual inheritance ensures only one copy of a base class's member variables are inherited by grandchild derived classes. In Virtual Inheritance, Ctor of repeated superclass **must** be called by the **smallest** subclass' Ctor directly, and only once. (An exception is when the subclass has a default empty constructor.)
 
-虚继承的目的是让某个类做出声明，承诺愿意共享它的基类。其中，这个被共享的基类就称为虚基类（Virtual Base Class）。在这种机制下，不论虚基类在继承体系中出现了多少次，在派生类中都只包含一份虚基类的成员。
+虚继承就是让某个类做出声明，承诺愿意共享它的基类，被共享的基类就称为虚基类（Virtual Base Class）。在这种机制下，不论虚基类在继承体系中出现了多少次，在派生类中都只包含一份虚基类的成员。
 
 ##### using 
 
@@ -150,9 +152,17 @@ In multiple inheritance, a class may inherit from a superclass more than once. (
 - 子类无法隐式使用父类的构造函数，需要写`Derived(int arg): Base(int arg) {}` 略麻烦
 - 子类的同名函数会隐藏基类的实现（即使是参数列表不同的重载）
 
+但引入 base class 成员函数时只能指定名字并引入所有同名重载
+
 ##### final
 
 Specifies that a virtual function cannot be overridden or a class cannot be derived from.
+
+##### Special Member
+
+- Constructor are not inherited. (but still possible via `using Base::Base;`)
+- If derived class doesn't call base class DftCtor explicitly (i.e.`Child():Father(){}`), compiler will call it implicitly. If super class doesn't have DftCtor, then an other Ctor must be called explicitly.  
+- Assignment operators are not inherited. 
 
 
 
@@ -176,7 +186,7 @@ A virtual function is a member function that you expect to be redefined in deriv
 
 A **pure virtual function** is a virtual function without implementation. A class have one or more pure virtual funcitons is called **abstract class**. The subclass must implement the pure virtual function.  
 
-Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
+C++规范并没有规定虚函数的实现方式，但大部分编译器都用虚函数表（vtable）来实现。不同编译器对单继承的实现都比较接近；而多继承可能需要多层虚函数表（vtable table, VTT），实现的差异会比较大。Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
 
 
 
@@ -211,7 +221,7 @@ class MyClass {
 
  ### ref-qualifier 引用限定 (C++11)
 
-成员函数默认不区分左值和右值 receiver。
+成员函数默认不区分左值和右值 receiver。如果想要区分，采用以下语法：
 
  ```c++
 template <typename T>

@@ -14,7 +14,7 @@
   - arithmatic (`int`, `double`, ...) to `bool`: 0 -> `false`, other -> `true`
   - bool to arithmetic: `true` -> 1, `false` -> 0
   - pointers(`T*` or `T[]`) to `bool`: `nullptr`/`NULL` -> `false` , other -> true
-- 窄化转换：指**基本类型**之间的转换中，由于目标类型的表示范围小于源类型导致的精度丢失或数据溢出。合法，但会触发编译器警告。
+- 窄化转换：指**基本类型**之间的转换中，由于目标类型的表示范围小于源类型导致的精度丢失或数据溢出。合法，但会触发编译器警告。（小知识：转换`float`时，C++在`int`和`double`中倾向于选择`double`）
 - non-`explicit` conversion function, non-`explicit` convertion constructor
 
 ### explicit (keyword)  -  forbid implicit conversions
@@ -82,13 +82,17 @@ C++引入这个机制是为了让程序在运行时能根据基类的指针或�
 
 ### macro 开关
 
-RTTI可被编译时的宏开关启用或关闭，如 STL 源码中常见的`__cpp_rtti`, `_LIBCPP_NO_RTTI` 等，可通过形如`-fno-rtti`的指令关闭。有些编译器默认关闭RTTI以消除性能开销。But usually without RTTI you can't use typeid, dynamic_cast, and some STL classes are compiled differently.
+RTTI可被编译时的宏开关启用或关闭，如 STL 源码中常见的`__cpp_rtti`, `_LIBCPP_NO_RTTI` 等，可通过形如`-fno-rtti`的指令关闭。启用RTTI时，vtable布局中会有 slot 用于存放 typeinfo 指针。有些编译器默认关闭RTTI以消除性能开销。But usually without RTTI you can't use typeid, dynamic_cast, and some STL classes are compiled differently.
+
+### typeid
+
+运算符`typeid(n)`中，参数`n`可以是类型、变量、字面量等。如果参数没有虚函数，就会直接在编译期完成运算。如果参数类型有虚函数的话，要等到运行期间才能确定值。
 
 ### type_info
 
 The class type_info holds the **name** of the type and means to compare two types for equality or collating order(有时需要比较顺序因为可能作为key放入map). This is the class returned by the typeid operator.
 
-std::type_info对象是在编译的时候决定其内容的，作为静态数据存在于最终生成的目标代码里。编译器会在静态存储空间里为这些type_info对象分配空间，并生成代码来初始化它们的内容。对于遵循Itanium C++ ABI的编译器（例如GCC和Clang）来说，其中编译器给生成的初始化type_info的代码，本质上就跟自己在全局作用域里写个这样的C++代码类似 `type_info _ZTI3Foo("Foo");`, 然后根据ABI要求，将指向这些type_info对象的指针放进vtable即可。
+std::type_info对象是在编译的时候决定其内容的，作为静态数据存在于最终生成的目标代码里。编译器会在静态存储空间 .data 段里为这些 type_info 对象分配空间，并生成代码来初始化它们的内容。对于遵循Itanium C++ ABI的编译器（例如GCC和Clang）来说，其中编译器给生成的初始化type_info的代码，本质上就跟自己在全局作用域里写个这样的C++代码类似 `type_info _ZTI3Foo("Foo");`, 然后根据ABI要求，将指向这些 type_info 对象的指针放进 vtable 即可。
 
 
 

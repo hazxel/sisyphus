@@ -4,7 +4,7 @@ https://godbolt.org/
 
 1. Preprocessing: convert *.cpp/c.* files to *.i* files
 
-   Process`#` instructions: replace `#define`, delete comment, insert `#include` files, etc.
+   Process`#` instructions: replace `#define`, delete comment, insert `#include` files, etc. A translation unit is the output of the preprocessor.
 
 2. Compilation: convert *.i* files to *.s* files
 
@@ -136,11 +136,30 @@ Conclusion: for self defined header files, use `#include ""`
 
 
 
+
+
+# Linkage
+
+A object, reference, function, type, template, namespace, or value, may have *linkage*.
+
+- **No linkage**: The name can be referred to only from the scope it is in.
+- **Internal linkage**: The name can be referred to from all scopes in the current translation unit.
+- **External linkage**: The name can be referred to from the scopes in the other translation units.
+- **Module linkage** (C++20): The name can be referred to only from the scopes in the same module unit or in the other translation units of the same named module.
+
+
+
+
+
 # Keywords
 
 ### inline (keyword)
 
-The `inline` keyword suggests the compiler to substitute the code within the function definition for every instance of a function call. Using inline functions can make your program faster because they eliminate the overhead associated with function calls. The compiler can also optimize functions expanded inline in ways that aren't available to normal functions.
+The `inline` keyword suggests the compiler to substitute the code within the function definition for every instance of a function call. 
+
+Using `inline` can improve performance because elimination of the function call overhead. The compiler can also optimize functions expanded inline in ways that aren't available to normal functions.
+
+Any functions can be inline. Member functions defined within class definition are implicitly inline functions.
 
 Virtual functions can also be inlined, but only when compiler knows the "exact" class of the object. (e.g. non-dynamic resolved, local object, static/global object, etc.)
 
