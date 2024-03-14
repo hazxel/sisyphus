@@ -20,6 +20,12 @@
 
 
 
+# 小知识
+
+1. CMake 编译出的二进制文件不需要配置环境变量 `LD_LIBRARY_PATH` 就可以自动找到依赖库，这是因为 CMake 在编译过程中已经将依赖库的鹿筋写入到可执行文件的rpath中了
+
+
+
 ### With Clion
 
 - when not compiling using clion, "在 Clion 根目录下的 CMakeLists.txt 上右键 Reload Cmake Project"，后方可正确跳转定义等

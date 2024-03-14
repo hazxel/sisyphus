@@ -184,14 +184,7 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - iostat
 
-- Network
-
-  - iperf: a tool for active measurements of the maximum achievable bandwidth on IP networks
-  - ifconfig: displays information about all network interfaces currently in operation
-  - IP/port usage: `netstat -tulpn | grep LISTEN`
-  - specific ports: `lsof -i:10002`
-  - Check ssh service: `ps -ef | grep ssh`
-  - capture tcp packet: `tcpdump -i any 'dst port 31220'`
+- Network: see Linux-network chapter
 
 - system service: `service --status-all`
 
@@ -246,6 +239,8 @@ LDD Search:
 2. **Environment variable `LD_LIBRARY_PATH`:** If set, the `LD_LIBRARY_PATH` environment variable specifies a list of additional search paths for shared objects. These paths are searched before the standard paths.
 3. **RPATH**: Some executables or shared objects may contain an embedded RPATH (runtime path) that specifies additional search paths for their dependencies. This information is extracted from the ELF header of the file. Using the `readelf -d <so_file>` command to display the ELF header of a shared object, which includes the RPATH.
 4. **Explicit path provided to `ldd`:** When you run `ldd` with an explicit path to a file, it directly searches for dependencies using that path. This can be useful for debugging or troubleshooting issues with shared libraries.
+
+查看库版本也可以直接运行这个库，会输出一些版本信息
 
 
 
