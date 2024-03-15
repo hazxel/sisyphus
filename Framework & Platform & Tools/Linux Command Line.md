@@ -244,7 +244,7 @@ LDD Search:
 
 
 
-# other commands
+# other
 
 - print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat/etc/euleros-latest`
 
@@ -258,6 +258,34 @@ LDD Search:
   - 查看单个用户任务：`crontab -l -u usrname`
 
   - 查看所有用户的任务：`cat /etc/passwd | cut -f 1 -d : |xargs -I {} crontab -l -u {}`
+  
+- To figure out the default shell:
+  
+     ```shell
+     echo $SHELL
+     ```
+
+
+  - To figure out all available shells:
+  
+     ```shell
+     cat /etc/shells
+     ```
+
+
+  - Switch between shells:
+  
+     ```shell
+     chsh -s /bin/bash
+     chsh -s /bin/zsh
+     ```
+
+
+  - Alias: defined in your shell configuration file, and act as a shortcut to reference a frequently used command, for example:
+  
+     ```shell
+     alias v="vim"
+     ```
 
 
 

@@ -1,38 +1,3 @@
-Useful commands
-
-1. To figure out the default shell:
-
-   ```shell
-   echo $SHELL
-   ```
-
-
-2. To figure out all available shells:
-
-   ```shell
-   cat /etc/shells
-   ```
-
-
-3. Switch between shells:
-
-   ```shell
-   chsh -s /bin/bash
-   chsh -s /bin/zsh
-   ```
-
-
-4. Alias: defined in your shell configuration file, and act as a shortcut to reference a frequently used command, for example:
-
-   ```shell
-   alias v="vim"
-   ```
-
-
-5. Xxx
-
-
-
 ### About Environment Variables
 
 1. Priority of loading environment variable coifigure files:
@@ -126,3 +91,17 @@ Useful commands
   - File descriptor 1 is the standard output (`stdout`)
   - File descriptor 2 is the standard error (`stderr`).
 - `/dev/null`: a null device file in Linux, discards anything written to it, and return EOF on reading.
+
+
+
+
+
+# Useful
+
+- get parent dir of script path:
+
+  ```sh
+  BASE_DIR=$(cd -P "$(dirname "${BASH_SOURCE-$0}")/../"; pwd -P)
+  ```
+
+- xxx
