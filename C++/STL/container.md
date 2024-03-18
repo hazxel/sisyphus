@@ -74,9 +74,9 @@ A key of a `unordered_map` or `map` is also `const`, which means the type of `pa
 
 ### begin，cbegin，rbegin
 
-分别为普通迭代器，只读迭代器，还有反向迭代器。降序排列元素可向 `std::sort()` 传送反向迭代器
+分别为普通迭代器，只读迭代器，还有反向迭代器。降序排列元素可向 `std::sort()` 传送反向迭代器。
 
-
+使用时，优先考虑`const_iterator`而非`iterator`；编写通用型代码时优先考虑非成员函数 `std::begin` 以支持原生数组等类型。
 
 
 
