@@ -112,12 +112,12 @@ Service is an abstract way to expose an application running on a set of Pods as 
 
 Kubernetes gives Pods their own IP addresses and a single DNS name for a set of Pods, and can load-balance across them. In Kubernetes, a Service is an abstraction which defines a logical set of Pods and a policy by which to access them (sometimes this pattern is called a micro-service). The set of Pods targeted by a Service is usually determined by a selector. A service groups together logical collections of pods that perform the same function to present them as a single entity—frontends do not care which backend they use.
 
-A Service in Kubernetes is a REST object, similar to a Pod. Like all of the REST objects, you can `POST` a Service definition to the API server to create a new instance.
+A Service in Kubernetes is a REST object, similar to a Pod. Like all of the REST objects, you can `POST` a Service definition to the API server to create a new instance. 服务类型：
 
-- ClusterIP
-- NodePort
-- LoadBalancer
-- ExternalName
+- ClusterIP: 默认模式，Service 只能够在集群内部访问。可以使用 Ingress 或者 Gateway API 向公共互联网公开服务。
+- NodePort: 通过每个节点上的 IP 和静态端口（`NodePort`）公开 Service，使 Service 可通过节点端口访问。
+- LoadBalancer：使用负载均衡器向外部公开 Service。Kubernetes 不直接提供负载均衡组件，用户须提供，或者将 Kubernetes 集群与某个云平台集成。
+- ExternalName：将服务映射到 externalName 字段的内容（例如，映射到主机名 api.foo.bar.example）。 该映射将集群的 DNS 服务器配置为返回具有该外部主机名值的 CNAME 记录。 集群不会为之创建任何类型代理。
 
 ### Ingress
 
@@ -131,11 +131,15 @@ Volumes are a abstraction that allows data to be shared by all containers within
 
 Persistent Volume(PV), Persistent Volume Claims(PVC), HostPath, EmptyDri, ...
 
+> VolumeAttachment 有时候会报错找不到 `/dev/disk/by-id/csci-3xxxxxxxxx`, 此时可以手动 `ln ../../sda csci-3xxxxxxx` 即可正确 attach PV
+>
+> 为避免操作系统底层文件，可直接卸载grafana，删除所有相关volumeattachment，不用删除pvc，再部署即可
+
 ### Namespace
 
 Namespaces are a way to divide cluster resources between multiple users. Namespaces provide a scope for names. Names of resources need to be unique within a namespace, but not across namespaces.
 
-### Workload Resources
+### Workload
 
 To make life considerably easier, you don't need to manage each Pod directly. Instead, you can use workload resources that manage a set of pods on your behalf.
 
@@ -165,9 +169,15 @@ To make life considerably easier, you don't need to manage each Pod directly. In
 
   Ensures a copy of a Pod is running across a set of nodes in a cluster. Used to deploy system daemons such as log collectors and monitoring agents that typically must run on every Node.
 
-### Label
+### Resource, Affinity and Label
 
 A label in Kubernetes is a semantic tag that can be **attached to Kubernetes objects** to mark them as a part of a group.
+
+Resource 包括默认资源如 CPU，Memory，用户也可自定义资源 (Custom Resource Definition, CRD)
+
+Label 是在各级组件如 node，pod 上打的标签，用户也可自定义标签
+
+Affinity 可根据标签进行亲和调度（e.g.数据亲和）或反亲和调度（e.g.每个节点只需要一个proxy）
 
 ### GVK vs GVR
 
@@ -324,14 +334,13 @@ Cluster API is meant to simplify provisioning, upgrading, and operating multiple
 Kubectl is Kubernetes command line interface used to interact with the cluster.
 
 - `kubectl create`
-- `kubectl get [RES]`: list resources
-- `kubectl describe [RES]`: show detailed info about a resource
+- `kubectl get xxx` or `kubectl describe xxx` or `kubectl logs xxx`: 查看组件状况
 - `kubectl apply -f [FILE_NAME] `: apply a config to a resource by file name (JSON/YAML)
 - `kubectl expose`: expose a resource as a new Kubernetes service
 - `kubectl run`: create a **pod** and run an image in it
-- `kubectl logs`: print the logs from a container in a pod
 - `kubectl exec`: execute a command on a container in a pod
 - `kubectl delete`: delete
+  - pod 删除卡在 terminating 可使用 `kubectl delete pod <PODNAME> --grace-period=0 --force --namespace <NAMESPACE>`
 - `kubectl config`: 
   - view: view context configuration 
   - set-context: create new context
@@ -339,10 +348,8 @@ Kubectl is Kubernetes command line interface used to interact with the cluster.
   - current-context: view the current context
   - use-context: switch to different context
   - `KUBECONFIG=./scheduling-dev-mgmt.kubeconfig:scheduling-dev-wkld.kubeconfig kubectl config view --flatten > scheduling-dev.kubeconfig `: merge config files
-- Debug steps: 
-  1. kubectl describe xxx
-  2. kubectl get xxx -o yaml
-  3. kubectl logs xxx
+- `kubectl top pod -n namespace`: 查看所有pod，nodes中内存，CPU使用情况 
+- `kubectl cp <ns>/<podname>:/path/to/src /path/to/dst`: 复制文件：
 
 ### Kubeadm
 
@@ -458,4 +465,13 @@ Delete subnet:
 ### Amason Web Service
 
 ### Azure
+
+
+
+# ETCD
+
+**etcd 是一种开源的分布式统一键值存储**，用于分布式系统或计算机集群的共享配置、服务发现和的调度协调。 etcd 是 Kubernetes 的首要数据存储，也是容器编排的实际标准系统。
+
+- list values: `kubectl exec -it ds-core-etcd-0 -- etcdctl get --prefix /`
+- delete values: `kubectl exec -it ds-core-etcd-0 -- etcdctl del --prefix /`
 
