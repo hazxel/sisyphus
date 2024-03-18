@@ -188,6 +188,20 @@ A **pure virtual function** is a virtual function without implementation. A clas
 
 C++规范并没有规定虚函数的实现方式，但大部分编译器都用虚函数表（vtable）来实现。不同编译器对单继承的实现都比较接近；而多继承可能需要多层虚函数表（vtable table, VTT），实现的差异会比较大。Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
 
+### Override
+
+To override, must fulfill: 
+
+- base class's method is`virtual`
+- Names are same (except for Dtor)
+- Parameter lists are same
+- `const`ness are same
+- exception specifications are same
+
+- (C++11) *reference qualifiers* are same
+
+永远为重写函数加上`override`, 可以避免想要重写的时候因为某些东西不匹配而重写失败
+
 
 
 # Friend???
