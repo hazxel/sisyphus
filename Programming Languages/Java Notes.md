@@ -157,6 +157,16 @@ A special memory region where Strings are stored by the JVM. JVM can optimize th
 
 When we create a String via the new operator, it will be stored in its unique memory region. String Class has a method `intern()` that can put the specific string into the pool and return the interned string. 
 
+JVM为了提高性能和减少内存开销，在实例化字符串常量时进行了优化。JVM在Java堆上开辟了一个字符串常量池空间（StringTable)，JVM 通过 ldc 指令加载字符串常量时会调用 `StringTable::intern` 函数将字符串加入到字符串常量池中。
+
+> `String` 类型密码安全性问题: [知乎讨论](https://www.zhihu.com/question/36734157) [案例](https://heapdump.cn/article/3984488)
+>
+> 业务代码中有时会需要处理密码，这种一般推荐使用 `char` 而不是 `String` 类型。**String 类型是不可变的**，意味着一旦创建了字符串，在GC前除了反射没有方法可以清除内存中的字符串数据。如果内存被 dump，会造成密码泄露风险。
+>
+> 使用反射修改 value时，如果该String指向JVM常量池中的字符串，以反射方式修改会导致其他指向该常量的引用出错。
+>
+> 但如果使用 `char[]` 类型，则可以显式清除数据。
+
 ##### StringBuilder vs Stringbuffer
 
 String is unmutable, which means andy operations will result in new instances. `StringBuffer` and `StringBuilder` are mutable and have better performance.
@@ -201,6 +211,22 @@ Resize: Initializes or doubles table size. If null, allocates in accord with ini
 
 
 
+# Dependency shading
+
+Dependency shading of Java is the process of including a dependency in your project and relocating its classes to a different Java package, often renaming the packages and rewriting all affected bytecode. This is typically done to avoid conflicts between the versions of dependencies used by your library and the versions used by the consumers of your library.
+
+> e.g. your library uses v1.0 of `org.example.foo`, and the consumers of your library use v2.0 of `org.example.foo`. To avoid a conflict at runtime, you can shade the `org.example.foo` dependency in your library, relocating its classes to a different package, such as `com.mylibrary.org.example.foo`.
+
+# View jar package symbols
+
+```shell
+jar tvf /root/.m2/repository/org/apache/hadoop/thirdparty/hadoop-shaded-avro_1_11/hadoop-shaded-avro-1.2.0-rc1.jar | grep Stringable
+```
+
+
+
+
+
 
 
 # Java Virtual Machine（JVM）
@@ -241,7 +267,37 @@ The Java Runtime Environment is a set of software tools which are used for devel
 
 The Just-In-Time (JIT) compiler is a component of the Java Runtime Environment (JRE) that improves the performance of Java applications at run time.
 
+在部分商用虚拟机中（如HotSpot），Java程序最初是通过解释器（Interpreter）进行解释执行的，当虚拟机发现某个方法或代码块的运行特别频繁时，就会把这些代码认定为“热点代码”。为了提高热点代码的执行效率，在运行时，虚拟机将会把这些代码编译成与本地平台相关的机器码，并进行各种层次的优化，完成这个任务的编译器称为即时编译器（Just In Time Compiler，下文统称JIT编译器）。
+
 ##### Profile-Guided Optimization (PGO)
 
 PGO is a compiler optimization technique in computer programming that uses profiling to improve program runtime performance.
+
+##### JIT 时间开销
+
+- 解释器的执行，抽象的看是这样的：输入的代码 -> [ 解释器 解释执行 ] -> 执行结果
+- JIT编译然后再执行的话，抽象的看则是：输入的代码 -> [ 编译器 编译 ] -> 编译后的代码 -> [ 执行 ] -> 执行结果
+
+说JIT比解释快，其实说的是“执行编译后的代码”比“解释器解释执行”要快，并不是说“编译”这个动作比“解释”这个动作快。事实上，JIT编译比解释执行一次略慢一些，而要得到最后的执行结果还得再“执行编译后的代码”。
+所以对只执行一次的代码，解释执行总是比JIT编译执行要快。对只执行一次的代码做JIT编译再执行，可以说是得不偿失。对只执行少量次数的代码，JIT编译带来的执行速度的提升也未必能抵消掉最初编译带来的开销。只有对频繁执行的代码，JIT编译才能保证有正面的收益。
+
+##### JIT 空间开销
+
+对一般的Java方法而言，编译后代码的大小相对于字节码的大小，膨胀比达到10x是很正常的。所有只有对执行频繁的代码才值得编译，如果把所有代码都编译则会显著增加代码所占空间，导致“代码爆炸”。这也就解释了为什么有些JVM会选择不总是做JIT编译，而是选择用解释器+JIT编译器的混合执行引擎。
+
+##### 热点代码检测
+
+- 基于计数器的热点探测：为每个方法（甚至是代码块）建立计数器，统计方法的执行次数，如果执行次数超过一定的阀值，就认为它是“热点方法”
+
+ - 方法调用计数器
+
+ - 回边计数器
+
+- 基于采样的热点探测：虚拟机会周期性地检查各个线程的栈顶，如果发现某些方法经常出现在栈顶，那这个方法就是“热点方法”
+
+
+
+# GraalVM
+
+???
 
