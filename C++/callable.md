@@ -169,13 +169,18 @@ C++98 中，函数必须声明可能抛出的异常类型。如果函数实现�
 
 现代 C++ 使用`noexcept`保证函数不会抛出任何异常。`noexcept` becomes a part of function type since C++17. C++98's `throw` specifier become *deprecated* in C++17, and is removed in C++20.
 
-### Error handling: runtime stack unwinding 运行时函数堆栈展开
+### stack unwinding 运行时函数栈展开
 
-如果在受保护的 `try` 块（可能会嵌套）内 `throw` 抛出异常：
+栈展开指的是抛出异常时：
 
-1. 从最近的的 `catch` 块开始尝试匹配可处理该异常类型的 `catch` 块
-2. 若检索到最外层 `try` 仍未匹配，调用 `std::terminate`，不析构任何对象
-3. 若匹配，展开堆栈，按照构造顺序的反序析构所有堆栈上的对象，然后执行该 `catch` 块
+1. 先检查 `throw` 本身是否在 `try` 块内部（`try` 可能会嵌套）
+2. 从最近的的 `catch` 块开始尝试匹配可处理该异常类型的 `catch` 块，如果不能处理，退出当前函数并释放当前函数栈上的局部对象，继续到上层的调用函数中查找，直到找到一个可以处理该异常的 `catch` 块
+3. 若不在 `try` 内部，或检索到最外层 `try` 仍未匹配，调用 `std::terminate`，不析构任何对象终止程序
+4. 若匹配，按照构造顺序的反序析构所有堆栈上的对象，执行该 `catch` 块后，继续执行程序。
+
+> 析构函数不应抛出异常：在为某个异常进行栈展开的时候，析构函数如果又抛出自己的未经处理的另一个异常，将会导致调用 `std::terminate` ，再调用 `std::abort` ，导致程序非正常退出。
+
+> 栈展开期间不会释放用 `new` 动态分配的内存对象，有内存泄露风险。
 
 ### noexcept (operator & specifier) (C++11)
 
@@ -196,11 +201,11 @@ template <class T, class Alloc>
          noexcept(noexcept(x.swap(y)));
 ```
 
-除了在接口给用户更多信息，添加 `noexcept` 还能使编译器做更多优化。优化器不需要保证 `noexcept` 函数的运行时栈可展开，也不保证函数中的对象按照构造的反序析构。
+除了在接口给用户更多信息，添加 `noexcept` 还能使编译器做更多优化。优化器不需要保证 `noexcept` 函数的运行时栈可展开，也不保证函数中的对象按照构造的反序析构。Actually, **noexcept doesn't change the assembly**, but it provides semantic meaning that library code can rely on, which can eventually cause significant changes in the assembly, or no changes in the assembly.
 
-除了显式声明为 `noexcept` 的函数外，C++11开始，编译器自动生成的一些函数，如 Dtor, Default Ctor, CCtor, MCtor，delete 都会尽量被定义为 `noexcept`, 除非基类或成员的构造/析构/移动等是 potentially-throwing
+除了显式声明为 `noexcept` 的函数外，C++11开始，编译器自动生成的一些函数，如 Dtor, Default Ctor, CCtor, MCtor，delete 都会尽量被隐式定义为 `noexcept`, 除非基类或成员的构造/析构/移动等是 potentially-throwing
 
-### problem with *move*
+### `noexcept` and *move*
 
 将复制操作替换为移动操作有时会破坏函数的异常安全保证，这是个很严重的问题。
 
@@ -210,16 +215,27 @@ template <class T, class Alloc>
 
 >  这些函数通常会调用 `std::move_if_noexcept`（ `std::move` 的变体，检查类型的移动构造函数是否为 `noexcept`，视情况转换为右值或保持左值）。而 `std::move_if_noexcept` 会查阅 `std::is_nothrow_move_constructible`这个 *type trait*，编译器基于移动构造函数是否有 `noexcept`或`throw()` 来设置这个 *type trait* 的值。
 
+### `noexcept` and *swap*
+
+`swap`函数是STL算法实现的一个关键组件，它也常用于拷贝运算符重载中。它的广泛使用意味着对其施加不抛异常的优化是非常有价值的。交换高层次数据结构是否`noexcept`取决于它的构成部分的那些低层次数据结构是否`noexcept`，这激励你只要可以就提供`noexcept`的 `swap`函数。
+
+```c++
+template <class T1, class T2>
+struct pair {
+    void swap(pair& p) noexcept(noexcept(swap(first, p.first)) &&
+                                noexcept(swap(second, p.second)));
+};
+```
+
 ### C++ Exception best practice
 
 - 大多数函数不应该声明为`noexcept`，而应当是异常中立（*exception-neutral*）的。这些函数自己不抛异常，但是它们内部的调用可能抛出。这些函数内不处理异常，也不立即终止程序，而是让异常顺畅的到达调用者，把异常处理留给调用这个函数的函数。
-
-- 只要可能，总是将不抛异常的函数声明为`noexcept`，尤其是移动操作和`swap`。
-
-  `operator delete`, `operator delete[]`和 Dtor 在 C++98 时代可以抛出异常，但在这些函数中抛出异常是任何时候都要避免的行为。C++11 中加强了约束：他们会被隐式声明为 `noexcept`，除非基类或非静态成员的析构显示声明为 `noexcept(false)`。
-
+- 何时使用 `noexcept`: 
+  - 总是将确信不抛异常的函数声明为`noexcept`
+  - 大量、频繁被使用，且有**自然的**`noexcept`实现法的函数，比如移动操作和`swap`。
+  - `operator delete`, `operator delete[]`和 Dtor：它们在 C++98 时代可以抛出异常，但在这些函数中抛出异常是公认的需要避免的行为。C++11 中加强了约束：他们会被隐式声明为 `noexcept`，除非基类或非静态成员的析构显示声明为 `noexcept(false)`。
+  - Ctor 如果抛出异常可能导致对象部分构造，要保证能够适当的撤销已构造成员。
 - 为了`noexcept`而扭曲函数实现来达成目的是本末倒置。如果一个简单的函数实现可能引发异常，而你为了讨好调用者转而捕获所有异常，然后替换为状态码或者特殊返回值，这将会使函数实现和调用都变得复杂。调用者可能不得不检查状态码或返回值，开辟额外的分支，增大的函数也会给指令缓存带来压力。这些损耗可能超出`noexcept`带来的性能提升，且损害可读性和可维护性。
-
 - 一些库接口设计者会区分有宽泛契约（wild contracts）和严格契约（narrow contracts）的函数。有宽泛契约的函数没有前置条件，不管程序状态如何永远不会表现出未定义行为。反之严格契约函数的前置条件若不满足将会出现未定义行为。设定 invariants 后将函数标记为 `noexcept` 是可能的，在我看来就是将实际参数的合法性检查责任甩交给了调用者，从而减少了运行时检查/异常处理的开销。
 
 
