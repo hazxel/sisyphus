@@ -284,51 +284,6 @@ They both do type conversion, implemented using `static_cast`. *Efficient Modern
 
 
 
-# static (keyword)
-
-- static variables
-  - normal variables are stored on stack
-  - static variables are stored on static segment (scope remains the same), and invisible to other files
-
-- static funcitons: only visible in current file, can be used to avoid conflicts
-- static member variables: all instances share one copy, can be accessed without instances 
-- static member functions: can be accessed without instances, but cannot use non-static members
-
-
-
-# noexcept (operator & specifier)
-
-- as specifier: 声明为`noexcept` 的函数不用处理异常信息，可做编译优化。但仍可能抛出异常，不会生成异常类型信息，程序直接终止
-  - declare a function as `noexcept` means it's not allowed to throw exception
-  - declare a function as `noexcept(expr)` means it's not allowed to throw exception if expr evaluates to true
-- as operator: check if a function is declared to be `noexcept`
-
-```c++
-void funA() noexcept; // 函数funA不抛出异常
-void (*fp)() noexcept(false); // fp指向的函数允许抛出异常
-// 此处第一个noexcept是specifier，第二个是操作符
-template <class T, class Alloc>
-    void swap(list<T,Alloc>& x, list<T,Alloc>& y)
-         noexcept(noexcept(x.swap(y)));
-```
-
-> make move ctor noexcept to facilitate STL useages, STL have optimizations for `nothrow_move_constructible` types and compilers can optimize `noexcept` functions
->
-
-
-
-# sizeof (compile time operator)
-
-- size of an object of an **empty class** is 1, in order to "ensure that the addresses of two different objects will be different." And the size can be 1 because alignment doesn't matter here, as there is nothing to actually look at.
-- Existence of **virtual function(s)** will add 4 bytes of a virtual table pointer in the class. In this case, if the base class of the class already has virtual function(s) either directly or through its base class, then this additional virtual function won't add anything to the size of the class. Virtual table pointer will be common across the class hierarchy.
-- Using of **virtual inheritance** will add 4 bytes of a virtual base table pointer in the class. A class will only maintain one virtual base table pointer.
-- For classes, only non-static data members will be counted.
-- alignment: alignment with the "widest" **basic** type (maybe inside a compound type), and compound types are treated as a whole ({double, char}, char -> 24)
-- ordering matters here because of byte padding (char, short, int -> 8 ; char, int, short -> 12)
-- char: 1, short: 2, int: 4, double: 8 (depends on GCC version, platform, etc.)
-
-
-
 # constexpr (C++11)
 
 Unlike `const`, `constexpr` can also be applied to functions and class constructors. `constexpr` indicates that the value, or return value, is constant and, where possible, is computed at compile time. When a value is computed at compile time instead of run time, it helps your program run faster and use less memory. (low latency!)
@@ -345,23 +300,29 @@ when a constexpr function is called with only compile-time arguments, the result
 
 
 
-# using
+# static (keyword)
 
-- using-directives for namespaces: `using namespace namespace-name;`
+- static variables
+  - normal variables are stored on stack
+  - static variables are stored on static segment (scope remains the same), and invisible to other files
 
-  Allowed only in namespace scope and in block scope. Every name from `namespace-name` is visible until the end of the scope in which it appears. 
+- static funcitons: only visible in current file, can be used to avoid conflicts
+- static member variables: all instances share one copy, can be accessed without instances 
+- static member functions: can be accessed without instances, but cannot use non-static members
 
-  > **Don‘t do this in header files!** Including your header will introduces namespace to global namespace, may lead to conflicts! Use *using-declarations* to introduce single member instead.
 
-- using-declarations: `using ns::member;`
 
-  - In namespace and block scope: introduce a member of another namespace into the region
-  - In class definition: introduces a member of a base class into the derived class definition
-    - introduce base class constructors: `using BaseClassName::BaseClassName;`: For every constructor of BaseClass, compiler generates an identical constructor for derived class.
-    - Introduce other functions: `using BaseClassName::FuncName;` for every overload of the function name, generates an identical function for derived class;
-  - for enumerators (C++20) `using enum enum-class-name;`
-  
-- type alias: refer to types chapter
+# sizeof (compile time operator)
+
+- size of an object of an **empty class** is 1, in order to "ensure that the addresses of two different objects will be different." And the size can be 1 because alignment doesn't matter here, as there is nothing to actually look at.
+- Existence of **virtual function(s)** will add 4 bytes of a virtual table pointer in the class. In this case, if the base class of the class already has virtual function(s) either directly or through its base class, then this additional virtual function won't add anything to the size of the class. Virtual table pointer will be common across the class hierarchy.
+- Using of **virtual inheritance** will add 4 bytes of a virtual base table pointer in the class. A class will only maintain one virtual base table pointer.
+- For classes, only non-static data members will be counted.
+- alignment: alignment with the "widest" **basic** type (maybe inside a compound type), and compound types are treated as a whole ({double, char}, char -> 24)
+- ordering matters here because of byte padding (char, short, int -> 8 ; char, int, short -> 12)
+- char: 1, short: 2, int: 4, double: 8 (depends on GCC version, platform, etc.)
+
+
 
 
 
@@ -381,6 +342,26 @@ Namespaces provide a method for preventing name conflicts in large projects.
 - `namespace-name::member-name` scope is some namespace
 
 - Default: nearest scope
+
+### using
+
+- using-directives for namespaces: `using namespace namespace-name;`
+
+  Allowed only in namespace scope and in block scope. Every name from `namespace-name` is visible until the end of the scope in which it appears. 
+
+  > **Don‘t do this in header files!** Including your header will introduces namespace to global namespace, may lead to conflicts! Use *using-declarations* to introduce single member instead.
+
+- using-declarations: `using ns::member;`
+
+  - In namespace and block scope: introduce a member of another namespace into the region
+  - In class definition: introduces a member of a base class into the derived class definition
+    - introduce base class constructors: `using BaseClassName::BaseClassName;`: For every constructor of BaseClass, compiler generates an identical constructor for derived class.
+    - Introduce other functions: `using BaseClassName::FuncName;` for every overload of the function name, generates an identical function for derived class;
+  - for enumerators (C++20) `using enum enum-class-name;`
+
+- type alias: refer to types chapter
+
+
 
 
 

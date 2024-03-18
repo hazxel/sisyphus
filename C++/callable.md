@@ -158,3 +158,72 @@ STL中大量使用function作为算法的入参，如`sort`, `for_each`, `visit`
 ### std::ref
 
 本质是一个wrapper，可以在使用bind的时候使之变为传引用（默认为传值）
+
+
+
+
+
+# Exception
+
+C++98 中，函数必须声明可能抛出的异常类型。如果函数实现有所改变，异常说明也可能需要修改，这可能会影响客户端代码，因为调用者可能依赖原版本的异常说明。C++11标准化过程中，委员会认为真正有用的信息是一个函数是否会抛出异常。
+
+现代 C++ 使用`noexcept`保证函数不会抛出任何异常。`noexcept` becomes a part of function type since C++17. C++98's `throw` specifier become *deprecated* in C++17, and is removed in C++20.
+
+### Error handling: runtime stack unwinding 运行时函数堆栈展开
+
+如果在受保护的 `try` 块（可能会嵌套）内 `throw` 抛出异常：
+
+1. 从最近的的 `catch` 块开始尝试匹配可处理该异常类型的 `catch` 块
+2. 若检索到最外层 `try` 仍未匹配，调用 `std::terminate`，不析构任何对象
+3. 若匹配，展开堆栈，按照构造顺序的反序析构所有堆栈上的对象，然后执行该 `catch` 块
+
+### noexcept (operator & specifier) (C++11)
+
+- **specifier**: 声明为`noexcept` 的函数不处理异常信息，抛出异常时不生成异常类型信息，会调用 `std::terminate`，默认调用 `std::abort`, cause abnormal program termination (调用C库的 `abort()`，直接终止程序不返回任何值), unless SIGABRT is caught. 
+  
+  - declare a function as `noexcept` means it's declared not to throw exception
+  - declare a function as `noexcept(expr)` means it's not allowed to throw exception if expr evaluates to true
+  
+  注意编译器不会为函数实现和异常规范提供一致性保障，`noexcept` 函数可以调用非 `noexcept`函数。
+- **operator**: evaluate to true if an expression is declared to be `noexcept`
+
+```c++
+void funA() noexcept; // 函数funA不抛出异常
+void (*fp)() noexcept(false); // fp指向的函数允许抛出异常
+// 此处第一个noexcept是specifier，第二个是操作符
+template <class T, class Alloc>
+    void swap(list<T,Alloc>& x, list<T,Alloc>& y)
+         noexcept(noexcept(x.swap(y)));
+```
+
+除了在接口给用户更多信息，添加 `noexcept` 还能使编译器做更多优化。优化器不需要保证 `noexcept` 函数的运行时栈可展开，也不保证函数中的对象按照构造的反序析构。
+
+除了显式声明为 `noexcept` 的函数外，C++11开始，编译器自动生成的一些函数，如 Dtor, Default Ctor, CCtor, MCtor，delete 都会尽量被定义为 `noexcept`, 除非基类或成员的构造/析构/移动等是 potentially-throwing
+
+### problem with *move*
+
+将复制操作替换为移动操作有时会破坏函数的异常安全保证，这是个很严重的问题。
+
+> 以 `std::vector::push_back` 为例，当size 超过 capacity 时，会需要从旧内存移动到新内存。在C++98中这是通过复制来实现的，而如果想要优化为移动，会有这种问题：如果 *n* 个元素已移动到了新内存，但异常在移动第 *n+1* 个元素时抛出，那么对 vector 的移动就不能完成。因为原始的`vector`已经被修改，若想恢复至原始状态，从新内存移动到老内存本身又可能引发异常。
+
+很多函数，尤其是**STL中许多常用函数**，只有在移动元素的操作为 `noexcept` 时才能优化为移动版本。
+
+>  这些函数通常会调用 `std::move_if_noexcept`（ `std::move` 的变体，检查类型的移动构造函数是否为 `noexcept`，视情况转换为右值或保持左值）。而 `std::move_if_noexcept` 会查阅 `std::is_nothrow_move_constructible`这个 *type trait*，编译器基于移动构造函数是否有 `noexcept`或`throw()` 来设置这个 *type trait* 的值。
+
+### C++ Exception best practice
+
+- 大多数函数不应该声明为`noexcept`，而应当是异常中立（*exception-neutral*）的。这些函数自己不抛异常，但是它们内部的调用可能抛出。这些函数内不处理异常，也不立即终止程序，而是让异常顺畅的到达调用者，把异常处理留给调用这个函数的函数。
+
+- 只要可能，总是将不抛异常的函数声明为`noexcept`，尤其是移动操作和`swap`。
+
+  `operator delete`, `operator delete[]`和 Dtor 在 C++98 时代可以抛出异常，但在这些函数中抛出异常是任何时候都要避免的行为。C++11 中加强了约束：他们会被隐式声明为 `noexcept`，除非基类或非静态成员的析构显示声明为 `noexcept(false)`。
+
+- 为了`noexcept`而扭曲函数实现来达成目的是本末倒置。如果一个简单的函数实现可能引发异常，而你为了讨好调用者转而捕获所有异常，然后替换为状态码或者特殊返回值，这将会使函数实现和调用都变得复杂。调用者可能不得不检查状态码或返回值，开辟额外的分支，增大的函数也会给指令缓存带来压力。这些损耗可能超出`noexcept`带来的性能提升，且损害可读性和可维护性。
+
+- 一些库接口设计者会区分有宽泛契约（wild contracts）和严格契约（narrow contracts）的函数。有宽泛契约的函数没有前置条件，不管程序状态如何永远不会表现出未定义行为。反之严格契约函数的前置条件若不满足将会出现未定义行为。设定 invariants 后将函数标记为 `noexcept` 是可能的，在我看来就是将实际参数的合法性检查责任甩交给了调用者，从而减少了运行时检查/异常处理的开销。
+
+
+
+# Terminologies
+
+- 自由函数*free function*，指的是非成员函数，即一个函数，只要不是成员函数就可被称作*free function*
