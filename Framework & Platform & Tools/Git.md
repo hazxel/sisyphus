@@ -66,6 +66,17 @@ Head is git's term referring to current snapshot
 
 
 
+# Rebase
+
+rebase可以**提取我们在另一分支上的改动，然后应用在当前分支的代码上**，完成类似于补丁的功能
+
+- `git rebase master`: 将 master 分支的一些新改动应用到当前分支
+- `git rebase --continue`: continue rebase
+- `git rebase --abort`: stop rebase
+- `git rebase --quit`: if had corrupted rebase with sth like  `'.git/rebase-apply/head-name': No such file or directory`
+
+
+
 # Login & Account
 
 ### 对当前仓库
