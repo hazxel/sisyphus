@@ -69,6 +69,8 @@ The corresponding numerical identifier values of stdin, stdout, and stderr are 0
 - sed: 也是强大的字符串处理工具
 
   - 替换：`sed 's/find-str/replace-to/g'`
+  - 整行替换（正则）：`sed 's/^.*find-str.*$/replace-to/g'`
+  - 有时要对正则转义：`sed 's/[0-9]\+/replace/g'`
   
 
 
