@@ -169,6 +169,26 @@ C++98 中，函数必须声明可能抛出的异常类型。如果函数实现�
 
 现代 C++ 使用`noexcept`保证函数不会抛出任何异常。`noexcept` becomes a part of function type since C++17. C++98's `throw` specifier become *deprecated* in C++17, and is removed in C++20.
 
+### Try-Catch
+
+```c++
+try { /* */ } catch (const std::exception&) { /* */ }
+try { /* */ } catch (...) { /* */ }
+```
+
+A function-try-block associates a sequence of catch clauses with the entire function body, and with the member initializer list (if used in a constructor) as well.
+
+```c++
+struct S {
+    std::string m;
+    S(const std::string& str, int idx)
+    try : m(str, idx)
+    { /* ... */ }
+    catch(const std::exception& e)
+    { /* ... */ }
+};
+```
+
 ### stack unwinding 运行时函数栈展开
 
 栈展开指的是抛出异常时：
@@ -248,9 +268,9 @@ struct pair {
 
 # constexpr
 
-`constexpr` can be applied to functions and class constructors. `constexpr` indicates that the value, or return value, is constant and, where possible, is computed at compile time. When a value is computed at compile time instead of run time, it helps your program run faster and use less memory. (low latency!)
+和 `noexcept` 类似，`constexpr`是对象和函数接口的一部分。`constexpr`相当于宣称“我能被用在要求常量表达式的地方”。`constexpr` can be applied to functions，even **CTORs** and **DTORs** (C++20), indicating that the return value is computed at compile time wherever possible, which makes your program run faster and use less memory.
 
-when a constexpr function is called with only compile-time arguments, the result of the function will be computed at compile-time. If, however, any argument is notknown at compile-time, the computation will be executed at runtime, like a regular function.
+如果传给`constexpr`函数的实参在编译期可知，那么结果将在编译期计算。当 `constexpr`函数被一个或者多个非编译期值调用时，它就像普通函数一样，在运行时计算结果。这意味着你不需要两个函数，一个用于编译期计算，一个用于运行时计算。`constexpr`全做了。
 
 
 
