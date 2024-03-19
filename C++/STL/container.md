@@ -34,6 +34,10 @@ The capacity grows by double or 1.5 times of the previous size. Every time a vec
 
 No random access, only bidirectional iteration.
 
+`push_back` puts a new element at the end of the `vector` 
+
+`insert` allows you to select new element's position.
+
 ### Forward_list (linked list)
 
 ### deque
