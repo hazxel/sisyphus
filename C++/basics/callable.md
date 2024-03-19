@@ -209,9 +209,9 @@ template <class T, class Alloc>
 
 将复制操作替换为移动操作有时会破坏函数的异常安全保证，这是个很严重的问题。
 
-> 以 `std::vector::push_back` 为例，当size 超过 capacity 时，会需要从旧内存移动到新内存。在C++98中这是通过复制来实现的，而如果想要优化为移动，会有这种问题：如果 *n* 个元素已移动到了新内存，但异常在移动第 *n+1* 个元素时抛出，那么对 vector 的移动就不能完成。因为原始的`vector`已经被修改，若想恢复至原始状态，从新内存移动到老内存本身又可能引发异常。
+> 标准库容器 `std::vector` 在扩容时，会通过 `std::vector::reserve()` 重新分配空间并转移已有元素。在C++98中这是通过复制来实现的，而如果想要优化为移动，会有这种问题：如果 *n* 个元素已移动到了新内存，但异常在移动第 *n+1* 个元素时抛出，那么对 vector 的移动就不能完成。因为原始的`vector`已经被修改，若想回滚到失败前的状态，从新内存移动到老内存本身又可能引发异常。
 
-很多函数，尤其是**STL中许多常用函数**，只有在移动元素的操作为 `noexcept` 时才能优化为移动版本。
+因此，很多函数，尤其是**STL中许多常用函数**，只有在移动元素的操作为 `noexcept` 时才能优化为移动版本。
 
 >  这些函数通常会调用 `std::move_if_noexcept`（ `std::move` 的变体，检查类型的移动构造函数是否为 `noexcept`，视情况转换为右值或保持左值）。而 `std::move_if_noexcept` 会查阅 `std::is_nothrow_move_constructible`这个 *type trait*，编译器基于移动构造函数是否有 `noexcept`或`throw()` 来设置这个 *type trait* 的值。
 
@@ -237,6 +237,20 @@ struct pair {
   - Ctor 如果抛出异常可能导致对象部分构造，要保证能够适当的撤销已构造成员。
 - 为了`noexcept`而扭曲函数实现来达成目的是本末倒置。如果一个简单的函数实现可能引发异常，而你为了讨好调用者转而捕获所有异常，然后替换为状态码或者特殊返回值，这将会使函数实现和调用都变得复杂。调用者可能不得不检查状态码或返回值，开辟额外的分支，增大的函数也会给指令缓存带来压力。这些损耗可能超出`noexcept`带来的性能提升，且损害可读性和可维护性。
 - 一些库接口设计者会区分有宽泛契约（wild contracts）和严格契约（narrow contracts）的函数。有宽泛契约的函数没有前置条件，不管程序状态如何永远不会表现出未定义行为。反之严格契约函数的前置条件若不满足将会出现未定义行为。设定 invariants 后将函数标记为 `noexcept` 是可能的，在我看来就是将实际参数的合法性检查责任甩交给了调用者，从而减少了运行时检查/异常处理的开销。
+
+
+
+
+
+# const
+
+
+
+# constexpr
+
+`constexpr` can be applied to functions and class constructors. `constexpr` indicates that the value, or return value, is constant and, where possible, is computed at compile time. When a value is computed at compile time instead of run time, it helps your program run faster and use less memory. (low latency!)
+
+when a constexpr function is called with only compile-time arguments, the result of the function will be computed at compile-time. If, however, any argument is notknown at compile-time, the computation will be executed at runtime, like a regular function.
 
 
 
