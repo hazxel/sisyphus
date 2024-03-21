@@ -203,6 +203,7 @@ g++ ./hello.cpp
 ./a.out # default executable
 ```
 
+- `-E`: generate preprocessed code
 - `-S`: generate assembly code *filename.s*
 - `-g`: enable debug
 

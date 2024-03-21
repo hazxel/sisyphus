@@ -139,6 +139,7 @@ Conclusion: for self defined header files, use `#include ""`
 
 - `__FILE__`: expand to the full path name of the current input file
 - `__LINE__`: expand to the current input line number
+- `__func__`: 获取函数名，GCC还支持 `__FUNCTION__` 以及会带上参数打印的 `__PRETTY_FUNCTION__`。
 
 
 
@@ -176,11 +177,6 @@ Virtual functions can also be inlined, but only when compiler knows the "exact" 
 # GCC & G++
 
  *glibc* memory allocator is a C library released by GNU, containing functions like`malloc` and `free`. It talks to the OS kernal, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)
-
-- `-S`: generate assembly code *filename.s*
-- C语言中获取函数名，一般是 `__func__`, GCC还支持 `__FUNCTION__` 以及会带上参数打印的 `__PRETTY_FUNCTION__`。
-
-
 
 # Clang
 
