@@ -46,4 +46,4 @@
   template<class T, class F> struct conditional<false, T, F> { using type = F; };
   ```
 
-- Xxx
+- `result_of`/`invoke_result`: deduces type of an invoke expression of a callable at compile time
