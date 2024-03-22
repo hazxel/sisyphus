@@ -23,9 +23,9 @@ The `explicit` keyword forbid **implicit conversions** and **copy-initialization
 
 > in C++20 `explicit` can be used with an constant expression, e.g. `explicit (...)`, which take effects only if expression evaluate to `true`
 
-### parenthesis cast
+### old style cast (parenthesis `()`)
 
-???
+C style 强制类型转换, should be replaced with modern C++ style casts.
 
 ### static_cast
 
