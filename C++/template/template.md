@@ -83,7 +83,9 @@ decltype(auto) access(Container& c, Idx i) {
 
 # Partial Sepcialization
 
-!!!only struct and class can have partial specialization, functions can't.
+> Only class and variable templates can have partial specialization, function templates **CAN'T**. A major concern over *partial specialization of function templates* is that function templates can be **overloaded**, thus the function template name is not adequate to identify the template being specialized.
+
+`template <parame-list> class class-name <arg-list> declaration` the `<arg-list>` indicates it's a partial specialization, one without which is the primary template.
 
 
 
@@ -133,7 +135,7 @@ struct overloads : Ts... { using Ts::operator()...; };
 
 
 
-# (C++14) Variable template
+# Variable template (C++14)
 
 A variable template defines a family of variables or static data members.
 
