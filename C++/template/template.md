@@ -24,8 +24,6 @@ MyAllocList<Widget>::type lw;
 
 
 
-
-
 # Type Deduction
 
 > trick to get type duction at compile time - pass a type to an unimplemented template struct: `template<typename T> struct TD;` and get deducted type from compiler error message.
@@ -83,6 +81,12 @@ decltype(auto) access(Container& c, Idx i) {
 
 
 
+# Partial Sepcialization
+
+!!!only struct and class can have partial specialization, functions can't.
+
+
+
 
 
 # variadic templates (C++11)
@@ -123,6 +127,41 @@ void FormatPrint(Args... args)
 ```c++
 template<class... Ts>
 struct overloads : Ts... { using Ts::operator()...; };
+```
+
+
+
+
+
+# (C++14) Variable template
+
+A variable template defines a family of variables or static data members.
+
+```c++
+template<class T>
+constexpr T pi = T(3.1415926535897932385L); // variable template
+
+template<class T>
+T circular_area(T r) { // function template
+    return pi<T> * r * r; // pi<T> is a variable template instantiation
+}
+```
+
+In class scope, only declares **STATIC** data members. Initialization rules same as static data members.
+
+```c++
+struct limits {
+    template<typename T>
+    static const T min;
+}; // static 成员需要类外初始化
+template<typename T> const T limits::min = { };
+
+// 这个不是 variable template
+template<class T>
+class X {
+    static T s; 
+}; // static 成员需要类外初始化
+template<class T> T X<T>::s = 0;
 ```
 
 
