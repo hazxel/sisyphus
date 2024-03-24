@@ -17,7 +17,7 @@ T declarator = {};						// possible
 
 ##### Aggregate Initialization
 
-A special case of List Initialization. 使用花括号初始值列表初始化聚合类(Aggregate)的数据成员，初始值的顺序必须与声明的顺序一致，若初始值列表的元素个数少于类的成员数量，则靠后的成员被值初始化。聚合类型定义为：
+Aggregate Initialization is a special case of List Initialization. 用花括号初始值列表初始化聚合类(Aggregate)数据成员，初始值的顺序必须与声明的顺序一致，若初始值列表的元素个数少于类的成员数量，则靠后的成员被值初始化。聚合类型定义为：
 
 - 普通数组，如int[5]，char[]
 
@@ -73,4 +73,16 @@ std::vector<int> v2(5, 6); // 5 elems: {6, 6, 6, 6, 6}
 ##### Designated Initializers(C++20)
 
 ？？？
+
+
+
+### initialize static data member
+
+`static` data members must be defined in **exactly one** translation unit to fulfil the one definition rule. So its definition is ususally in .cpp file, to avoid multiple definition in each translation unit that includes the header file.
+
+`const static`, and non-`volatile` data member of integral or enumeration types can be initialized with a `initializer` in class. Other non-trivial initialization need to call Ctor, which could invoke all sorts of functions that might not be available on initialisation.
+
+`constexpr static` data member of LiteralType must be initialized with an initializer in which every expression is a constant expression, right inside the class definition. A `constexpr static` data member is implicitly `inline`.
+
+Since C++17, a `static` data member may be declared `inline` in class.
 

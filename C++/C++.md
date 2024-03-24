@@ -74,12 +74,18 @@ see callable chapter
   - static variables are stored on static segment (scope remains the same), and invisible to other files
 
 - static funcitons: only visible in current file, can be used to avoid conflicts
-- static member variables: all instances share one copy, can be accessed without instances 
+
+- static member variables: all instances share one copy, can be accessed without instances
+
+  > a lot of *inintialization* rules here, please refer to the *initialization* chapeter
+
 - static member functions: can be accessed without instances, but cannot use non-static members
 
 
 
-# sizeof (compile time operator)
+# sizeof
+
+`sizeof` is a compile time operator:
 
 - size of an object of an **empty class** is 1, in order to "ensure that the addresses of two different objects will be different." And the size can be 1 because alignment doesn't matter here, as there is nothing to actually look at.
 - Existence of **virtual function(s)** will add 4 bytes of a virtual table pointer in the class. In this case, if the base class of the class already has virtual function(s) either directly or through its base class, then this additional virtual function won't add anything to the size of the class. Virtual table pointer will be common across the class hierarchy.
