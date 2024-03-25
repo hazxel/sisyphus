@@ -34,9 +34,11 @@ MyAllocList<Widget>::type lw;
 
 - 不加限定符号时，也即`ParamType=T` 时，为传值类型推导，本质上是拷贝，所以`const`和`volatile`实参修饰会被忽略
 - 加 `&`modifier时为传引用推导，加`&&` modifier 时为万能引用
-- 数组名或者函数名实参：
-  - 在 `ParamType=T`（无限定符号） 时 `T` 推导为 `Wdiget*`
-  - 在 `ParamType=T&` （引用）时 `T` 推导为`Wdiget&`
+
+> 特殊情况：**数组名**或者**函数名**实参：
+>
+> - 在 `ParamType=T`（无限定符号） 时 `T` 推导为 `Widget*`
+> - 在 `ParamType=T&` （引用限定）时 `T` 推导为`Widget&`
 
 
 ### `auto` deduction
