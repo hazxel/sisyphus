@@ -37,6 +37,8 @@ Conclusion: for self defined header files, use `#include ""`
 - `__LINE__`: expand to the current input line number
 - `__func__`: 获取函数名，GCC还支持 `__FUNCTION__` 以及会带上参数打印的 `__PRETTY_FUNCTION__`。
 
+
+
 ### Recursive
 
 Macro is not able to call itself recursively. But the following code managed to do it:
@@ -58,3 +60,8 @@ Macro is not able to call itself recursively. But the following code managed to 
 #define EXAMPLE(...)  EXPAND(FUNC_MACRO(__VA_ARGS__))
 ```
 
+
+
+### using `do {...} while(0);` in macros
+
+使用 `do {...} while(0);` 将目标语句语句包裹，保护宏定义替换后不会受大括号，分号，if，循环等影响
