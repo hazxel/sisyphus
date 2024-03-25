@@ -88,13 +88,15 @@ A key of a `unordered_map` or `map` is also `const`, which means the type of `pa
 
 > \#include <algorithm>
 
-- swap: quick sort
+### swap: 
 
-- find
+？？？quick sort
 
-- sort
+### find
 
- ```
+### sort
+
+ ```c++
 template< class RandomIt >
 void sort( RandomIt first, RandomIt last );
 // or
@@ -110,31 +112,31 @@ bool compare(const MyClass& o1, const MyClass& o2);
  
  ```
 
-- for_each
+### for_each
 
-- transform: applies the given function to a range and stores the result in another range, keeping the original elements order and beginning at 3rd paremeter, 
+Applies the given function to the result of dereferencing every iterator in the range [`first`, `last`). The function's **return result is ignored**.
 
- - can be either in-place modify or non-implace.
+```c++
+std::vector<int> v{3, -4, 2, -8, 15, 267};
+std::for_each(v.cbegin(), v.cend(), [](const int& n) { std::cout << n << ' '; });
+std::for_each(v.begin(), v.end(), [](int &n) { n++; });
+```
+
+### transform: 
+
+applies the given function to a range and **stores the function result** in another range, keeping the original elements order and beginning at 3rd paremeter, 
+
+ - can be either in-place modify or non-inplace.
  - can be either unary operation or binary operation
 
  ```c++
- std::string s{"hello"};
- std::transform(s.cbegin(), s.cend(),
-         s.begin(), // write to the same location
-         [](unsigned char c) { return std::toupper(c); });
- // achieving the same with std::for_each (see Notes above)
- std::string g{"hello"};
- std::for_each(g.begin(), g.end(), [](char& c) // modify in-place
- {
-   c = std::toupper(static_cast<unsigned char>(c));
- });
- // insert at back
- std::vector<std::size_t> ordinals;
+ std::string s{"hello"}; // replace-write to the same location
+ std::transform(s.cbegin(), s.cend(), s.begin(), 
+                [](unsigned char c) { return std::toupper(c); });
+ std::vector<std::size_t> ordinals; // insert at back
  std::transform(s.cbegin(), s.cend(), std::back_inserter(ordinals),
          [](unsigned char c) { return c; });
  ```
 
-  
-
-- xxx
+  可以认为功能大于等于 for_each，因为函数的返回值也被保存下来。注意如果不是尾部插入，则要求容器中已经有相应数量的元素用于被覆盖，否则可能会 segmentation fault.
 
