@@ -1,4 +1,6 @@
-这一章中很多对象不能复制只能移动，如：thread、future、promise、packaged_task 
+这一章中很多对象不能复制只能移动，如：`thread`, `future`, `promise`, `packaged_task` 
+
+还有一些不能复制也不能移动，如：`mutex`, `atomic`
 
 ### Thread
 

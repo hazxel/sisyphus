@@ -223,9 +223,11 @@ class MyClass {
 
 
 
-### Mutable
+# Mutable
 
-某些const函数内需要改变成员变量值，但又要保持const属性，被const对象调用。用mutable修饰成员变量，在const成员函数中也可修改。
+用`mutable`修饰成员变量后，在`const`修饰的成员函数中也可被修改。
+
+使用场景为：某些`const`函数内需要改变成员变量值，但又要保持`const`属性以便被`const`对象调用。注意此时需要确保`const`成员函数是线程安全的，因为大家会默认多线程并发读操作是安全的，除非你**确定**此函数永远不会在并发上下文（*concurrent context*）中使用。
 
 
 
