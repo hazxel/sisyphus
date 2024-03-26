@@ -14,6 +14,7 @@
   - arithmatic (`int`, `double`, ...) to `bool`: 0 -> `false`, other -> `true`
   - bool to arithmetic: `true` -> 1, `false` -> 0
   - pointers(`T*` or `T[]`) to `bool`: `nullptr`/`NULL` -> `false` , other -> true
+  - function type to "pointer to that function"
 - 窄化转换：指**基本类型**之间的转换中，由于目标类型的表示范围小于源类型导致的精度丢失或数据溢出。合法，但会触发编译器警告。（小知识：转换`float`时，C++在`int`和`double`中倾向于选择`double`）
 - non-`explicit` conversion function, non-`explicit` convertion constructor
 

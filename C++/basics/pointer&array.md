@@ -22,6 +22,61 @@ typedef decltype(nullptr) nullptr_t;
 
 Can point to any kinds of variable. Some compiler forbid arithmatic (+/-) operation to void pointers. **C++ does not allow implicit conversion** of `void*`, while C allows.
 
+### pointer to function
+
+```c++
+// function declaration
+void f(int);
+class Widget {
+  static void f(int); // Widget::f has the same type as free function f
+}
+
+// paremthesis matters here, other wise * and & will be treated as if with return type
+typedef void FuncPtr(int); // function pointer alias
+typedef void (*FuncPtr)(int); // function pointer alias
+typedef void (&FuncRef)(int); // function reference alias
+using FuncPtr = void(int); // function pointer alias
+using FuncPtr = void(*)(int); // function pointer alias
+using FuncRef = void(&)(int); // function reference alias
+
+void (*funcPtr)(int) = f; // function pointer variable 
+void (&funcRef)(int) = f; // function reference variable
+
+(*funcPtr)(123); // function call via function pointer
+funcRef(123);		 // function call via function reference
+```
+
+### pointer to member
+
+Pointer to non-static data member, and pointer to non-static member function:
+
+```c++
+class Widget {
+  int getVal() { return val; }
+  int val;
+}
+
+typedef int Widget::*DataMemberPtr;
+using DataMemberPtr = int Widget::*;
+typedef int(Widget::*MemberFuncPtr)(int);
+using MemberFuncPtr = int(Widget::*)(int);
+
+int Widget::*pVal = &Widget::val; // ptr to data member
+DataMemberPtr pVal = &Widget::val; // equivalent
+int (Widget::*pGetVal)() = &Widget::getVal; // ptr to non-statics member function
+MemberFuncPtr pGetVal = &Widget::getVal; // equivalent
+
+Widget w;
+w.*pVal = 2; 						// access data member with instance
+cout << (w.*pGetVal)(); // call member function with instance
+
+Widget *pW = &w;
+pW->*pVal = 3;						// access data member with pointer
+cout << (pW->*pGetVal)(); // call member function with pointer
+```
+
+> There is no reference-to-member type in C++
+
 
 
 # Array

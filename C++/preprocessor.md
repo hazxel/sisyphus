@@ -34,8 +34,14 @@ Conclusion: for self defined header files, use `#include ""`
 ### Built-in Macros
 
 - `__FILE__`: expand to the full path name of the current input file
+
 - `__LINE__`: expand to the current input line number
+
 - `__func__`: 获取函数名，GCC还支持 `__FUNCTION__` 以及会带上参数打印的 `__PRETTY_FUNCTION__`。
+
+  defined as if by: `static const char __func__[] = "function-name";`
+
+- xxx
 
 
 
