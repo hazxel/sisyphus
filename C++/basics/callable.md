@@ -1,4 +1,21 @@
-# function type
+# function
+
+### *FunctionObject* type
+
+A FunctionObject type is the type of an object that can be used on the left of the function call operator.
+
+- Pointer to function: they are *FunctionObject* types
+
+- *Function objects*: they are FunctionObject types, also called functor.
+
+  > Definition: A *function object* is any object for which the function call operator is defined.
+
+- Functions and references to functions: they are **not** function object types, but can be used where function object types are expected due to function-to-pointer implicit conversion. (see type chapter)
+
+- Lambda: type of lambda expressions are unspecified, but are generally syntactic sugar for functors. 
+
+  - A lambda with empty capture list is translated into a unnamed structure, which has a member conversion function to a **function pointer type**. (implicit conversion to function pointer type)
+  - Normal lambda is also translated into a unnamed structure which implements `::operator()`.
 
 ### qualifier
 
@@ -8,7 +25,7 @@
 
 see pointer&array chapter
 
-### Terminologies
+### terminologies
 
 - 自由函数*free function*，指的是非成员函数，即一个函数，只要不是成员函数就可被称作*free function*
 
@@ -127,38 +144,26 @@ struct pair {
 
 # lambda
 
-A convenient way of defining an anonymous function, full syntax:
+### Syntax
 
-`[capture list] (params list) mutable exception-> return type { function body }`
+A convenient way of defining an anonymous function usually used with:
 
-but usually:
+`[capture-list] (param-list) specifier -> return-type {function-body}`
 
-- `[capture list] {function body}`
+Lambda expression can use the "outer" variables in it's scope, but must be included in the capture list `[]`
 
-- `[capture list] (param list) {function body}`
+### Implementation
 
-- `[capture list] (param list) -> return type {function body}`
+The lambda expression is a prvalue expression of unique **unnamed** non-union non-aggregate non-**structural class type**, known as *closure type*, which is declared in the smallest block scope, class scope, or namespace scope that contains the lambda expression (e.g. `main()::<lambda(int)>`).
 
- ### Capture list
+捕获列表会形成一个闭包，本质上是靠语法糖生成一个匿名结构体，捕获的值都会作为这个匿名结构体中的变量，如果捕获列表为空就转而实现一个成员转换函数，隐式转换为函数指针类型：
 
- Lambda expression can use the "outer" variables in it's scope, but must be included in the capture list `[]`
+- Normal lambda is translated into a functor of `ClosureType`. Anything inside the `[]` are turned into constructor parameters and members of the `ClosureType`, and the parameters inside `()` are turned into parameters for the `ClosureType::operator()`.
+- A lambda which captures no variables can be converted into a function pointer (MSVC2010 doesn't support this, but this conversion is part of the standard). 
 
- pure lambda (non-capturing) expressions are free of side effects, and therefore cannot cause, e.g., race conditions 
+### Capture overhead
 
-捕获列表会形成一个闭包，实现原理呢就是靠语法糖生成一个匿名的结构体，捕获的都会作为这个匿名结构体中的变量
-
- ```c++
-void abssort(float* x, unsigned n) {
-  std::sort(x, x + n,
-    // Lambda expression begins
-    [](float a, float b) {
-      return (std::abs(a) < std::abs(b));
-    } // end of lambda expression
-  );
-}
- ```
-
-  
+pure lambda (non-capturing) expressions are free of side effects, and therefore cannot cause, e.g., race conditions 
 
  ```c++
 shared_ptr<vector<Data>> data;
