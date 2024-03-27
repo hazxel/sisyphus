@@ -86,6 +86,40 @@ int main() {
 
 
 
+### atomic
+
+使用时需要十分小心。对于需要同步的是单个的变量或者内存位置，通常可以使用`std::atomic`。而当需要对两个以上的变量或内存位置作为一个单元来操作的话，通常应该使用互斥量。看如下例子，用户希望在一个类中，缓存一个开销昂贵的`int`，并使用一个 `bool` 类型指示其有效性，两个采用 `atomic` 的实现都有问题：
+
+```c++
+class Widget {
+public:
+    int getValueVer_1() const // does not always work
+    { // if thread_A in expensiveFunc(), flag not updated, thread_B may compute again
+        if (cacheValid) return cachedValue;
+        else {
+            cachedValue = expensiveFunc();  // first, set value atomically
+            cacheValid = true;              // second, update flag atomically
+            return cachedValid;
+        }
+    }
+  
+  	int getValueVer_2() const // even worse
+    { // if thread_A in expensiveFunc(), value not updated, thread_B get invalid value
+        if (cacheValid) return cachedValue;
+        else {
+            cacheValid = true;              // first, update flag atomically 
+            cachedValue = expensiveFunc();  // second, set value atomically
+           
+            return cachedValid;
+        }
+    }
+    
+private:
+    mutable std::atomic<bool> cacheValid{ false };
+    mutable std::atomic<int> cachedValue;
+};
+```
+
 
 
 ### async
