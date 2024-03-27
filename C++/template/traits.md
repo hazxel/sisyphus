@@ -6,6 +6,8 @@
 
 - `is_same<T,U>`: check if `T` and `U` are same types (considering cv-qualifiers)
 
+- `is_empty<T>`: check if `T` is an empty type (that is, a non-union class type with no non-static data members other than bit-fields of size 0, no virtual functions, no virtual base classes, and no non-empty base classes) 
+
 - `is_reference`, `is_lvalue_reference`, `is_rvalue_reference`,`is_const`: 检测顶层const？？？
 
   ```c++

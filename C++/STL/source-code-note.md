@@ -1,5 +1,16 @@
 # memory (clang)
 
+### `__compressed_pair_elem<class _Tp, int _Idx>`: element data structure used in pair
+
+save memory whenever possible, have no data member if `!is_empty<_Tp>::value`.
+
+### `__compressed_pair`: pair data structure
+
+save memory whenever possible, will `static_assert(!is_same<_T1, _T2>::value)`
+
+- inherit  `__compressed_pair_eleme<_T1, 0>` and `__compressed_pair_eleme<_T2, 1>`
+- implement `first` and `second`, `static_cast` itself to `__compressed_pair_elem<_T1, 0>` or `__compressed_pair_elem<_T2, 1>` to get the element.
+
 ### `__shared_count`: shared owner counter
 
 - data member `long __shared_owners_;`
