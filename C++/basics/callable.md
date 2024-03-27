@@ -128,17 +128,17 @@ struct pair {
 
 
 
-
-
-# const
-
-
-
 # constexpr
 
 和 `noexcept` 类似，`constexpr`是对象和函数接口的一部分。`constexpr`相当于宣称“我能被用在要求常量表达式的地方”。`constexpr` can be applied to functions，even **CTORs** and **DTORs** (C++20), indicating that the return value is computed at compile time wherever possible, which makes your program run faster and use less memory.
 
 如果传给`constexpr`函数的实参在编译期可知，那么结果将在编译期计算。当 `constexpr`函数被一个或者多个非编译期值调用时，它就像普通函数一样，在运行时计算结果。这意味着你不需要两个函数，一个用于编译期计算，一个用于运行时计算。`constexpr`全做了。
+
+
+
+# Overload (重载)???
+
+C++ allows multiple definitions for the same function name in the same scope. The definition of the function must differ from each other by the types and/or the number of arguments in the argument list. You cannot overload function declarations that differ only by return type.
 
 
 

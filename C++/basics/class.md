@@ -69,7 +69,7 @@ MyOtherClass() = default;
 
 
 
-# Conversion 
+# Conversion
 
 ### Conversion constructor
 
@@ -85,7 +85,7 @@ MyClass(SOME_TYPE st);
 operator SOME_TYPE() const; // no arguments
 ```
 
-Conversion functions can be called implicitly. May lead to ambiguity sometimes if the receiver class also has a conversioin constructor.
+Conversion functions can be called implicitly if without specifier `explicit`. May lead to ambiguity sometimes if the receiver class also has a conversioin constructor.
 
 
 
@@ -104,28 +104,90 @@ const T T::operator++(int);		// post-increase in T's namespace
 
 ???
 
-
-
-# Functor
+### Function call operator
 
 ```c++
 SOME_TYPE operator()(SOME_TYPE a);
 ```
 
-使类能像函数一样被调用，好处是可以存放状态
+使类能像函数一样被调用 (Functor)，相比普通函数好处是可以存放状态
 
 
 
-### Overload (polymorphism at compile time) 重载
+# Virtual Function
 
-C++ allows multiple definitions for the same function name in the same scope. The definition of the function must differ from each other by the types and/or the number of arguments in the argument list. You cannot overload function declarations that differ only by return type.
+### Binding (dispatch)
 
-### Override (polymorphism at run time) 重写
+Binding means converting the variable and the function name to address. 
 
-**Overriding** means the function in derived class implements its own version of the function in base class. There is an optional keyword `override` that can be added to the member function, used to prevent inadvertent inheritance behavior in your code. **Binding** means converting the variable and the function name to address. 
+- **Static Binding**: fix the function address in compile time. C++ is default to static binding.
+- **Dynamic Binding**: decide which function to call based on the dynamic type of the object. In C++, dynamic binding is only possible with virtual functions.
 
-- **Static Binding** (dispatch) is to fix the function address in compile time. C++ is default to static binding.
-- **Dynamic Binding** (dispatch) means to decide which function to call based on the dynamic type of the object. In C++, dynamic binding is only possible with virtual functions
+### Virtual
+
+```c++
+class MyClass {
+public:
+ virtual void virtualFunc() {}
+ virtual void pureVirtualFunc() = 0 // no definition, but subclass must implement it
+}
+```
+
+A virtual function is a member function that you expect to be redefined in derived classes. When you refer to a derived class object using a pointer or a reference to the base class, you can call a virtual function for that object and execute the derived class's version of the function. 
+
+> **Constructor** cannot be virtual, since it's impossible to use a super class pointer to call a child class' constructor. Also, when constucting an instance, vptr has not been initialized, can't find the virtual function.
+>
+> On the other hand, **destructors** could be, and are often virtual.
+
+> Avoid calling virtual function in constuctors. 当构造函数被调用时，它做的首要的事情之一就是初始化VPTR。然而，它只能知道它属于“当前”类——即构造函数所在的类，完全不知道这个对象是否是基于其它类。构造函数会先调用父类构造函数，此时子类还没有构造，所以此时的对象还是父类的，不会触发多态。(构造和析构期间，virtual函数不是virtual函数)
+
+A **pure virtual function** is a virtual function without implementation. A class have one or more pure virtual funcitons is called **abstract class**. The subclass must implement the pure virtual function.  
+
+C++规范并没有规定虚函数的实现方式，但大部分编译器都用虚函数表（vtable）来实现。不同编译器对单继承的实现都比较接近；而多继承可能需要多层虚函数表（vtable table, VTT），实现的差异会比较大。Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
+
+### Override  (重写)
+
+**Overriding** means the function in derived class implements its own version of the function in base class. To override, must fulfill: 
+
+- base class's method is`virtual`
+- Names are same (except for Dtor)
+- Parameter lists are same
+- `const`ness are same
+- exception specifications are same
+
+- (C++11) *reference qualifiers* are same
+
+永远为重写函数加上`override`, 避免想要重写的时候因为某些东西不匹配而重写失败
+
+
+
+# Syntax for non-static member functions
+
+### cv-qualifier???
+
+ ### ref-qualifier 引用限定 (C++11)
+
+成员函数默认不区分左值和右值 receiver。如果想要区分，采用以下语法：
+
+ ```c++
+template <typename T>
+class optional {
+ // version of value for non-const lvalues
+ constexpr T& value() &；
+ // version of value for const lvalues
+ constexpr T const& value() const&；
+ // version of value for non-const rvalues... are you bored yet?
+ constexpr T&& value() &&；
+ // you sure are by this point
+ constexpr T const&& value() const&&；
+};
+ ```
+
+### Mutable
+
+用`mutable`修饰成员变量后，在`const`修饰的成员函数中也可被修改。
+
+使用场景为：某些`const`函数内需要改变成员变量值，但又要保持`const`属性以便被`const`对象调用。注意此时需要确保`const`成员函数是线程安全的，因为大家会默认多线程并发读操作是安全的，除非你**确定**此函数永远不会在并发上下文（*concurrent context*）中使用。
 
 
 
@@ -133,11 +195,11 @@ C++ allows multiple definitions for the same function name in the same scope. Th
 
 default specifier is private.
 
-|            | public  | protected | private  |
+|                       | public    | protected | private   |
 | --------------------- | --------- | --------- | --------- |
-| public inheritance  | public  | protected | invisible |
+| public inheritance    | public    | protected | invisible |
 | protected inheritance | protected | protected | invisible |
-| private inheritance  | private  | private  | invisible |
+| private inheritance   | private   | private   | invisible |
 
 ##### Virtual Inheritance
 
@@ -166,44 +228,6 @@ Specifies that a virtual function cannot be overridden or a class cannot be deri
 
 
 
-# Virtual Function
-
-```c++
-class MyClass {
-public:
- virtual void virtualFunc() {}
- virtual void pureVirtualFunc() = 0 // no definition, but subclass must implement it
-}
-```
-
-A virtual function is a member function that you expect to be redefined in derived classes. When you refer to a derived class object using a pointer or a reference to the base class, you can call a virtual function for that object and execute the derived class's version of the function. 
-
-> **Constructor** cannot be virtual, since it's impossible to use a super class pointer to call a child class' constructor. Also, when constucting an instance, vptr has not been initialized, can't find the virtual function.
->
-> On the other hand, **destructors** could be, and are often virtual.
-
-> Avoid calling virtual function in constuctors. 当构造函数被调用时，它做的首要的事情之一就是初始化VPTR。然而，它只能知道它属于“当前”类——即构造函数所在的类，完全不知道这个对象是否是基于其它类。构造函数会先调用父类构造函数，此时子类还没有构造，所以此时的对象还是父类的，不会触发多态。(构造和析构期间，virtual函数不是virtual函数)
-
-A **pure virtual function** is a virtual function without implementation. A class have one or more pure virtual funcitons is called **abstract class**. The subclass must implement the pure virtual function.  
-
-C++规范并没有规定虚函数的实现方式，但大部分编译器都用虚函数表（vtable）来实现。不同编译器对单继承的实现都比较接近；而多继承可能需要多层虚函数表（vtable table, VTT），实现的差异会比较大。Every class that has virtual function(s) has **a virtual function table** constructed at **compile time**. It is accessed by a virtural funciton pointer holding by every instances. The virtual function table contains pointers that pointing at the "nearest" virtual function to it.
-
-### Override
-
-To override, must fulfill: 
-
-- base class's method is`virtual`
-- Names are same (except for Dtor)
-- Parameter lists are same
-- `const`ness are same
-- exception specifications are same
-
-- (C++11) *reference qualifiers* are same
-
-永远为重写函数加上`override`, 可以避免想要重写的时候因为某些东西不匹配而重写失败
-
-
-
 # Friend???
 
 The`friend` keyword marked some functions or classes as *friends*, granting member-level access to functions and classes.
@@ -220,38 +244,6 @@ class MyClass {
   friend int MyFriendClass::func(MyClass&);
 }
 ```
-
-
-
-# Mutable
-
-用`mutable`修饰成员变量后，在`const`修饰的成员函数中也可被修改。
-
-使用场景为：某些`const`函数内需要改变成员变量值，但又要保持`const`属性以便被`const`对象调用。注意此时需要确保`const`成员函数是线程安全的，因为大家会默认多线程并发读操作是安全的，除非你**确定**此函数永远不会在并发上下文（*concurrent context*）中使用。
-
-
-
-# Syntax for non-static member functions
-
-### cv-qualifier???
-
- ### ref-qualifier 引用限定 (C++11)
-
-成员函数默认不区分左值和右值 receiver。如果想要区分，采用以下语法：
-
- ```c++
-template <typename T>
-class optional {
- // version of value for non-const lvalues
- constexpr T& value() &；
- // version of value for const lvalues
- constexpr T const& value() const&；
- // version of value for non-const rvalues... are you bored yet?
- constexpr T&& value() &&；
- // you sure are by this point
- constexpr T const&& value() const&&；
-};
- ```
 
 
 
