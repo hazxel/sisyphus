@@ -41,16 +41,16 @@
 >
 > ```python
 > def logging(level):
->     def outwrapper(func):
->         def wrapper(*args, **kwargs):
->             print("[{0}]: enter {1}()".format(level, func.__name__))
->             return func(*args, **kwargs)
->         return wrapper
->     return outwrapper
+>        def outwrapper(func):
+>            def wrapper(*args, **kwargs):
+>                print("[{0}]: enter {1}()".format(level, func.__name__))
+>                return func(*args, **kwargs)
+>            return wrapper
+>        return outwrapper
 > 
 > @logging(level="INFO")
 > def hello(a, b, c):
->     print(a, b, c)
+>       print(a, b, c)
 > 
 > hello("hello,","good","morning")
 > -----------------------------
@@ -72,5 +72,13 @@
 - private：以双下划线开头，访问会抛出 AttributeError
 - 特殊变量：以双下划线开头，并且以双下划线结尾，任何人可访问，如：
   - `__new__`：继承自object的类才有该方法，在实例创建之前被调用，任务是创建实例然后返回该实例对象，是个静态方法，至少要有一个参数cls（代表当前类），必须有返回值（即该实例对象）
-  -  `__init__`：是在实例创建完成后被调用的，设置对象属性的一些初始值，通常用在初始化一个类实例的时候，是一个实例方法，至少有一个参数self(代表当前的实例)，无需返回值
-  -  `__class__`, `__slots__`, `__doc__`, `__del__`, `__enter__`, `__exit__`, `__iter__` 
+  - `__init__`：是在实例创建完成后被调用的，设置对象属性的一些初始值，通常用在初始化一个类实例的时候，是一个实例方法，至少有一个参数self(代表当前的实例)，无需返回值
+  -  `__class__`, `__slots__`, `__doc__`, `__del__`, `__enter__`, `__exit__`, `__iter__` ???
+
+
+
+# Random
+
+- `__name__`: if execute source file as main program, the interpreter sets it to `"__main__"`. 
+
+  > Use `if __name__ == "__main__":` to protects users from accidentally invoking the script when they didn't intend to. (e.g. when `import`, the unprotected code will be executed)
