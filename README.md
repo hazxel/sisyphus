@@ -1,1 +1,1 @@
-a personal note collection covering massive topics, mainly focus on C++, system, and algorithm trading.
+a personal note collection covering different topics, mainly focus on C++, system, and algorithm trading.
