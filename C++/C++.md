@@ -165,4 +165,4 @@ for ( ; __begin != __end; ++__begin)
 
 # static_assert
 
-`static_assert` requires a compile-time predicate, and a message is displayed when the compile-time predicate fails. With C++17, the message is optional. With C++20, this compile-time predicates can be a requires expression.
+`static_assert` requires a compile-time predicate, and a message is displayed when the compile-time predicate fails. With C++17, the message is optional. With C++20, this compile-time predicates can be a requires expression. A `static_assert` declaration may appear at namespace and block scope (as a block declaration) and inside a class body (as a member declaration).
