@@ -213,11 +213,11 @@ g++ ./hello.cpp
 
 nm 命令显示关于指定 File 中符号的信息，文件可以是对象文件、可执行文件或对象文件库。所谓符号，通常指定义出的函数，全局变量等等。有用的options:
 
-- A 在每个符号信息的前面打印所在对象文件名称
+- `-A` 在每个符号信息的前面打印所在对象文件名称
 
-- C 输出demangle过了的符号名称 (overloading of C++)
+- `-C` 输出demangle过了的符号名称 (overloading of C++)
 
-- D 打印动态符号(for .so/.dylib)
+- `-D` 打印动态符号(for .so/.dylib) 否则有时候会 no symbols
 
   > By default, `nm` reads the `.symtab` section in ELF objects, which is optional in non-relocatable objects. With the [`-D`/`--dynamic` option](https://sourceware.org/binutils/docs/binutils/nm.html#index-dynamic-symbols), you can instruct `nm` to read the dynamic symbol table (which are the symbols actually used at run time). You may also want to use `--with-symbol-versions` because glibc uses symbol versioning extensively.
 
