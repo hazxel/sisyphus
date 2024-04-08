@@ -15,7 +15,7 @@
   - bool to arithmetic: `true` -> 1, `false` -> 0
   - pointers(`T*` or `T[]`) to `bool`: `nullptr`/`NULL` -> `false` , other -> true
   - function type to "pointer to that function"
-- 窄化转换：指**基本类型**之间的转换中，由于目标类型的表示范围小于源类型导致的精度丢失或数据溢出。合法，但会触发编译器警告。（小知识：转换`float`时，C++在`int`和`double`中倾向于选择`double`）
+- 窄化转换：指**基本类型**之间的转换中，由于目标类型的表示范围小于源类型导致的精度丢失或数据溢出。合法，但会触发编译器警告。（小知识：函数重载需要转换`float`时，C++在`int`和`double`重载都存在时倾向于选择`double`）
 - non-`explicit` conversion function, non-`explicit` convertion constructor
 
 ### explicit (keyword)  -  forbid implicit conversions
@@ -123,6 +123,7 @@ If used inside of a class or sturct, can define **member type alias**.
 
 - `using` is compatible with templates, `typedef` is not. (typedef alias need to be a concrete type)
 - `typedef` sometimes result in *dependent type* (type that dependent on template param`T`). When using dependent type, template tell if `T::A` is a type or is a member of T, so `typename` needed.
+- 在复杂类型如函数，成员指针等的定义时，二者在语法上的的相似之处在于 `using`  就是把`typedef` 中的名字挪到前面再加上 `=`
 
 
 
