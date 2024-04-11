@@ -48,6 +48,8 @@ Head is git's term referring to current snapshot
 
 - `git checkout`: updates the HEAD to point to either the specified branch or commit
 
+  - `git checkout HEAD -- my-file.txt`: reset single file
+
 - `git reset HEAD XXX/XXX/XXX.java`: undo add op
 
 - `git reset --hard origin/master`: reset branch to master
