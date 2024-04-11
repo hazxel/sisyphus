@@ -63,3 +63,7 @@ crypto交易所一般也有返佣。
 ### Put
 
 在到期日前以行权价卖出标的物的权利，买 Put 属于看空，卖 Put 属于看多。
+
+
+
+proprietary trading: prop shop - 自营交易公司
