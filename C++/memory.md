@@ -38,11 +38,13 @@ the following segments are sorted from high address to low address (in **virtual
  > - Bitmap: divide the heap into blocks, use 2 bits for each block to indicate its status
  > - Object pool
 
-- BSS (Block Started by Symbol) segment: **uninitialized** global variables and static variables (init to 0)
+- Block Started by Symbol segment: **uninitialized** global variable and static variable (init to 0) `.bss`
 
-- Data segment (read-only): **initialized** global variables, static variables, **virtual pointer table**
+- Data segment: **initialized** global variable and static variable `.data`
 
-- Code (text) segment: codes
+- Read-only data segment:  constant global variable, string literal, virtual pointer table `.rodata`
+
+- Code (text) segment: codes `.text`
 
 
 
