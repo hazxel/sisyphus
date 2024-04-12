@@ -142,7 +142,7 @@ A `weak_ptr` provides access to an object that is owned by one or more `shared_p
 
 `shared_ptr` 和 `weak_ptr` 在底层使用了control block 控制块，用于统计引用计数和销毁资源。根据创建方式为 Ctor 或 `make_shared`, 有两种不同的控制块实现，后者性能和安全性较高，具体可参考 STL 源码笔记 [STL/source-code-note.md](STL/source-code-note.md) 中关于 `<memory>` 的部份。
 
-持有关系：`shared_ptr` 持有两个指针，一个指向目标对象，一个指向 control block； control block 持有目标对象的裸指针，分配器，删除器(仅第一种实现)，以及两个引用计数, *shared_owners*和 *share_weak_owners* 。
+持有关系：`shared_ptr` 持有两个指针，一个指向目标对象，一个指向 control block； control block 持有目标对象指针，分配器，删除器(仅第一种实现)，以及两个引用计数, *shared_owners*和 *share_weak_owners* 。
 
 对象销毁：当 *shared_owners* 减到0时，使用删除器(第二种实现时，使用分配器)销毁目标对象
 
