@@ -108,21 +108,6 @@ Foo f = Foo(); // copy ctor not called
 
 
 
-
-
-# Linkage
-
-A object, reference, function, type, template, namespace, or value, may have *linkage*.
-
-- **No linkage**: The name can be referred to only from the scope it is in.
-- **Internal linkage**: The name can be referred to from all scopes in the current translation unit.
-- **External linkage**: The name can be referred to from the scopes in the other translation units.
-- **Module linkage** (C++20): The name can be referred to only from the scopes in the same module unit or in the other translation units of the same named module.
-
-
-
-
-
 # Keywords
 
 ### inline (keyword)
@@ -142,6 +127,8 @@ Virtual functions can also be inlined, but only when compiler knows the "exact" 
 # GCC & G++
 
  *glibc* memory allocator is a C library released by GNU, containing functions like`malloc` and `free`. It talks to the OS kernal, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)
+
+
 
 # Clang
 
@@ -187,40 +174,6 @@ builtin函数是一种在编译器内部实现的，使用它并不需要包含#
 
 
 
-
-
-# Compiler Flags
-
-##### include directories
-
-Flags specifying the directories in which header files are located, such as "-I" or "-isystem". Ususally stored in environment variable `CPPFLAGS`
-
-##### preprocessor flags
-
-Flags specifying preprocessor definitions, such as "-D". Ususally stored in environment variable `CPPFLAGS`
-
-##### compiler options
-
-Flags that control the behavior of the compiler, such as "-Wall" for enabling all warnings, or "-std=c++11" for specifying the C++ language standard. Ususally stored in environment variable `CFLAGS` or `CXXFLAGS`
-
-##### libraries flags
-
-The names of libraries to be linked, specified using the "-l" flag. Ususally stored in environment variable `LIBS` or `LDLIBS`
-
-> **Order matters here!!**
->
-> The linker searches from left to right, and notes unresolved symbols as it goes. If a library resolves the symbol, it takes the object files of that library to resolve the symbol. Dependencies of static libraries against each other work the same - the library that needs symbols **must be first**, then the library that resolves the symbol.
->
-> If a static library depends on another library, but the other library again depends on the former library, there is a cycle. You can resolve this by enclosing the cyclically dependent libraries by -( and -), such as -( -la -lb -) (you may need to escape the parens, such as -\( and -\)). The linker then searches those enclosed lib multiple times to ensure cycling dependencies are resolved. Alternatively, you can specify the libraries multiple times, so each is before one another: -la -lb -la.
->
-> https://stackoverflow.com/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc
-
-##### library directory flags
-
-Library directories: Flags specifying directories in which libraries are located, such as "-L". Ususally stored in environment variable `LDFLAGS`
-
-
-
 # Undefined Behavior (UB)
 
 ##### unsequenced modification and access
@@ -233,7 +186,13 @@ Library directories: Flags specifying directories in which libraries are located
 >
 > https://stackoverflow.com/questions/32017561/unsequenced-modification-and-access-to-pointer
 
-Example: `a[i]=a[++i]` , `printf("%d,%d/n", ++i. i++);`
+Example: `a[i]=a[++i]` , `printf("%d,%d/n", ++i, i++);`
 
 - 不确定点1: 不确定编译器按什么顺序处理表达式，即使大部分编译器从右向左处理（RR parser？）
 - 不确定点2: C语言中的++，可能是全部自增结束后依次入栈，也可能是依次先自增入栈再处理下个表达式
+
+
+
+# Linux Practice
+
+See [Linux Command Line](../Framework & Platform & Tools/Linux Command Line.md) chapter.

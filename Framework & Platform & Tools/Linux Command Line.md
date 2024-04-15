@@ -194,22 +194,48 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 # C/C++ related
 
-##### gcc/g++
+### Compiler options
 
-```shell
-g++ -o ./helloworld ./hello.cpp
-./helloworld
-g++ ./hello.cpp
-./a.out # default executable
-```
+- include directories `-I` or `isystem`: specifying the directories in which header files are located. Ususally stored in environment variable `CPPFLAGS`
+- preprocessor flags `-D`: specifying preprocessor definitions. Ususally stored in environment variable `CPPFLAGS`
+- other compiler options: control behavior of the compiler. Ususally stored in environment variable `CFLAGS` or `CXXFLAGS`
+  - `-std=c++11` for specifying the C++ language standard
+  - `-E`: generate preprocessed code
+  - `-S`: generate assembly code *filename.s*
+  - `-g`: enable debug
+  - `-pie ` & `-no-pie`: whether the executable is position independent. 不加载到内存固定位置，提升程序安全性
+  - `-Wall`： enabling all warnings
+  - `-Wl,aaa,bbb,ccc`: a comma-separated list of tokens that will be passed to linker as space-separated list as `ld aaa bbb ccc`
 
-- `-E`: generate preprocessed code
-- `-S`: generate assembly code *filename.s*
-- `-g`: enable debug
+### GNU Linker (`ld`) options
 
-##### clang
+linker `ld` is usuallly called automatically by compiler, but can be also called manually. `-l` and `-L` given to the compiler will be passed to linker.
 
-##### nm
+- `-rpath`: add a directory to the **runtime** library search path, will be passed to the runtime linker to find *.so* file at runtime 
+
+- library directory flags `-L`: add a path to the **linking-time** search path that *ld* will search for archive libraries and control scripts. Ususally stored in environment variable `LDFLAGS`
+
+- libraries flags `-l`: The names of libraries to be linked. Ususally stored in environment variable `LIBS` or `LDLIBS`
+
+  > **Order matters here!!**
+  >
+  > The linker searches from left to right, and notes unresolved symbols as it goes. If a library resolves the symbol, it takes the object files of that library to resolve the symbol. Dependencies of static libraries against each other work the same - the library that needs symbols **must be first**, then the library that resolves the symbol.
+  >
+  > If a static library depends on another library, but the other library again depends on the former library, there is a cycle. You can resolve this by enclosing the cyclically dependent libraries by `-(` and `-)`, such as `-( -la -lb -)` (need to escape the parens, such as `-\(` and `-\)`). The linker then searches those enclosed lib multiple times to ensure cycling dependencies are resolved. Alternatively, you can specify the libraries multiple times, so each is before one another: `-la -lb -la`.
+  >
+  > https://stackoverflow.com/questions/45135/why-does-the-order-in-which-libraries-are-linked-sometimes-cause-errors-in-gcc
+  >
+  > > this apply also to CMake's `target_link_library` because it result in `-lxxx` after all.
+
+- `-pie ` & `-no-pie`: whether the executable is position independent. 不加载到内存固定位置，提升程序安全性
+
+- `-z`: followed by keywords:
+
+  - `relro` & `norelro`: whether memory segement is read-only after relocation 
+  - `now`: mark for runtime linker, that the shared library or executable should resolve all symbols when program started
+
+
+### nm
 
 nm 命令显示关于指定 File 中符号的信息，文件可以是对象文件、可执行文件或对象文件库。所谓符号，通常指定义出的函数，全局变量等等。有用的options:
 
@@ -217,7 +243,7 @@ nm 命令显示关于指定 File 中符号的信息，文件可以是对象文�
 
 - `-C` 输出demangle过了的符号名称 (overloading of C++)
 
-- `-D` 打印动态符号(for .so/.dylib) 否则有时候会 no symbols
+- `-D` 打印动态符号(for .so/.dylib) **否则有时候会 no symbols**
 
   > By default, `nm` reads the `.symtab` section in ELF objects, which is optional in non-relocatable objects. With the [`-D`/`--dynamic` option](https://sourceware.org/binutils/docs/binutils/nm.html#index-dynamic-symbols), you can instruct `nm` to read the dynamic symbol table (which are the symbols actually used at run time). You may also want to use `--with-symbol-versions` because glibc uses symbol versioning extensively.
 
@@ -232,7 +258,7 @@ nm -uCA *.o | grep foo
 nm -A /usr/lib/* 2>/dev/null | grep "T memset"
 ```
 
-##### LDD
+### LDD
 
 LDD (List Dynamic Dependencies) is a unix utility that prints the shared libraries required by each program or shared library specified on the command line. 检查依赖库是否齐全
 
@@ -243,11 +269,15 @@ LDD Search:
 3. **RPATH**: Some executables or shared objects may contain an embedded RPATH (runtime path) that specifies additional search paths for their dependencies. This information is extracted from the ELF header of the file. Using the `readelf -d <so_file>` command to display the ELF header of a shared object, which includes the RPATH.
 4. **Explicit path provided to `ldd`:** When you run `ldd` with an explicit path to a file, it directly searches for dependencies using that path. This can be useful for debugging or troubleshooting issues with shared libraries.
 
-查看库版本也可以直接运行这个库，会输出一些版本信息
+查看库版本也可以直接运行 `./xxx.so`，会输出一些版本信息
+
+### objdump
+
+Different from *ld*, simply dumping what the object itself lists as libraries containing unresolved symbols.
 
 
 
-# other
+# other commands
 
 - print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat/etc/euleros-latest`
 
