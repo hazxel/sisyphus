@@ -1,27 +1,3 @@
-# C Memory Allocation
-
-> Originally defined in C Library's \<string.h>. Use \<cstring> when writing C++, which put everything in namespace `std`
-
-动态内存开辟主要有 malloc、calloc、realloc 几种
-
-- `malloc(size)`：分配给定字节数大小的空间，不初始化
-- `calloc(num,size)`：在返回在堆区申请的那块动态内存的起始地址之前，会将每个字节都初始化为0，接受类型大小和个数两个参数（历史原因需要两个参数，不用管，反正malloc一般也是 num*size 来用）
-- `realloc(ptr,new_size)`：重新分配之前由 `malloc`、`calloc` 或 `realloc` 分配的内存块的大小，可扩容或截断
-- `alloca`：在栈上分配内存，有些平台不支持
-
-调用 malloc 时，并不会真正申请物理内存，不会影响 RSS，只是移动 `brk` 指针，即一个表示进程虚拟内存空间中 `堆空间` 的顶部的指针。而且物理内存的申请延迟到对虚拟内存进行读写的时候，通过缺页异常来实现。
-
-内存操作：
-
-- `memcpy(dest,src,count)`
-- `memset(dest,c,count)`: use fill byte `c` to fill a memory of length `count`
-
-> Never use `memcpy` to copy classes. (e.g. copy unique_ptr)
->
-> Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr error) (`bzero` is deprecated)
-
-
-
 # C++ Memory Layout & Management
 
 the following segments are sorted from high address to low address (in **virtual memory**):
@@ -47,6 +23,30 @@ the following segments are sorted from high address to low address (in **virtual
 - Code (text) segment: codes `.text`
 
 
+
+# C Memory Allocation
+
+> Originally defined in C Library's \<string.h>. Use \<cstring> when writing C++, which put everything in namespace `std`
+
+动态内存开辟主要有 malloc、calloc、realloc 几种
+
+- `malloc(size)`：分配给定字节数大小的空间，不初始化
+- `calloc(num,size)`：在返回在堆区申请的那块动态内存的起始地址之前，会将每个字节都初始化为0，接受类型大小和个数两个参数（历史原因需要两个参数，不用管，反正malloc一般也是 num*size 来用）
+- `realloc(ptr,new_size)`：重新分配之前由 `malloc`、`calloc` 或 `realloc` 分配的内存块的大小，可扩容或截断
+- `alloca`：在栈上分配内存，有些平台不支持
+
+调用 malloc 时，并不会真正申请物理内存，不会影响 RSS，只是移动 `brk` 指针，即一个表示进程虚拟内存空间中 `堆空间` 的顶部的指针。而且物理内存的申请延迟到对虚拟内存进行读写的时候，通过缺页异常来实现。
+
+内存操作：
+
+- `memcpy(dest,src,count)`
+- `memset(dest,c,count)`: use fill byte `c` to fill a memory of length `count`
+
+> Never use `memcpy` to copy classes. (e.g. copy unique_ptr)
+>
+> Never use `memset` to reset classes. (e.g. vptr set to zero, resulting nullptr error) (`bzero` is deprecated)
+
+???
 
 C++使用全局new或delete可以很轻松的操控内存，但也很容易引起内存破碎。防止内存破碎的一个方法就是对每个类重载new和delete，从不同固定大小的内存池中分配不同类型的对象。
 
@@ -238,4 +238,4 @@ smart pointers are not thread safe.
 
 # Allocator
 
-*glibc* memory allocator talks to the OS kernal, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)
+*glibc* memory allocator talks to the OS kernel, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)
