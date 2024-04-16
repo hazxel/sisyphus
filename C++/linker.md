@@ -52,7 +52,7 @@ segment 一般没有具体的名字，只有编号。此外，只有 type 为 `L
   - dynamic loading: the program itself open the shared library and invoke the desired function. Such programs are usually linked with *libdl*, which provides the ability to open a shared library.
 
 
-运行时谁来装载到内存？？？
+后续再研究：运行时谁来装载到内存？？？怎么装？？？
 
 
 
@@ -74,7 +74,7 @@ A object, reference, function, type, template, namespace, or value, may have *li
   - 静态变量以其所在的 .data 段基地址作为基地址寻址
 
   - 静态指针以其所在的 .data.rel.local 段或 .data.rel 段基地址作为基址寻址
-  - 静态函数在编译的时候就完成地址绑定，不需要
+  - 静态函数在编译的时候就完成地址绑定，链接期不需要处理
 
 
 
@@ -131,7 +131,7 @@ PLT 属于代码段，表中每一项都是一小段代码，主要内容为 JMP
 
 ##### for non-lazy binding: `.plt.got`
 
-？？？大概就是直接在加载程序时将真实地址写入 GOT 表
+？？？大概就是直接在加载程序时将真实地址写入 GOT 表，后续再补充
 
 ### 延迟绑定 (Lazy Binding)
 
@@ -149,7 +149,9 @@ PLT 属于代码段，表中每一项都是一小段代码，主要内容为 JMP
 
 
 
-# 安全相关：？？？
+# 安全相关：？？？后续再看
+
+因为 got 表是可写的，容易被劫持攻击，因此衍生出一系列安全措施：
 
 PIC
 
