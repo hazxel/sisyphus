@@ -273,7 +273,7 @@ LDD Search:
 
 ### objdump
 
-Different from *ld*, simply dumping what the object itself lists as libraries containing unresolved symbols.
+Different from *ld*, simply dumping what the object itself lists as libraries containing unresolved symbols. 可用于分析目标文件（object file）和可执行文件（executable file），可以显示二进制文件的汇编代码、符号表、段信息等，是理解程序底层实现、调试和逆向工程的有力助手。
 
 
 
