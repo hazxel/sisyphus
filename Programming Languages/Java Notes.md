@@ -51,7 +51,7 @@ Abstract classes cannot be instantiated. They are meant to be subclassed.
 
 Java introduced generics in version 1.4,but for backwards compatibility, Sun did not want to change the virtual machine. So, generic type information is erased by compiler:
 
-- C<T> is translated to C
+- `C<T>` is translated to `C`
 
 - T is translated to its upper bound
 
