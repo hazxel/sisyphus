@@ -68,11 +68,11 @@ std::alloc 是SGI STL的默认配置器，它在`<memory>`中实现。他由两�
 
 
 
-# Optional
+# Optional & Expected
 
 manages an optional contained value. Common use is return value for a function that may fail.
 
-
+### optional
 
 
 
@@ -145,16 +145,36 @@ union在许多性能敏感场景下被使用，但它没有办法推断自己当
 
 https://zhuanlan.zhihu.com/p/607734474
 
+### Constructor
+
+- 对于默认构造，会用第一个类型进行初始化。但如果第一个类型没有默认构造函数时将会初始化失败。
+
+  > `std::monostate`类型表示“无值”或“空”状态。将variant的第一种类型指定为`std::monostate`以解决第一个类型没有默认构造函数导致 variant 不能默认构造的问题。
+
+- 对于大部份场景，可以不指定类型，如 `variant<float, std::string> v{10.5f};`
+
+- 有歧义场景需要指定类型 `variant<long, float> v{in_place_index<1>, 7.6};` 因为这里是 double
+
 ### get
 
-Variant cannot be directly used, but via non-member function:
+Variant cannot be directly used, but via **non-member function**:
 
 - `std::get<Type|Index>(variant)`: return a reference or throw a `std::bad_variant_access`
 - `std::get_if<Type|Index>(variant)`: return a pointer or`nullptr`, won't throw exception.
 
+> Why non-member function? If `get<T>()` was made a member function template, a `template` keyword would be needed when it is called in a dependent context. (In ADL, disambiguate whether `get` is a member function template or variable followed by operator `<`)  For example:
+>
+> ```cpp
+> template <typename Variant>
+> void f(Variant const& v) {
+>     auto x0 = v.template get<T>(); // if it were a member
+>     auto x1 = get<T>(v);           // using a non-member function
+> }
+> ```
+
 ### visit
 
-它允许我们对 `std::variant` 进行模式匹配，根据其存储的类型执行不同的操作。Let the codes speak for themselves：
+对 `std::variant` 进行模式匹配，根据其存储的类型执行不同的操作。codes speak for themselves：
 
 ##### Naive Usage: provide visit funcition for every types via a visitor class
 
@@ -199,12 +219,33 @@ std::variant<int, float, std::string> intFloatString { "Hello" };
 std::visit(PrintVisitor, intFloatString);
 ```
 
-##### 还可一次 visit 多个 variant。
+##### 还可一次 visit 多个 variant
 
-### monostate
+？？？ to be added
 
-使用 `std::monostate`作为参数列表的一员，表示“无值”或“空”状态。默认情况下，variant对象使用第一种类型初始化被初始化。如果第一个类型没有默认构造函数时将会初始化失败，编译器会报错。但是在这种情况下，你可以将variant的第一种类型指定为`std::monostate`。
+
+
+# in_place (C++17)
+
+`std::in_place`, `std::in_place_type`, `std::in_place_index` 都是用于 **消除歧义** 的标签，为了配合 C++17 新引入的几个数据结构 `std::expected`, `std::optional`, `std::variant`, `std::any`
 
 ### in_place
 
-`std::in_place`, `std::in_place_type`, and `std::in_place_index` are disambiguation tags that can be passed to the constructors of `std::expected`, `std::optional`, `std::variant`, and `std::any` to indicate that the contained object should be constructed in-place, and (for the latter two) the type of the object to be constructed.
+`in_place`可以传递给 `std::option`,`std::expected` 表示 **原位** 使用 `T` 的构造函数构造对象，而不是使用 `optional` 或 `expected` 的默认构造函数。
+
+```c++
+std::optional<Big> o1{std::in_place, "1"}; // Big{"1"}
+std::optional<Big> o2{std::in_place};      // Big{}
+std::optional<Big> o3{};                   // optional()
+```
+
+### in_place_tpye & in_place_index
+
+ `std::in_place_type`, `std::in_place_index` 可以传递给  `variant`, `any`，指明应构造何种类型的对象。
+
+```c++
+using variant_t = std::variant<std::string, std::vector<int>>
+variant_t v1{std::in_place_type<std::string>, 4, 'A'} // string{4,'A'}
+variant_t v2{std::in_place_index<1>, 4, 42} 					// vector<int>(4,42)
+```
+
