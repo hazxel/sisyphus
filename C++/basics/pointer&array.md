@@ -2,9 +2,9 @@
 
 ### operations
 
-- 指针加减整数：等效为 `ptr + i * d`, 步长是被指向的元素的大小。
-- 指针之间相减：必须是相同类型指针，可计算两个指针之间的元素个数，等效为 `(p-q)/sizeof(ele)`
-- 指针的乘除法/指针之间相加都是非法运算
+- 指针加减整数：等效为 `ptr + i * sizeof(T)`, 步长是被指向的元素的大小。
+- 指针之间相减：必须是相同类型指针，可计算两个指针之间的元素个数，等效为 `(p-q)/sizeof(T)`
+- 指针的乘除法和指针之间相加都是非法运算
 - `&` 取地址(address of operator)
 - `*` 解引用(dereference)
 
@@ -31,7 +31,7 @@ class Widget {
   static void f(int); // Widget::f has the same type as free function f
 }
 
-// paremthesis matters here, other wise * and & will be treated as if with return type
+// parenthesis matters here, otherwise * and & will be treated as if with return type
 typedef void FuncPtr(int); // function pointer alias
 typedef void (*FuncPtr)(int); // function pointer alias
 typedef void (&FuncRef)(int); // function reference alias
