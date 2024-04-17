@@ -325,9 +325,11 @@ Different from *ld*, simply dumping what the object itself lists as libraries co
 
 # Environment Variable
 
-> https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
+`export XX=/xx/xx` affacts environment variables; `XX=/xx/xx` does not. How to add paths to 
 
-`export XX=/xx/xx` affacts environment variables; `XX=/xx/xx` does not.
+### Important Environment Variables
+
+> more refer to: https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html
 
 - `PATH`：系统搜索可执行程序的路径
 - `LDFLAGS`：gcc等编译器搜索库文件的路径
@@ -335,5 +337,21 @@ Different from *ld*, simply dumping what the object itself lists as libraries co
 - `CFLAGS`, `CXXFLAGS`, `CPPFLAGS`: the default rules in make pass`CPPFLAGS` to C PreProcessor (means it's always applied), while `CFLAGS` is only passed to C compiler, and `CXXFLAGS` is only passed to C++ compiler
 - `LIBS` or `LDLIBS`: 告诉链接器要链接哪些库文件，如LIBS = -lpthread -liconv
 
-PATH变量的分隔符是`:`，其他的是空格
+> PATH变量的分隔符是`:`，`export PATH="$PATH:<PATH 1>:...:<PATH N>"`其他环境变量一般是空格
+
+### Priority of loading environment variable coifigure files:
+
+```shell
+/etc/profile
+/etc/bashrc & /etc/zshrc
+/etc/paths 
+~/.bash_profile # macOS
+~/.bash_login 
+~/.profile 
+~/.bashrc & ~/.zshrc # linux
+```
+
+When you need to add a environment variable, better not to add directly to **/etc/paths** , but to create a new file in directory **/etc/paths.d** , and include your desired path, for example: `/opt/homebrew/bin`. Similarly, modification to **/etc/profile** , **/etc/bashrc** and **/etc/zshrc** are not recommended.
+
+If you are executing your files like `sh 1.sh` or `./1.sh`, you are executing it in a sub-shell. If you want the changes on environment variable to take effect in current shell, run: `. 1.sh` or `source 1.sh`
 
