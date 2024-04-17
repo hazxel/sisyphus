@@ -38,26 +38,22 @@ Aggregate Initialization is a special case of List Initialization. 用花括号�
 
 ##### For non-aggregate types
 
-大括号初始化大部分时候是优于小括号初始化的。它能被用于各种不同的上下文，防止隐式窄化。但当对象拥有接收`std::initializer_list`的构造函数时，大括号初始化的语义比较混乱：
+大括号初始化大部分时候是优于小括号初始化的。它能被用于各种不同的上下文，防止隐式窄化。若对象没有包含`std::initializer_list`形参的构造函数，花括号初始化和圆括号初始化效果完全相同。编译器看到 `{t1, t2, …, tn}`便会构造一个 `initializer_list`，它关联到一个 `array<T, n>`，该array内的元素会被编译器分解并逐一传给构造函数。
 
-Example: Changing braces to parentheses in initialization may change semantics：
+但当对象拥有接收`std::initializer_list`的构造函数时，大括号初始化的语义比较混乱，例如：
 
 ```c++
 std::vector<int> v1{5, 6}; // 2 elems: {5, 6}
 std::vector<int> v2(5, 6); // 5 elems: {6, 6, 6, 6, 6}
 ```
 
-若没有包含`std::initializer_list`形参的构造函数，花括号初始化和圆括号初始化效果完全相同。编译器看到 `{t1, t2, …, tn}`便会构造一个 `initializer_list`，它关联到一个 `array<T, n>`，该array内的元素会被编译器分解逐一传给构造函数。
+这种情况下，花括号初始化会先尝试将实参转换为一个最匹配的`initializer_list<P>`，然后去尝试匹配形参`initializer_list<T>`，逻辑如下：
+- 如果`T`不能转换为 `P` ，编译器会考虑其他构造函数
+- 如果`T`是基本类型且可以转换为 `P` ，即使存在类型匹配更准确的非`std::initializer_list`形参构造函数，也会被忽略
+  - 如果`T`需要窄化才可转换为`P`，编译器就会报错
+  - 如果`T`不需窄化就可转换为`P`， 编译器就会选择该函数
 
-若有一个或多个构造函数包含一个如`std::initializer_list<T>`的形参时：
-
-- 花括号初始化优先尝试将实际参数转换为一个`std::initializer_list<P>`:
-  - 如果`T`不能转换为 `P` ，编译器才会考虑其他构造函数
-  - 如果`T`是基本类型且可以转换为 `P` ，即使存在类型匹配更准确的非`std::initializer_list`形参构造函数，也会被忽略
-    - 如果`T`需要窄化才可转换为`P`，编译器就会报错
-    - 如果`T`不需窄化就可转换为`P`， 编译器就会选择该函数
-- 想传入一个空的 `std::initializer_list`, 需要这么写：`Widget w({}); `
-- 在模板中使用花括号构造对象时情况会更麻烦，因为模版类通常不知道关于模版参数类是否有包含一个`std::initializer_list`形参的构造器。(e.g. `std::make_unique`, STL 的解决方案是使用圆括号，并记录至接口文档中)
+想传入一个空的 `std::initializer_list`, 必须要这么写：`Widget w({}); `。此外，在模板中使用花括号构造对象时情况会更麻烦，因为模版类通常不知道关于模版参数类是否有包含一个`std::initializer_list`形参的构造器。(e.g. `std::make_unique`, STL 的解决方案是使用圆括号，并记录至接口文档中)
 
 ##### STL initializer_list
 
