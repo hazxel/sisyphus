@@ -57,6 +57,8 @@ template<typename T,
 void (T &&foo) {};
 ```
 
+> (Effective Modern C++, item 26/27) 完美转发的转换构造函数是糟糕的实现，因为他们会比默认拷贝构造函数更加匹配，劫持拷贝和移动构造的调用。(e.g. `template<T> Widget(T&&)` 会覆盖 `Widget(const T&)`)
+
 ### move & forward (C11)
 
 - `std::move` (move semantic, 移动语义) is used to indicate that an object may be "moved from", allowing efficient transfer of resources. 可以不显式指明模版类型`_Tp`，而是编译器查看形参类型利自动推导，以达成 universal reference.
