@@ -74,6 +74,12 @@ manages an optional contained value. Common use is return value for a function t
 
 ### optional
 
+表达“有时存在”或“暂不存在”。可以在不采用异常机制的情况下，反映一个 no-value 的 case。比如轻松区分到底是有返回值还是没有，而不是用傻傻的"magic value"。
+
+### expected
+
+The class template `std::expected` provides a way to store either of two values, an *expected* value of type `T`, or an *unexpected* value of type `E`. `std::expected` is never valueless.
+
 
 
 # Tuple
