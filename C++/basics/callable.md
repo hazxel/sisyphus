@@ -136,9 +136,33 @@ struct pair {
 
 
 
-# Overload (重载)???
+# Overload (重载)
 
-C++ allows multiple definitions for the same function name in the same scope. The definition of the function must differ from each other by the types and/or the number of arguments in the argument list. You cannot overload function declarations that differ only by return type.
+C++ allows multiple definitions for the same function name in the same scope. The definition of the functions must have different types and/or the number of arguments in the argument list. You cannot overload function declarations that differ **only by return type**.
+
+A function template and a non-template function may be overloaded, while 2 *non-equivalent* function templates may also be overloaded. 
+
+### Overload Resolution
+
+With overloaded functions, the compiler has to determine a best match from the candidates.
+
+It prefer: (按重要性由高到低)
+
+1. the one with perfect match of function arguments
+
+2. the one with better implicit conversion of function arguments
+
+3. (initializing non-class objects) the one with better standard conversion from the return type to the type being initialized
+
+4. Non-template function against template function
+
+5. (both are template function, and same target specialization) more specialized primary template according to the *partial ordering rules for template specializations* (refer to [template chapter](C++/template/template.md))
+
+   > 仅模版原型参与重载决议，模版特化不参与（这也是为什么不推荐特化函数模版，详见 [template 相关章节](C++/template/template.md)）
+
+6. ...
+
+
 
 
 
