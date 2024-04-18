@@ -2,15 +2,19 @@
 
 Each C++ expression (an operator with its operands, a literal, a variable name, etc.) is characterized by two independent properties: a **type** and a **value category**. 
 
-### Value categories：lvalue vs rvalue (C++11)
+
+
+# Value categories：lvalue vs rvalue (C++11)
 
 ##### Primitive categories
 
 - **lvalue** (non-expiring lvalue): 能够用&取地址的表达式，以及字符串字面值（特例）
 
-  > 具名的参数，包括**具名右值引用**，一定永远是左值。
+  > - 具名的对象，包括**具名右值引用**，一定永远是左值。
   >
-  > 个人理解：右值只是为了告诉赋值给他的那一方，数据的所有权和生命周期被转交了，但对于接收的那一方，如函数的右值形参，在这个函数执行周期内这个值都是保证不会消亡的，所以其类型实际为 `T&`。
+  >   个人理解：右值只是为了告诉赋值给他的那一方，数据的所有权和生命周期被转交了，但对于接收的那一方，如函数的右值形参，在这个函数执行周期内这个值都是保证不会消亡的，所以其类型实际为 `T&`。
+  >
+  > - 不具名的对象，可以是左值（左值引用），纯右值（非引用对象），或是将亡值（右值引用）。
 
 - *prvalue* (pure rvalue): 纯右值，即 C++11前的“右值”，包括但不限于：
 
@@ -27,7 +31,9 @@ Each C++ expression (an operator with its operands, a literal, a variable name, 
 - *glvalue* (generalized left value): inlcudes *lvalue* and *xvalue*
 - **rvalue** (right value): includes *prvalue* and *xvalue*
 
-### lifetime extension of temporary objects:
+
+
+# lifetime extension of temporary objects:
 
 不准确但先这么理解：Temporary objects are rvalue. 就是不具名的临时对象
 
