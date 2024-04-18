@@ -83,9 +83,51 @@ decltype(auto) access(Container& c, Idx i) {
 
 
 
-# Partial Sepcialization
+# Function Template
 
-> Only class and variable templates can have partial specialization, function templates **CAN'T**. A major concern over *partial specialization of function templates* is that function templates can be **overloaded**, thus the function template name is not adequate to identify the template being specialized.
+### Function template specialization
+
+```c++
+template<typename T> void f(T s) { std::cout << s << '\n'; } // primary template
+template void f<double>(double); // instantiates f<double>(double)
+template void f<>(char);         // instantiates f<char>(char), template argument deduced
+template void f(int);            // instantiates f<int>(int), template argument deduced
+void f(bool);										 // overload 
+```
+
+> **Don’t specialize function templates. (C++ Core Guidelines: [T.144](https://link.zhihu.com/?target=http%3A//isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines%23Rt-specialize-function): )**
+>
+> You can fully specialize a function template but you almost certainly want to overload instead – because function template specializations don’t **participate in overloading,** they don’t act as you probably wanted. 
+
+> **You CAN'T partially specialize function templates.**
+>
+> A major concern over *partial specialization of function templates* is that function templates can be **overloaded**, thus the function template name is not adequate to identify the template being specialized.
+
+### function template overloading 
+
+A function template and a non-template function may be overloaded, while 2 *non-equivalent* function templates may also be overloaded. 
+
+##### partial ordering of overloaded function templates 
+
+> 首先明白，模版特化需要出现在模版原型的声明之后，否则编译器不会认为这是该原型的特化
+
+When a function template specialization matches more than one overloaded function templates, *partial ordering of overloaded function templates* is performed to select the more **specialized** template.
+
+Informally "A is more **specialized** than B" means "A accepts fewer types than B". Examples:
+
+1. A template function expecting a specific type is more specialized than one taking a generic type.
+2. A template taking `T*` is more specialized than one taking `T`, because  `T*` is a valid argument for a `T` template argument, but `T` isn't a valid argument for a `T*` template argument.
+3. `const T`(or `volatile`) is more specialized than `T`, because `const T` is a valid argument for a `T` template argument, but `T` isn't a valid argument for a `const T` template argument.
+
+
+
+# Class Template
+
+### Class template specialization
+
+???
+
+##### Partial Specialization
 
 `template <parame-list> class class-name <arg-list> declaration` the `<arg-list>` indicates it's a partial specialization, one without which is the primary template.
 
