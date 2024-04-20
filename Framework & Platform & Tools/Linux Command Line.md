@@ -203,6 +203,7 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
   - `-E`: generate preprocessed code
   - `-S`: generate assembly code *filename.s*
   - `-g`: enable debug
+  - `-shared`: compile to shared lib
   - `-pie ` & `-no-pie`: whether the executable is position independent. 不加载到内存固定位置，提升程序安全性
   - `-Wall`： enabling all warnings
   - `-Wl,aaa,bbb,ccc`: a comma-separated list of tokens that will be passed to linker as space-separated list as `ld aaa bbb ccc`
