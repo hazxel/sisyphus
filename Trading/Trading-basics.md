@@ -67,3 +67,5 @@ crypto交易所一般也有返佣。
 
 
 proprietary trading: prop shop - 自营交易公司
+
+Security - 证券。股票，债券等都是证券，是一种表示财产权的有价凭证。
