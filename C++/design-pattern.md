@@ -1,6 +1,6 @@
 # RAII (Resource acquisition is initialization)
 
-RAII 机制是一种对资源申请、释放这种成对的操作的封装，通过这种方式实现在局部作用域内申请资源然后便可以自动销毁资源
+RAII is one of C++'s' programming idiom, 是一种对资源申请、释放这种成对的操作的封装，通过这种方式实现在局部作用域内申请资源然后便可以自动销毁资源
 
 
 
@@ -109,7 +109,7 @@ public:
 
 
 
-# Type Punning
+# Type Punning???
 
 - `reinterpret_cast`: avoid it, unless to access the `char[]` of a type `T`, and after profiling the program you realize the compiler was not able to optimize the `std::bit_cast` (or polyfill) operation, you can think about `reinterpret_cast`.
 - `bit_cast`
@@ -119,3 +119,44 @@ public:
 
 # Tag-dispatch
 
+Sometimes we write a function that can be run in different ways by giving an option number:
+
+```c++
+auto f(int option) {
+    if (option==0) h0();
+    else if(option==1) h1();
+    else h2();
+}
+```
+
+or we can do it by overload a function:
+
+```c++
+struct tag1{};
+struct tag2{};
+auto f(int a, tag1 dummy) { /* handle tag1 case */ }
+auto f(int a, tag2 dummy) { /* handle tag2 case */ }
+```
+
+in practice, use STL's type traits:
+
+```cpp
+auto g(int a, std::true_type t) { /* via true type */ }
+auto g(int a, std::false_type f) { /* via false type */ }
+g(1, std::true_type{}); // first case is called
+g(1, std::false_type{}); // second case is called
+```
+
+may also use `if-constexpr`. Basically the same effect, but probably tag-dispatch is neater and safer for not letting unwanted code to leak into the compiled program.
+
+```c++
+template<typename Tag>
+auto f(/*parameters*/){
+    if constexpr (/*Tag is something*/)
+        /* do this */
+    else if constexpr (/*Tag is another thing*/)
+        /* do that */
+    else
+        /* do default */
+}
+```
