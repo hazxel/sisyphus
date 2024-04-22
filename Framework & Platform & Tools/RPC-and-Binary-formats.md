@@ -48,7 +48,11 @@ thrift 是一种可伸缩的跨语言的高效 RPC 框架，由 facebook 贡献�
 
 # Others
 
-flatbuffers, bebop...
+### bRPC
+
+bRPC 是百度开源的使用 c++ 编写的工业级RPC框架，常用于搜索、存储、机器学习、广告、推荐等高性能系统。（据说代码质量十分优秀）
+
+### flatbuffers, bebop...
 
 
 
