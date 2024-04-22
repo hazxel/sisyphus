@@ -7,6 +7,7 @@
 - 指针的乘除法和指针之间相加都是非法运算
 - `&` 取地址(address of operator)
 - `*` 解引用(dereference)
+- `sizeof`: 计算的是指针本身的大小（64 位系统下为 8 字节）
 
 ### NULL vs nullptr
 
@@ -104,8 +105,7 @@ int *ptrInt = arr;
 int (*ptrMat)[2] = mat;	// only consider the first layer
  ```
 
-- `+` and `-`: step size is `sizeof()` element type, 和指针区别是
-
+- `+` and `-`: step size is `sizeof()` element type, 和指针区别是不可以自增 (理解为 `const T*`)
 - `*` and `&`: actual type of pointer and reference
 
  ```c++
@@ -113,7 +113,8 @@ int (*parr)[10] = &arr;
 int (&rarr)[10] = arr;
  ```
 
-- 只能在数组定义所在的代码区中获得数组长度(in bytes)
+- `sizeof`: **和指针不同**，计算的是整个数组的存储大小
+- **只能在数组定义所在的代码区中获得数组长度(in bytes)**！！
 
  ```c++
 int size = sizeof(arr);	// 10 * sizeof(int)
