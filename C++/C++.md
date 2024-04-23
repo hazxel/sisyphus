@@ -59,7 +59,7 @@ see callable chapter
 
 ### constexpr if (C++11?)
 
-???
+In a constexpr if statement, the value of condition must be a contextually converted constant expression of type bool. If the value is true, then statement-false is discarded (if present), otherwise, statement-true is discarded.
 
 ### constexpr new(C++20)
 
@@ -92,8 +92,9 @@ see callable chapter
 - Using of **virtual inheritance** will add 4 bytes of a virtual base table pointer in the class. A class will only maintain one virtual base table pointer.
 - For classes, only non-static data members will be counted.
 - alignment: alignment with the "widest" **basic** type (maybe inside a compound type), and compound types are treated as a whole ({double, char}, char -> 24)
-- ordering matters here because of byte padding (char, short, int -> 8 ; char, int, short -> 12)
-- char: 1, short: 2, int: 4, double: 8 (depends on GCC version, platform, etc.)
+  - ordering matters here because of byte padding (char, short, int -> 8 ; char, int, short -> 12)
+  - char: 1, short: 2, int: 4, double: 8 (depends on GCC version, platform, etc.)
+
 
 
 
