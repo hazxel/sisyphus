@@ -11,38 +11,6 @@ STL 是一个标准，对接口进行规范，其实现可以有不同版本。�
 
 
 
-# Traits
-
-Traits 就是为了萃取元素类型而在STL中广泛采用的技法，如`iterator_traits`,  `allocator_traits`, `type_traits` 等，都是为了在编译时进行类型信息的操作，方便在 iterator 或算法中定义中间变量或者返回类型等。以下是简化的 `iterator_traits` 的实现：
-
-```C++
-template<class T>
-struct iterator_traits {
-	typedef typename T::value_type value_type;
-};
-template <class T> // 原生指针偏特化
-struct iterator_traits<T*> {
-    typedef T value_type;
-};
-template <class T> // const 指针偏特化
-struct iterator_traits<const T*> {
-    typedef T value_type;
-};
-template <class I> // 这里可以是任意一个算法的实现，比如说取元素的值
-typename iterator_traits<I>::value_type
-getElement(I ite) { return *ite; }；
-```
-
-编译器会询问`iterator_traits<T>::value_type`，若 T 为指针,则进入特化版本,`iterator_traits`直接回答`T`;如果`T`为`class type`,就去询问容器开发者给定的`T::value_type`.
-
-
-
-# Decay 类型退化
-
-C++11提供的一个模板类，来为我们移除类型中的一些特性，比如引用、常量、volatile等
-
-
-
 # Allocator
 
 STL 容器都带有默认 Allocator 参数：`template<class T, class Allocator = std::allocator<T>`, Allocator 最重要的四个接口为：

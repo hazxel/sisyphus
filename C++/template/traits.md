@@ -1,4 +1,8 @@
-# Type traits
+Traits 就是为了萃取元素类型而在STL中广泛采用的技法，如`iterator_traits`,  `allocator_traits`, `type_traits` 等，都是为了在编译时进行类型信息的操作，方便在 iterator 或算法中定义中间变量或者返回类型等。
+
+
+
+# Type Traits
 
 注意类型转换尾部的`::type`。如果你在一个模板内部将他们施加到类型形参上，你也需要在它们前面加上`typename`。至于为什么要这么做是因为这些C++11的*type traits*是通过在`struct`内嵌套`typedef`来实现，而正如我之前所说这比别名声明要差。
 
@@ -49,3 +53,29 @@
   ```
 
 - `result_of`/`invoke_result`: deduces type of an invoke expression of a callable at compile time
+
+
+
+# Iterator Traits
+
+以下是简化的 `iterator_traits` 的实现：
+
+```C++
+template<class T>
+struct iterator_traits {
+	typedef typename T::value_type value_type;
+};
+template <class T> // 原生指针偏特化
+struct iterator_traits<T*> {
+    typedef T value_type;
+};
+template <class T> // const 指针偏特化
+struct iterator_traits<const T*> {
+    typedef T value_type;
+};
+template <class I> // 这里可以是任意一个算法的实现，比如说取元素的值
+typename iterator_traits<I>::value_type
+getElement(I ite) { return *ite; }；
+```
+
+编译器会询问`iterator_traits<T>::value_type`，若 T 为指针,则进入特化版本,`iterator_traits`直接回答`T`;如果`T`为`class type`,就去询问容器开发者给定的`T::value_type`.
