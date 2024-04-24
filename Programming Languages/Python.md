@@ -70,10 +70,45 @@
 
 - protected：以单下划线开头，也可使用@property decorator，但事实上任何人仍可访问，按照约定俗成的规定，“虽然我可以被访问，但是请把我视为私有变量，不要随意访问”
 - private：以双下划线开头，访问会抛出 AttributeError
-- 特殊变量：以双下划线开头，并且以双下划线结尾，任何人可访问，如：
-  - `__new__`：继承自object的类才有该方法，在实例创建之前被调用，任务是创建实例然后返回该实例对象，是个静态方法，至少要有一个参数cls（代表当前类），必须有返回值（即该实例对象）
-  - `__init__`：是在实例创建完成后被调用的，设置对象属性的一些初始值，通常用在初始化一个类实例的时候，是一个实例方法，至少有一个参数self(代表当前的实例)，无需返回值
-  -  `__class__`, `__slots__`, `__doc__`, `__del__`, `__enter__`, `__exit__`, `__iter__` ???
+
+### 类变量 vs 实例变量：
+
+- 实例变量出现在 `__init__` 里
+- 类变量在 class 中， `__init__` 外
+
+### 方法
+
+##### Instance method: 
+
+When creating an instance method, the first parameter is always `self`.  `self`是约定俗成的标识符，常作为实例方法的第一个参数，用于引用实例本身。它可以是任何标识符，但建议使用`self`以提高代码的可读性。
+
+##### Class method: 
+
+Pass the **class** as a first parameter, instead of the **instance**. This means that we don't need an instance at all, and we call the class method as if it was a static function. The first parameter is usually `cls`. 推荐使用  `@classmethod` 装饰器修饰。class method 可以访问类变量
+
+##### Static method: 
+
+static method 不接收任何 `self` 或 `cls`， 也不能访问类变量或实例变量，基本就只是一个在该类名空间下的普通函数。 推荐使用`@staticmethod` 装饰器修饰。
+
+### 特殊变量/方法：
+
+以双下划线开头，并且以双下划线结尾，任何人可访问，如：
+
+- `__new__`：继承自object的类才有该方法，在实例创建之前被调用，任务是创建实例然后返回该实例对象，是个静态方法，至少要有一个参数cls（代表当前类），必须有返回值（即该实例对象）
+- `__init__`：是在实例创建完成后被调用的，设置对象属性的一些初始值，通常用在初始化一个类实例的时候，是一个实例方法，至少有一个参数self(代表当前的实例)，无需返回值
+- `__class__`, `__slots__`, `__doc__`, `__del__`, `__enter__`, `__exit__`, `__iter__` ???
+
+- `self` vs `cls`：
+
+  > `self` is used for object methods
+  >
+  > `cls` is used for class methods
+
+### property
+
+`@property` ???
+
+
 
 
 
