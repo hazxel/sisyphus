@@ -4,12 +4,6 @@
 
 
 
-# this
-
-当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是 `this` 指针。如果是用 `new` 创建的对象可以`delete this`指针。但是一经`delete`之后其所有成员都不能再被访问。
-
-
-
 # special member functions
 
 1. Default Constructor (DftCtor) `Widget();` : 
@@ -108,6 +102,10 @@ const T T::operator++(int);		// post-increase in T's namespace
 
 ???
 
+##### this
+
+当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是 `this` 指针。如果是用 `new` 创建的对象可以`delete this`指针。但是一经`delete`之后其所有成员都不能再被访问。
+
 ### Function call operator
 
 ```c++
@@ -205,13 +203,17 @@ default specifier is private.
 | protected inheritance | protected | protected | invisible |
 | private inheritance   | private   | private   | invisible |
 
-##### Virtual Inheritance
+### Virtual Inheritance
 
 In multiple inheritance, a class may inherit from a superclass more than once. (think of diamond inheritance graph). Virtual inheritance ensures only one copy of a base class's member variables are inherited by grandchild derived classes. In Virtual Inheritance, Ctor of repeated superclass **must** be called by the **smallest** subclass' Ctor directly, and only once. (An exception is when the subclass has a default empty constructor.)
 
 虚继承就是让某个类做出声明，承诺愿意共享它的基类，被共享的基类就称为虚基类（Virtual Base Class）。在这种机制下，不论虚基类在继承体系中出现了多少次，在派生类中都只包含一份虚基类的成员。
 
-##### using 
+### `final` keyword
+
+Specifies that a virtual function cannot be overridden or a class cannot be derived from.
+
+### `using` keyword
 
 用于引入基类中的成员函数或成员变量到派生类中，主要有以下几种场景：
 
@@ -220,15 +222,11 @@ In multiple inheritance, a class may inherit from a superclass more than once. (
 
 但引入 base class 成员函数时只能指定名字并引入所有同名重载
 
-##### final
-
-Specifies that a virtual function cannot be overridden or a class cannot be derived from.
-
-##### Special Member
+### Special Member in Inheritance
 
 - Constructor are not inherited. (but still possible via `using Base::Base;`)
 - If derived class doesn't call base class DftCtor explicitly (i.e.`Child():Father(){}`), compiler will call it implicitly. If super class doesn't have DftCtor, then an other Ctor must be called explicitly.  
-- Assignment operators are not inherited. 
+- Assignment operators (CAssOp/MAssOp) are not inherited. 
 
 
 
@@ -289,6 +287,16 @@ Scoped enum is usually better because it:
 
 
 
-# Object Slicing
+# Polymorphism 多态
+
+### Object Slicing
 
 将 subclass 的对象赋值到 baseclass 对象时，或使用 baseclass 的拷贝构造函数拷贝派生类时，将发生对象切片：基类副本将没有在派生类中定义的任何成员变量。切片问题是 C++98 中默认按值传递名声不好的重要原因。
+
+### 实现多态的方式
+
+- 通过对象：不能通过对象实现多态。由于先前提到的对象切片问题，通过对象调用成员函数时，不触发多态，因为不仅无法访问派生类的成员，还额外引入了虚表跳转开销。因此编译器直接在编译期绑定函数地址。
+- 通过引用：虽然引用可以实现多态，但一般也不通过引用实现多态，因为不如指针用起来灵活：
+  - 引用只能在初始化时绑定对象，一经绑定便不能修改
+  - 引用不是对象，不能创建引用的数组
+- 使用指针实现多态是最常用的方法，强大且危险。
