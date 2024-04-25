@@ -6,13 +6,19 @@
 
 Dynamically manage memory for stl containers. 考虑到小型区域可能造成内存破碎问题，SGI STL设计了双层级配置器，第一层配置器直接使用malloc()和free()，第二层配置器则视情况采用不同的策略：当配置区块超过128bytes时，调用第一层级配置器，当配置区块小于128bytes时，采用复杂的memory pool方式。
 
-### array (fixed size array)
 
-A `std::array` is a very thin wrapper around a C-style array. It has friendly value semantics, so that it can be passed to or returned from functions by value. Its interface makes it more convenient to find the size, and use with STL-style iterator-based algorithms.
 
-`std::array`与其他容器最大的不同是，其元素直接存放在实例内部而不是堆上。`std::array`既可以作为函数返回值，又可以作为编译期常量。**它是编译期返回集合数据的首选**。
+# array (fixed size array)
 
-`std::array`相比于内建数组几乎没有额外开销，但更安全，可读性和可维护性更高，应当尽量使用。 `std::array` 不会隐式转成指针（需显式调用` data()` ），可以方便地按值传递、按值返回、赋值。C++14~17 中 std::array 逐渐变得比内建数组更适合配合 constexpr，C++20中swap, sort等都constexpr了，编译期的计算正变得愈加容易。
+A `std::array` is a very thin wrapper around a C-style array. 其相比于内建数组几乎没有额外开销，但更安全，可读性和可维护性更高，应当尽量使用。 
+
+`std::array`与其他容器最大的不同是，其元素直接存放在实例内部而不是堆上(当然实例可能还是在堆上，重要的是实例地址就是元素实际存放的地址，访问不需要跳转到其他内存页，所以性能好)。
+
+`std::array` 不会隐式转成指针（需显式调用` data()` ），按值传递、按值返回、赋值都方便而高效。
+
+`std::array`可以作为编译期常量，**是编译期返回集合数据的首选**。C++14~17 中 std::array 逐渐变得比内建数组更适合配合 constexpr，C++20中swap, sort等都constexpr了，编译期的计算正变得愈加容易。
+
+一般直接使用花括号 `{}` 进行 aggregate initialization.
 
 
 
@@ -59,7 +65,7 @@ No random access, only bidirectional iteration.
 
 
 
-# Forward_list (linked list)
+# forward_list (linked list)
 
 
 
@@ -73,7 +79,7 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
 
 
 
-# Priority Queue (similar to heap)
+# priority_queue (similar to heap)
 
 `priority_queue<Type, Container, Functional>`
 
@@ -85,7 +91,25 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
 
 - Functional 比较的方式。使用基本数据类型时，默认是大顶堆
 
-`priority_queue<int>` 等同于 `priority_queue<int,vector<int>,less<int>>`
+### 初始化
+
+- 传 Functional 类型：`priority_queue<T,Container<T>,Cmptor)> pq;`
+- 传 lambda 或函数：`priority_queue<T,Container<T>,decltype(cmptor)> pq(cmptor);`
+- 缺省：`priority_queue<int>` 等同于 `priority_queue<int,vector<int>,less<int>>`
+
+### 成员方法：
+
+`top`, `pop`, `push`, `emplace`
+
+
+
+# stack
+
+没有迭代器，无法直接遍历元素，如果一定需要遍历，可能需要考虑使用 `vector`。
+
+### 成员方法：
+
+`top`, `pop`, `push`, `emplace`
 
 
 
@@ -108,6 +132,8 @@ Since a key of a `unordered_map` or `map` is also `const`, which means the type 
 
 
 # unordered_map, unordered_set (hash map)
+
+Map: `find`, `erase`
 
 
 
