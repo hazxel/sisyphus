@@ -14,23 +14,42 @@ A `std::array` is a very thin wrapper around a C-style array. It has friendly va
 
 `std::array`相比于内建数组几乎没有额外开销，但更安全，可读性和可维护性更高，应当尽量使用。 `std::array` 不会隐式转成指针（需显式调用` data()` ），可以方便地按值传递、按值返回、赋值。C++14~17 中 std::array 逐渐变得比内建数组更适合配合 constexpr，C++20中swap, sort等都constexpr了，编译期的计算正变得愈加容易。
 
-### vector (dynamic array)
 
-##### reserve vs resize
+
+# vector (dynamic array)
+
+### reserve vs resize
 
 reserve: **only** affect **capacity**, not affact size, won't initialize any instances
 
 Resize: will insert or delete elements to the vector to make it given **size** (could call constructor!)
 
-##### Capacity Growth
+### Capacity Growth
 
 The capacity grows by double or 1.5 times of the previous size. Every time a vector's capacity grows the elements may need to be copied and all the itrators will becom invalid.
 
-##### Boolean vector: `std::vector<bool>`
+### 成员函数
+
+- `insert`: 使用迭代器插入，插入到给定迭代器的前面：
+
+  - 插入单个：`v.insert(v.end(), element);`
+  - 插入多个相同：`v.insert(v.end(), 123, 0);`
+
+  - 插入起始迭代器之间所有元素：`v.insert(v.end(), target.begin(), target.end());`
+
+- `back`: 传回最后一个元素的引用
+
+- `emplace_back`: 原地使用构造函数构造 
+
+### Boolean vector: `std::vector<bool>`
 
 `std::vector<bool>`的`operator[]`不返回`bool&`，而是返回`std::vector<bool>::reference`对象。这是因为`std::vector<bool>`规定了使用一个打包形式（packed form）表示它的`bool`，每个`bool`占一个*bit*，但是C++禁止对`bit`s的引用，所以返回一个**行为类似于**`bool&`的对象`std::vector<bool>::reference`.
 
-### list (doubly linked list)
+
+
+
+
+# list (doubly linked list)
 
 No random access, only bidirectional iteration.
 
@@ -38,9 +57,13 @@ No random access, only bidirectional iteration.
 
 `insert` allows you to select new element's position.
 
-### Forward_list (linked list)
 
-### deque
+
+# Forward_list (linked list)
+
+
+
+# deque
 
 In C++, the STL `deque` is a sequential container that provides the functionality of a double-ended queue data structure.
 
@@ -48,29 +71,51 @@ In a regular queue, elements are added from the **rear** and removed from the **
 
 Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each chunk is a vector, and the queue (“map” in the graphic below) of chunks itself is also a vector.
 
-### Priority Queue (heap)
 
-##### Container
 
-The type of the underlying container to use to store the elements. The container must satisfy the requirements of SequenceContainer, and its iterators must satisfy the requirements of LegacyRandomAccessIterator. Additionally, it must provide the following functions with the usual semantics: `front()`, `push_back()`, `pop_back()`. The standard containers std::vector. Also, std::deque satisfy these requirements.
+# Priority Queue (similar to heap)
 
-### pair
+`priority_queue<Type, Container, Functional>`
+
+- Type 数据类型
+
+- Container 底层使用的容器类型，必须是用数组实现的容器，如 vector, deque 等，不可是 list，默认 vector
+
+  > The container must satisfy the requirements of SequenceContainer, and its iterators must satisfy the requirements of LegacyRandomAccessIterator, and must provide `front()`, `push_back()`, `pop_back()`.
+
+- Functional 比较的方式。使用基本数据类型时，默认是大顶堆
+
+`priority_queue<int>` 等同于 `priority_queue<int,vector<int>,less<int>>`
+
+
+
+# pair
 
 > \#include <utility>
 
-### Map, Set, Multiset, Multimap (red black tree)
+### Special member function
+
+- CopyCtor & MoveCtor: `defaulted`
+- CopyAssignOperator is `deleted` if either type's `is_copy_assignable<T>::value` evaluates to false. 
+- MoveAssignOperator is `deleted` if either type's `is_move_assignable<T>::value` evaluates to false. 
+
+Since a key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. 这意味着遍历表类型容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
 
 
 
-### unordered_map, unordered_set (hash map)
+# Map, Set, Multiset, Multimap (red black tree)
 
 
 
-### Constness of set and maps
+# unordered_map, unordered_set (hash map)
+
+
+
+# Constness of set and maps
 
 `set` is using a **const iterator** because: Elements form a tree that accelerates operations on the set, thus all elements must be const to keep the constraints of the underlying tree.
 
-A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Solution is elegant- use `auto`: `for(const auto& p : m)`.
+A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Elegant `auto` solution: `for(const auto& p : m)`.
 
 
 
