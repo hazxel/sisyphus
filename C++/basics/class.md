@@ -34,9 +34,9 @@
 
 Copmiler implicitly defines a default inline version for the 6 special member functions except:
 
-- If exists any kind of custom Ctor, DftCtor won't be implicitly defined.
-- If any of Dtor, CCtor, CAssOp, **MCtor** or **MAssOp** is defined by user, **MCtor** and **MAssOp** won't be implicitly defined. 此时如果不定义移动构造/移动赋值，对象会不可移动。移动构造和移动赋值，如果你声明了其中一个，编译器就不再生成另一个。
-- If MCtor or MAssOp is defined by user, CCtor and CAssOp will be implicitly defined as **DELETED**!!
+1. DftCtor won't be implicitly defined if exists any kind of custom Ctor.
+2. **MCtor** and **MAssOp** won't be implicitly defined if any of Dtor, CCtor, CAssOp, **MCtor** or **MAssOp** is defined by user.
+3. CCtor and CAssOp will be implicitly defined as **DELETED** if MCtor or MAssOp is defined by user.
 
 > 注意：1. **成员函数模版**不会阻止编译器生成特殊成员函数。2. `=delete`&`=default`也属于用户定义实现 3. 有一个说法是自定义的 Dtor, CCtor, CAssOp 会阻碍生成默认的 Dtor, CCtor, CAssOp，但这个说法好像是错误的
 
