@@ -30,6 +30,12 @@ while (getline(ss, field, ';')) { // or ss >> field with splitter set to ' '
 
 ??? SSO?https://zhuanlan.zhihu.com/p/547694685
 
+### String 的一堆大麻烦
+
+- 为啥很多人不用string 而用char数组？
+- u8string相关？
+- ？？？
+
 
 
 # String View(C++17)
@@ -100,9 +106,14 @@ extern istream cin; // so as cout/cerr/clog
 
 Useful Functions: 
 
-- `getline`: defined in `<string>`, reads a line of characters (separated by `\n` or some other characters) from an input stream and places them into a string.
+- `getline`: defined in `<string>`, reads a line of characters (separated by `\n` or other specified delimiter) from an input stream and places them into a string. An example that to split a strings with specified splitter:
 
-  > `getline(ss, str, ',');` can be used to split a string with specified splitter
+  ```c++
+  std::string str = "a,b,c";
+  std::stringstream ss(str);
+  while(getline(ss, str, ','))
+  	std::cout << str << "\n";
+  ```
 
 - `operator>>`: usually read a word (separated by whitespace, `\n`, etc) from stream.
 
