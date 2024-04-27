@@ -1,8 +1,20 @@
 # Generator
 
-根据前面的元素推断后面的元素，一边循环一边计算的机制叫 generator。
+在生成器函数中，返回值使用yield语句而不是 return 语句。变成generator的函数，在每次调用`next()`的时候执行，计算出下一个元素的值，并通过`yield`语句返回，再次执行时从上次返回的`yield`语句处继续执行，直到计算到最后一个元素，抛出`StopIteration` 异常。
 
-变成generator的函数，在每次调用`next()`的时候执行，计算出下一个元素的值，并通过`yield`语句返回，再次执行时从上次返回的`yield`语句处继续执行，直到计算到最后一个元素，抛出`StopIteration` 异常。
+```python
+def genSeq(max):
+		for i in range(max):
+				yeild i
+# usage
+seqIter = genSeq(100)
+print(seqIter.__next__())
+print(next(seqIter))
+for n in seqIter: 
+  	print(n)
+```
+
+
 
 生成器表达式是用圆括号来创建生成器，其语法与推导式相同，只是将 [] 换成了 () 
 
@@ -12,18 +24,54 @@
 
 
 
-# 基本数据结构
+# 数据结构
 
-- tuple：有序不可修改。可查询、切片操作。用（ ）表示
-- set：无序可修改。用set（[ ]）表示
-- dict：无序可修改。用{ }表示
-- list：有序可修改。通过索引进行查找、切片。用[ ]表示
+### tuple
 
-> ### list VS numpy.array 
->
-> - list可以存放不同类型的数据，比如int,str,bool,float,list,set等，但是numpy数组中存放的数据类型必须全部相同
-> - list中每个元素的大小可以相同，也可以不同，因此不支持一次性读取一列，而numpy数组中每个元素大小相同，支持一次性读取一列。numpy对二维数组的操作更为便捷   
-> - list中数据类型保存的是数据存放的地址，即指针而非数据，比如一个有四个数据的列表a=[1,2,3,4]需要4个指针和4个数据，增加了存储空间，消耗CPU，但是a=np.array([1,2,3,4])只需要存放4个数据，节省内存，方便读取和计算
+有序不可修改。可查询、切片操作。用`()`表示
+
+### set
+
+无序可修改。用 `set()` 或 `{}` 初始化非空 set，用 `set()` 初始化空 set
+
+### dict
+
+无序可修改。用 `{}` 表示
+
+### list
+
+有序可修改。通过索引进行查找、切片。用 `[]` 表示
+
+### numpy.array
+
+N 维数组（矩阵）对象，可用 list 初始化：`np.array([1, 2, 3])`
+
+##### 切片
+
+单个维度的情况：
+
+- `[i]`: 将返回单个元素 
+- `[i:]` / `[:i]`: 返回 $i$ 项之后/之前所有项（包括 $i$ 项在内）
+- `[i:j]`: 提取 $[i,j)$​​ 项。
+- `[i:j:s]`: 按步长为 $s$ 提取 $[i,j)$ 间的项
+- `[:]`: 提取所有项
+- `[::s]`: 从索引为 0 的元素开始按步长 $s$​​ 取元素
+
+多维情况：
+
+- `[:,:]`: 逗号分隔
+-  `[...,i:j]` / `[i:j,...]`: 表示之前/之后的所有维度都取全部(`:`)
+- `a.shape`: 获取矩阵的各维度长度
+- squeeze: 移除长度为一的维度，若指定了 axis 且有长度不为一的维度则会报错
+  - `np.squeeze(a)`: Remove all axes of length one from array `a`.
+  - `np.squeeze(a, axis=n)`: Remove $n_{th}$​ axes if length is 1
+  - `np.squeeze(a, axis=(x,y,z))`: Remove all axes in tuple if lengths all equal to 1
+
+##### VS list
+
+- 一个 list 可以存放多种类型的数据，但是numpy数组中存放的数据类型必须全部相同
+- list中实际上存放的是数据的地址非数据本身，如列表 `a=[1,2,3,4]` 需要4个指针和4个数据；但`a=np.array([1,2,3,4])` 只需要存放4个数据，节省内存，读取性能好
+
 
 
 
@@ -35,32 +83,32 @@
 
 生命周期：Python中变量的生命周期由变量的作用域和垃圾回收机制共同决定。当一个函数执行完毕后，如果其内部函数仍然在使用外部函数的变量和参数，那么这些变量和参数就不会被回收，它们的生命周期会延长，直到内部函数也执行完毕才会被回收。
 
-> # Decorator
->
-> 装饰器是闭包的一种应用，用于拓展原来函数功能，这个函数的参数和返回值都是一个函数，使用python装饰器的好处就是在不用更改原函数的前提下增加新的功能。
->
-> ```python
-> def logging(level):
->        def outwrapper(func):
->            def wrapper(*args, **kwargs):
->                print("[{0}]: enter {1}()".format(level, func.__name__))
->                return func(*args, **kwargs)
->            return wrapper
->        return outwrapper
-> 
-> @logging(level="INFO")
-> def hello(a, b, c):
->       print(a, b, c)
-> 
-> hello("hello,","good","morning")
-> -----------------------------
-> >>>[INFO]: enter hello()
-> >>>hello, good morning
-> ```
->
-> 
 
 
+# Decorator
+
+装饰器是闭包的一种应用，用于拓展原来函数功能，这个函数的参数和返回值都是一个函数，使用python装饰器的好处就是在不用更改原函数的前提下增加新的功能。
+
+ ```python
+def logging(level):
+		def outwrapper(func):
+  			def wrapper(*args, **kwargs):
+    				print("[{0}]: enter {1}()".format(level, func.__name__))
+    				return func(*args, **kwargs)
+    		return wrapper
+  	return outwrapper
+
+
+@logging(level="INFO")
+def hello(a, b, c):
+  	print(a, b, c)
+
+hello("hello,","good","morning")
+# [INFO]: enter hello()
+# hello, good morning
+ ```
+
+ 
 
 
 
@@ -107,8 +155,6 @@ static method 不接收任何 `self` 或 `cls`， 也不能访问类变量或实
 ### property
 
 `@property` ???
-
-
 
 
 
