@@ -135,6 +135,35 @@ Since a key of a `unordered_map` or `map` is also `const`, which means the type 
 
 Map: `find`, `erase`
 
+Key 默认支持计算散列值的对象类型是整型、小数、指针和字符串，其他的结构需要自己定制 hash 函数：
+
+```c++
+// #1: template specialization
+namespace std {
+template <>
+class hash<Foo>{
+public:
+    size_t operator()(const Foo &name ) const {/*...*/}
+};
+}; 
+unordered_map<Foo, int> m; // usage
+
+//#2: functor
+struct my_hash_struct{ 
+    size_t operator()(const Bar & b) const {/*...*/}
+}; 
+unordered_map<Bar, int, my_hash_struct> m; // usage
+
+// #3: function
+size_t my_hash_func(const Boo & b) {/*...*/}
+unordered_map<Boo,int,function<size_t(const Boo&)>> m(10, my_hash_func); // usage
+
+// #4: lambda
+auto hash = [](const Goo &g){ return std::hash<int>{}(g.val); };
+auto comp = [](const Goo &l, const Goo &r){ return l.val == r.val; };
+unordered_map<Goo, double, decltype(hash), decltype(comp)> m(10, hash, comp); // usage
+```
+
 
 
 # Constness of set and maps
