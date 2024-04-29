@@ -140,7 +140,7 @@ private:
 - `load`: get
 - `exchange`: replaces the underlying value with a given value
 - `compare_exchange_weak`: atomically compares the value of the atomic object with non-atomic argument and performs atomic exchange if equal or atomic load if not 二者的区别在于内存中的值与expected 相等的时候，CAS 操作是否一定能成功
-  - `compare_exchanges_strong` 有概率会返回失败, but sometimes better performance
+  - `compare_exchanges_strong` 概率失败(as if *this != expected), but sometimes better performance
   - `compare_exchange_strong` 一定会成功
 - `compare_exchange_strong`
 - `wait`: blocks the thread until notified and the atomic value changes
@@ -164,7 +164,10 @@ private:
 ```c++
 template< class Function, class... Args >
 std::future<>, std::decay_t<>
-async(std::launch policy, Function&& f, Args&&... args );
+async(Function&& f, Args&&... args );
+// ------------- Usage ---------------
+auto a1 = std::async(&X::foo, &x, 42, "Hello");
+auto a2 = std::async(std::launch::deferred, &X::bar, x, "world!");
 ```
 
 `std::async()` The function template async runs the function f asynchronously (potentially in a separate thread which might be a part of a thread pool) and returns a std::future that will eventually hold the result of that function call. 
@@ -173,8 +176,10 @@ Async启动一个异步任务，最终返回一个std::future对象，可通过f
 
 >  std::launch policy:
 >
-> - `std::launch::async`: enable asynchronous evaluation
-> - `std::launch::deferred`: enable lazy evaluation
+>  是个可选参数，可指定 policy 的重载把 policy 作为第一个参数
+>
+>  - `std::launch::async`: executed on a different thread, potentially by creating and launching it first (asynchronous evaluation)
+>  - `std::launch::deferred`: executed on the calling thread the first time its result is requested (lazy evaluation)
 
 
 
