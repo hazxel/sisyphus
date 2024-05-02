@@ -167,3 +167,21 @@ for ( ; __begin != __end; ++__begin)
 # static_assert
 
 `static_assert` requires a compile-time predicate, and a message is displayed when the compile-time predicate fails. With C++17, the message is optional. With C++20, this compile-time predicates can be a requires expression. A `static_assert` declaration may appear at namespace and block scope (as a block declaration) and inside a class body (as a member declaration).
+
+
+
+# 位域 Bit-field
+
+有些数据在存储时并不需要占用一个完整的字节，只需要占用一个或几个二进制位即可。这些类或结构体的成员可被指定为位域。语法为在 `identifier` 后加上 `:` 来标识占用的位数：
+
+```c++
+struct bs{
+    unsigned m;
+    unsigned n: 4;
+    unsigned char ch: 6;
+};
+```
+
+- 对位域的赋值操作都会自动按照位数自动截断。
+- 可以定义未命名位域，这将空出相应位数的空间不使用。
+- 可以定义宽度为 0 的未命名位域，这将强制将下一个位域与下一个类型边界对齐。
