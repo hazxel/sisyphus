@@ -206,3 +206,7 @@ dirivative trading: 衍生品交易
 broker: 券商/代理人  个人投资者不能直接在证券交易所买卖股，因为他们没有交易席位。 broker 有交易席位，所以可以替人下单，一般也就是券商
 
 vendor: 销售
+
+SL (stop loss): 止损
+
+TP (take profit): 止盈
