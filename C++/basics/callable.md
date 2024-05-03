@@ -168,53 +168,81 @@ It prefer: (按重要性由高到低)
 
 # lambda
 
-### Syntax
+Lambda expression constructs a closure: an unnamed function object capable of capturing variables in scope. It's a convenient way to define an anonymous function. (本质上是语法糖，对语言的功能无影响，仅方便使用）首先区分以下概念：
 
-A convenient way of defining an anonymous function usually used with:
+- lambda 表达式 (lambda expression): `[](){}`是一个 prvalue 表达式，不是一个类，也不是一个实例
+- 闭包类 (closure class/closure type): 每个 lambda 都会使编译器生成一个闭包类，用以实例化闭包。
+- 闭包 (enclosure): lambda 创建的，从闭包类实例化而来的的运行时对象
 
-`[capture-list] (param-list) specifier -> return-type {function-body}`
+Syntax：`[capture-list] (param-list) specifier -> return-type { function-body }`
 
-Lambda expression can use the "outer" variables in it's scope, but must be included in the capture list `[]`
+- *capture-list* : the captured outer variables
+- *specifier* : (optional)  Lambdas are `const` by default (i.e. the cv-qualifier of `operator()` is const ) because function object should produce the same result every time it's called. To change the state of the function, use`mutable` specifier.
+- *return-type* : (optional)  
 
 ### Implementation
 
-The lambda expression is a prvalue expression of unique **unnamed** non-union non-aggregate non-**structural class type**, known as *closure type*, which is declared in the smallest block scope, class scope, or namespace scope that contains the lambda expression (e.g. `main()::<lambda(int)>`).
+The lambda expression is of a unique unnamed class type (*closure type*), declared in the smallest block, class, or namespace scope that contains the expression
 
-捕获列表会形成一个闭包，本质上是靠语法糖生成一个匿名结构体，捕获的值都会作为这个匿名结构体中的变量，如果捕获列表为空就转而实现一个成员转换函数，隐式转换为函数指针类型：
+> 有关这个生成的匿名 *closure type*，以在 `main` 函数中，返回值/参数为 `long(int)` 的 lambda 为例：
+>
+> - `decltype()` 看到的 type 是 `main()::<lambda(int)>`
+>
+> - `typeid().name()`  看到的名字为：`Z4mainEUliE_`, `Z4mainEUliE0_`, `Z4mainEUliE1_`, ... ( ) 
 
-- Normal lambda is translated into a functor of `ClosureType`. Anything inside the `[]` are turned into constructor parameters and members of the `ClosureType`, and the parameters inside `()` are turned into parameters for the `ClosureType::operator()`.
-- A lambda which captures no variables can be converted into a function pointer (MSVC2010 doesn't support this, but this conversion is part of the standard). 
+- 依据 capture-list 为 closure type 产生对应的成员变量和构造函数 (一对一存在闭包对象里)
 
-### Capture overhead
+- 依据 param-list 为 closure type 产生对应的 Function call operator `operator()`
 
-pure lambda (non-capturing) expressions are free of side effects, and therefore cannot cause, e.g., race conditions 
+- 如果 capture-list 为空，还会产生一个成员转换函数 `operator FUNC_TYPE()`，将 closure type 隐式转换为对应的函数指针类型 (MSVC2010 doesn't support this, but this is part of the standard). 
 
- ```c++
+
+### Capture
+
+The *captures* is a comma-separated list of zero or more *captures*, e.g. `[=, a, &b](){}`
+
+- optionally, *capture-list* could begin with *capture-default*, can be `=` or `&` ，默认捕获模式有误导性，可读性差，可能导致一系列问题，应尽量避免使用 (Effective modern C++ item 31)
+- 按引用捕获可能导致悬垂引用
+- pure lambda (non-capturing) expressions are free of side effects (e.g., won't cause race conditions)
+- 具有静态生命周期的对象，如全局变量，无法被捕获，但可以在 lambda 里使用，他们不受 *capture-default* 的影响（有误导性，比如你以为`[=]`默认按值捕获了，但事实上全局变量仍通过地址访问）
+
+##### init capture 初始化捕获（也称 generalized lambda capture，通用捕获） (C++14)
+
+在闭包内创建一个数据成员，并用作用域中的一个对象初始化它。出发点是为了解决缺少**移动捕获**的问题：
+
+```c++
+auto ptr = std::make_unique<Widget>();
+auto func [ptr = std::move(ptr)] { /*...*/ };
+```
+
+##### capture vs pass-by-parameter: 捕获是有 overhead 的
+
+```c++
 shared_ptr<vector<Data>> data;
 auto fun1 = [&]() {
 	//do somthing with data 1 million times
-};
-fun1();
-// 使用捕获列表时，会多一次内存寻址：需要先把被捕获的对象的地址存在栈上，再把该栈上存地址的单元的地址作为入参传入，同样的，在函数内访问该捕获对象时也需要取地址两次
+}; // call by fun1();
+// 使用捕获列表时，会多一次内存寻址：需要先把被捕获的对象的地址/值存在栈上（的闭包类型实例对象中），再把该栈上对象的地址作为入参传入函数。同样的，在函数内访问该捕获对象时也需要取地址两次
  
 auto fun2 = [](shared_ptr<vector<Data>> &d) {
 	//do somthing with data 1 million times
-};
+}; // call by fun2(data);
 // 通过参数传入引用时，和普通函数无区别
-fun2(data);
- ```
+```
 
-> 在使用 gcc 编译时，捕获列表为空，似乎也还是会安排一个字节的空间到栈上占位置:
->
-> The current object (*this) can be implicitly captured if either capture default is present. If implicitly captured, it is always captured by reference, even if the capture default is `=`. The implicit capture of *this when the capture default is `=` is deprecated.(since C++20)
+##### capture `*this`
+
+> **(deprecated since C++20)** The current object `*this` is implicitly captured if either capture-default is present.  `[=]` capture `this` by value (copy the value of the pointer), and `[&]` captures `*this` by reference. That is to say, the effects of `[=]` and `[&]` for capturing `this` are the same - no copy happens! 
+
+To make a copy of the object, use: `[=, *this]` or `[&, *this]`.
 
 ### generic lambda (C++14)
 
-generic lambda has `auto` in its parameter list, it's equivalent to:
+generic lambda has `auto` in its parameter list:
 
 ```c++
 auto lambda = [](auto x, auto y) {return x + y;};
-
+// equivalent to:
 struct unnamed_lambda
 {
   template<typename T, typename U>
@@ -236,6 +264,10 @@ auto twice2 = f3(string{"a"});
 cout << twice2() << endl; // aa
 cout << twice2() << endl; // aaaa
 ```
+
+### vs `std::bind`
+
+
 
 
 
