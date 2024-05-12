@@ -146,6 +146,8 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - `df -h`: 查看磁盘占用
 
+- `du -h`: 查看当前目录下的子目录和文件大小
+
 - `mount /dev/sdb1 /home/disk`: 临时挂载磁盘，reboot会失效，开机自动挂载需写入 fstab:
 
   ```shell
@@ -203,6 +205,7 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
   - `-E`: generate preprocessed code
   - `-S`: generate assembly code *filename.s*
   - `-g`: enable debug
+  - `-I`: provide include path
   - `-shared`: compile to shared lib
   - `-pie ` & `-no-pie`: whether the executable is position independent. 不加载到内存固定位置，提升程序安全性
   - `-Wall`： enabling all warnings
