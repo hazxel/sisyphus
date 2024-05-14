@@ -158,8 +158,23 @@ static method 不接收任何 `self` 或 `cls`， 也不能访问类变量或实
 
 
 
+# Python Interpreter
+
+### Interpreter
+
+Python 是一种解释性语言，执行时会先将 .py 文件中的源代码编译成 byte code，再由 Python Virtual Machine 来执行。这种机制与 Java、.NET 一致，但 Python 的 Virtual Machine 距真实机器的距离更远。
+
+- `.py`: Python 源代码文件
+- `.pyc`: `.py` 编译后生成的字节码文件，执行速度要远快于 `.py` 文件
+- `.pyo`: 在优化模式下(`-O`) 编译`.py` 后生成的字节码文件，在 Python 3.5 后已经取消了优化模式。
+- `.pyd`: basically a windows dll file，是 D 语言 (C/C++综合进化版本) 生成的二进制文件，比较难反编译
+- `.whl` 文件: 是 Python 发布包的一种标准，本质上是一个 `.zip` 压缩包，包含了 `.py` 文件和元数据等。可在不具备编译环境的情况下进行安装(`pip install xxxx.whl`)
+
+
+
 # Random
 
 - `__name__`: if execute source file as main program, the interpreter sets it to `"__main__"`. 
 
   > Use `if __name__ == "__main__":` to protects users from accidentally invoking the script when they didn't intend to. (e.g. when `import`, the unprotected code will be executed)
+
