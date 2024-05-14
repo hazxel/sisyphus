@@ -47,6 +47,8 @@
 
 - `docker tag SRC_IMG[:TAG] TAR_IMG[:TAG]`: create a tag TAR_IMG refers to SRC_IMG
 
+- `docker cp src_file container_id:/dst/path`: copy file to container
+
 
 ### Dockerfile
 Docker can build images automatically by reading the instructions from a textfile named Dockerfile.
