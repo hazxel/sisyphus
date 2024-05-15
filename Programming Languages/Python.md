@@ -14,8 +14,6 @@ for n in seqIter:
   	print(n)
 ```
 
-
-
 生成器表达式是用圆括号来创建生成器，其语法与推导式相同，只是将 [] 换成了 () 
 
 > python2中分range()和xrange() 其中range()是生成一个list，是一个列表生成式 而xrange()是一个生成器 
@@ -155,6 +153,23 @@ static method 不接收任何 `self` 或 `cls`， 也不能访问类变量或实
 ### property
 
 `@property` ???
+
+
+
+# Numpy
+
+### array (见上文数据结构)
+
+
+
+# Pandas
+
+Pandas 可以简单、直观地处理关系型、标记型数据，如表格数据，时间序列数据等。
+
+### 数据结构
+
+- Series：带标签的一维同构数组，形似字典，包含索引（数据标签）和数据。由于基于一维 NumPy 数组实现，虽然其可以包含不同类型的数据，但可能会导致性能下降。
+- DataFrame：大小可变的二维异构表格，可以看作用等长 Series 组成的字典
 
 
 
