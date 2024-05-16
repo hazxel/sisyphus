@@ -171,6 +171,12 @@ Pandas 可以简单、直观地处理关系型、标记型数据，如表格数�
 - Series：带标签的一维同构数组，形似字典，包含索引（数据标签）和数据。由于基于一维 NumPy 数组实现，虽然其可以包含不同类型的数据，但可能会导致性能下降。
 - DataFrame：大小可变的二维异构表格，可以看作用等长 Series 组成的字典
 
+### 数据操作
+
+- roling
+- truncate
+- set_index
+
 
 
 # Python Interpreter
