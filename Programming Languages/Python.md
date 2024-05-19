@@ -198,4 +198,6 @@ Python 是一种解释性语言，执行时会先将 .py 文件中的源代码�
 - `__name__`: if execute source file as main program, the interpreter sets it to `"__main__"`. 
 
   > Use `if __name__ == "__main__":` to protects users from accidentally invoking the script when they didn't intend to. (e.g. when `import`, the unprotected code will be executed)
+  
+- `import`: 会先查看当前目录，比如你有个文件叫 `random.py`，就会覆盖原生的 `random`库
 
