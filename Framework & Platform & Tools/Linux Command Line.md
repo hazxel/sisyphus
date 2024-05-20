@@ -93,7 +93,9 @@ The corresponding numerical identifier values of stdin, stdout, and stderr are 0
 
 - 软链接，全称是软链接文件，英文叫作 symbolic link。需要提供`-s` 参数来创建，非常类似于 Windows 里的快捷方式，这个软链接文件（假设叫 VA）的内容，其实是另外一个文件（假设叫 B）的路径和名称，当打开 A 文件时，实际上系统会根据其内容找到并打开 B 文件。
 
-  > 删除软链接时后面不要带上斜杠 /，会导致被链接文件夹中文件被删除
+  - 删除软链接时后面不要带上斜杠 /，会导致被链接文件夹中文件被删除
+  - 软链接的源路径不能为另一个软链接
+  - `ln -s /src/path /dst/path` 中，如果 `/dst/path` 是一个文件夹，就会在文件夹下创建一个和源文件同名的软链接，如果不是文件夹而是一个（不存在的）文件，就会以该名称创建软链接
 
 - 硬链接，全称叫作硬链接文件，英文名称是 hard link。`ln`默认创建的是硬链接，这类文件比较特殊，会拥有自己的 inode 节点和名称，其 inode 会指向文件内容所在的数据块。与此同时，该文件内容所在的数据块的引用计数会加 1。当此数据块的引用计数大于等于 2 时，则表示有多个文件同时指向了这一数据块。一个文件修改，多个文件都会生效。当删除其中某个文件时，对另一个文件不会有影响，仅仅是数据块的引用计数减 1。当引用计数为 0 时，则系统才会清除此数据块。
 
@@ -209,6 +211,7 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
   - `-shared`: compile to shared lib
   - `-pie ` & `-no-pie`: whether the executable is position independent. 不加载到内存固定位置，提升程序安全性
   - `-Wall`： enabling all warnings
+  - `-Werror`: all warnings treated as errors 有助于确保代码质量，因为它迫使开发人员处理所有的警告
   - `-Wl,aaa,bbb,ccc`: a comma-separated list of tokens that will be passed to linker as space-separated list as `ld aaa bbb ccc`
 
 ### GNU Linker (`ld`) options
@@ -278,6 +281,24 @@ LDD Search:
 ### objdump
 
 Different from *ld*, simply dumping what the object itself lists as libraries containing unresolved symbols. 可用于分析目标文件（object file）和可执行文件（executable file），可以显示二进制文件的汇编代码、符号表、段信息等，是理解程序底层实现、调试和逆向工程的有力助手。
+
+### ccache
+
+ccache 是一个编译器缓存，可以将编译的结果缓存到本机目录下，如 `$HOME/.ccache`。这样之后再次编译将变得很快。
+
+- 直接在命令行使用：`ccache gcc xx.c`
+
+- 可使用编译器的名字为 `ccache` 创建软链接，此时调用 `gcc xx.c` 时，虽然实际调用的是 `ccache` 而非 `gcc`，但 `ccache` 会根据调用命令去 `PATH` 寻找名为 `gcc` 的编译器 (第二个参数不必再传编译器了)
+
+  ```sh
+  cp ccache /usr/local/bin/
+  ln -s ccache /usr/local/bin/gcc
+  ln -s ccache /usr/local/bin/g++
+  ```
+
+- 在 Makefile 或者 CMake 中，可以使用 `export CC="ccache gcc"` 还有 `export CXX="ccache g++"`
+
+- CMake 中最近也直接支持直接声明为 launcher 以达成伪装成编译器的目的：`CMAKE_<LANG>_COMPILER_LAUNCHER` ，`CMAKE_<LANG>_LINKER_LAUNCHER`
 
 
 
