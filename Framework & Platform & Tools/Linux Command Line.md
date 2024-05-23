@@ -99,16 +99,41 @@ The corresponding numerical identifier values of stdin, stdout, and stderr are 0
 
 - 硬链接，全称叫作硬链接文件，英文名称是 hard link。`ln`默认创建的是硬链接，这类文件比较特殊，会拥有自己的 inode 节点和名称，其 inode 会指向文件内容所在的数据块。与此同时，该文件内容所在的数据块的引用计数会加 1。当此数据块的引用计数大于等于 2 时，则表示有多个文件同时指向了这一数据块。一个文件修改，多个文件都会生效。当删除其中某个文件时，对另一个文件不会有影响，仅仅是数据块的引用计数减 1。当引用计数为 0 时，则系统才会清除此数据块。
 
-### Users and groups
 
-> When creating a new user, the default behavior of the `useradd` command is to create a group with the same name as the username, and same GID as UID. The `-g` (`--gid`) option allows you to create a user with a specific initial login group. You can specify either the group name or the GID number. The group name or GID must already exist.
+
+
+
+# Users and groups
+
+### Commands:
+
+- 列举所有用户: `cat /etc/passwd`
+
+- 列举所有用户组: `groups` / `cat /etc/group`
+
+- 列举用户所属组: `groups $user_name`
+
+- 列举组内用户: `groups $group_name`
+
+- 列举当前用户uid gid 等信息: `id`
+
+- 创建用户: `adduser $user_name`
+
+  > `useradd` is native binary compiled with the system, while `adduser` is a perl script wrapper which uses `useradd` binary in back-end. `adduser` is more user friendly and interactive.
+  >
+  > When creating a new user, the default behavior of the `useradd` command is to create a group with the same name as the username, and same GID as UID. The `-g` (`--gid`) option allows you to create a user with a specific initial login group. You can specify either the group name or the GID number. The group name or GID must already exist.
+
+- 修改/设置密码: `passwd $user_name`
+
+- 切换用户switch user: `su $user_name` 不带用户名则切换为 root 
+
+- 修改文件的 所有者/所有组: `chown -R 1003:1003 /path/to/dir`
+
+- 修改文件的 所有者/用户组/其它用户 的 读/写/执行权限: `chmod -R 777 /path/to/dir`
+
+### create user
 
 ```sh
-# Check users and groups
-cat /etc/passwd
-cat /etc/group
-groups $your_user_name
-groups $your_group_name
 #Create your own account
 sudo adduser $your_user_name
 sudo passwd $your_user_name
@@ -120,10 +145,15 @@ sudo newgrp docker
 sudo su $your_user_name
 ```
 
-### Files & users & permission
+### groups
 
-- 修改所有者: `chown -R 1003:1003 /path/to/dir`
-- 变更访问权限: `chmod -R 777 /path/to/dir`
+通常不使用 root 用户直接登录，而是用普通用户登录。需要 root 权限时，可以 su 登录成为 root 用户。但只要知道了 root 的密码，任何人都可以登录为 root 用户，有安全隐患。
+
+wheel 组类似于一个管理员的组，普通用户加入 wheel 后就会成为管理员组内的用户，一般会配置只有 wheel组的用户才可以用 su 登录为 root，以增强系统安全性：
+
+- 修改 /etc/pam.d/su 文件，找到“#auth required /lib/security/$ISA/pam_wheel.so use_uid ”这一行，将行首的“#”去掉。
+- 修改 /etc/login.defs 文件，在最后一行增加“SU_WHEEL_ONLY yes”语句。
+- 用“usermod -G wheel 用户名”将一个用户添加到wheel组中。
 
 
 
@@ -323,14 +353,14 @@ ccache 是一个编译器缓存，可以将编译的结果缓存到本机目录�
 
 
   - To figure out all available shells: `cat /etc/shells`
-  
+
 
 
   - Switch between shells:`chsh -s /bin/bash`,`chsh -s /bin/zsh`
 
 
   - Alias: defined in your shell configuration file, and act as a shortcut to reference a frequently used command, for example: `alias v="vim"`
-  
+
 
 
 
