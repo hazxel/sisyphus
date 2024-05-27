@@ -1,3 +1,5 @@
+# 一般流程
+
 1. **训练模型**： 选择合适的机器学习或深度学习模型，使用数据对模型进行训练。这可能涉及特征工程、模型选择、参数调优等步骤。常见的机器学习库包括Scikit-learn（Python）、TensorFlow、PyTorch等。
 2. **导出模型**： 模型训练完成后可将训练好的模型导出。对于常见的模型，如Scikit-learn中的线性回归、支持向量机等，可以使用库提供的导出功能。对于深度学习模型，可以使用TensorFlow Serving、ONNX 等工具将模型导出为相应的格式。
 3. **集成模型到代码中**： 在对应平台上，编写相应的代码来加载和调用导出的模型。对于常见的模型格式，如PMML、ONNX等，可能有现成的库可以用来加载和调用模型。
@@ -6,11 +8,17 @@
 
 
 
-# 过拟合
+# 分布式机器学习训练
 
-- 数据集扩增（Data Augmentation）
-- Early Stopping
-- 正则化（regularization）即修改损失函数
-  - 稀疏参数 （L1 正则化）
-  - 更小参数 （L2 正则化）
-- Dropout
+### Spark MLlib
+
+Spark采取了简单直观的数据并行的方法解决模型并行训练的问题，但由于Spark的并行梯度下降方法是同步阻断式的，且模型参数需通过全局广播的形式发送到各节点，因此Spark的并行梯度下降是相对低效的。
+
+### parameter server
+
+Parameter Server采取了和Spark MLlib一样的数据并行训练产生局部梯度，再汇总梯度更新参数权重的并行化训练方案。Parameter Server由server节点和worker节点组成，其主要功能分别如下：
+
+- server: 保存模型参数、接受 worker 计算出的局部梯度、汇总计算全局梯度，并更新模型参数
+- worker: 保存部分训练数据，从 server 节点拉取最新的模型参数，计算局部梯度并返回给server
+
+https://www.zhihu.com/tardis/zm/art/82116922?source_id=1003
