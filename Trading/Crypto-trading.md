@@ -60,14 +60,58 @@
 
 ### 永续期货合约 perpetual swap
 
-也称为永续合约，不同于普通期货合约，永续合约没有到期日。它通过现金结算，合约多空双方头寸的持有者需要定期地付款，其方向和规模取决于合约价格和标的资产价格的差额。
+也称为永续合约，BitMEX 首创，不同于普通期货合约，永续合约没有到期日。
 
-BitMEX 首创该合约，其做法是每8小时让多空双方之间支付资金费用。如果永续合约价格高于现货价格，说明多头势能较强，于是多头将向空头支付资金费用，反之，空头向多头支付资金费用，支付或收取的资金按照持仓数量计算。由于多空持仓总量永远是相等的，因此，资金费用并不是由交易所收取，而是在多空双方之间转移。BitMEX将BTC利率定为年化3%，并按此计算资金费率，具体计算公式比较复杂，且与盘口流动性相关，但长期来看总是多头向空头支付资金费用，且牛市期间支付的费率更高。
+永续期货合约单位为张，一般10/100/1000张等同一个现货标的物，最小交易单位一般为0.1张
 
-永续期货合约单位为张，100/1000张等同一个现货标的物，一般最小交易单位为0.1张
+永续合约稳定价格的做法是每8小时让多空双方之间支付资金费。资金费用并不是由交易所收取，而是在多空双方之间转移。若永续合约价格高于现货价格，资金费率为正数，多头将向空头支付资金费用；反之资金费率为负数，空头向多头支付资金费。
+
+资金费按照持仓数量计算。If you close your position prior to the funding exchange then you will not pay or receive funding.
+
+资金费率 Funding Rate (F) 的计算由交易所确定，不同交易所可能略有差别，BitMEX 给出的公式如下：
+$$
+F = P + \text{Clamp}(I - P, a, b)
+$$
+- Interest Rate (I) 为币种利率，是一个固定值：
+  $$
+  I = \frac{\text{Interest Quote Index} - \text{Interest Base Index}}{\text{Funding Interval}}
+  $$
+
+  - Funding Interval = 3 (Since funding occurs every 8 hours)
+  - Interest Base Index = interest rate for borrowing the Base currency
+  - Interest Quote Index = interest rate for borrowing the Quote currency
+  - For example, on XBTUSD, the Base currency is XBT while the quote currency is USD.
+
+  > - BitMEX将BTC利率定为年化3%
+  > - 有一些交易所，比如 gate.io，将分子统一设定为 0.03% 每日
+
+- Premium Index (P) 为溢价指数：
+  $$
+  P = \frac{\max(0, \text{Impact Bid Px} - \text{Mark Px}) - \max(0, \text{Mark Px} - \text{Impact Ask Px}) }{\text{Spot Px} + \text{Fair Basis used in Mark Px}}
+  $$
+
+  - Impact Bid/Ask Px: 深度加权买卖价，The average filled price to execute the Impact Margin Notional (i.e. 10000USD for perpetual contract) on the Bid/Ask side.
+  - Impact Mid Price: average of Impact Bid Price and Impact Ask Price
+  - Mark Px: 标记价格，标的物现货在某时间点的市价
+  - Index Px: 指数价格，各大交易所上标的物现货交易价格的加权平均。有时也使用该价格替代 mark px
+  - Spot Px: 现货价格，似乎等同于 Mark Px
+  
+- a, b: 资金费变动上下限，一般为 $\pm 0.05\%$. 若 $(I - P) $ 在 $\pm 0.05\%$ 范围内，则 $F = P + (I - P) = I$. 因此长期来看总是多头向空头支付资金费用。
+
+> 不同交易所计算方式不尽相同，如 okx 采用 $F=\text{Clamp}[\text{MA}_{8h}(P - I), a, b]$，这种费率对多空双方都是公平的。
+
+
 
 
 
 # 质押
 
 "质押"数字货币是指将您的数字货币存入一个特定的钱包或智能合约中，以帮助保护区块链网络，并有可能基于您所质押的数字货币获得奖励。这样做既有助于支持网络的安全性和稳定性，也可以为您带来一定的回报。
+
+
+
+# 转账
+
+TRC20是由波场TRON与泰达公司Tether合作发行的稳定币通道，其中的TRC20-USDT相比于传统的Omni-USDT和ERC20-USDT在转账费用和交易确认速度方面都有显著的改进。
+
+收款方若持有 usdt，手续费也会相对较低
