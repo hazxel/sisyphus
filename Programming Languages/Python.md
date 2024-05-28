@@ -179,6 +179,54 @@ Pandas 可以简单、直观地处理关系型、标记型数据，如表格数�
 
 
 
+# Multi-threading
+
+### Thread(太低级！)
+
+### 异步函数(好难用！)
+
+异步函数是一种特殊类型的函数，它可以包含`await`表达式，并且在运行时可以挂起（暂停）和恢复执行。异步函数通过在 `def` 关键字前添加 `async`关键字来定义。
+
+直接调用异步函数不会返回结果，而是返回一个`coroutine`协程对象。(会触发一个warning)
+
+```python
+import asyncio
+async def async_function():
+    return 1
+async def await_coroutine():
+    result = await async_function()   
+    print(result) # 1
+asyncio.run(await_coroutine())
+```
+
+`await` 关键字：只能出现在通过async修饰的函数中。将暂停当前异步函数的执行，并立即开始执行另一个异步操作，等待其操作完成后，恢复执行当前异步函数。；`await`关键字后的表达式通常是一个异步操作，比如调用另一个异步函数、调用返回`awaitable`对象的内置异步方法，或者调用一个带有异步支持的库函数。
+
+### coroutine（好用！）
+
+并发执行 example
+
+```python
+import concurrent.futures
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
+    to_do = []
+    for arg in arg_list:  # 模拟多个任务
+        to_do.append(executor.submit(some_task, arg))
+
+    for future in concurrent.futures.as_completed(to_do):
+        try:
+            res = future.result() # catch potential exceptions in task
+        except Exception as e: 
+        		print("An error occurs: {}".format(e))
+				print("Task result: {}".format(res))
+```
+
+
+
+
+
+
+
 # Python Interpreter
 
 ### Interpreter
