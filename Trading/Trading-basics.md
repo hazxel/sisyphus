@@ -233,3 +233,5 @@ SL (stop loss): 止损
 TP (take profit): 止盈
 
 premium: 溢价
+
+arbitrage：套利
