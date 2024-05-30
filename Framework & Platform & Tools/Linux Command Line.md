@@ -220,6 +220,8 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - iostat
 
+- lspci: 可列出每个pci总线上的设备，通过grep过滤后可得到网卡设备列表等
+
 - Network: see Linux-network chapter
 
 - system service: `service --status-all`

@@ -56,7 +56,9 @@ e_net
 # Commands
 
 - iperf: a tool for active measurements of the maximum achievable bandwidth on IP networks
-- ifconfig: displays information about all network interfaces currently in operation
+- ifconfig: displays information about all network interfaces currently in operation 网络接口信息
+- iwconfig: 查看无线网卡
+- ethtool: 查询配置网卡参数等
 - IP/port usage: `netstat -tulpn | grep LISTEN`
 - 端口进程占用: `lsof -i:10002`
 - Check ssh service: `ps -ef | grep ssh`
