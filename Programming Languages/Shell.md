@@ -55,3 +55,9 @@
   ```
 
 - xxx
+
+
+
+# bash vs sh
+
+a `#!/bin/bash` script  is a bash script, and a `#!/bin/sh` script is a sh script, on some systems they are different.
