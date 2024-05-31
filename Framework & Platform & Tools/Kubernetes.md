@@ -339,6 +339,8 @@ Kubectl is Kubernetes command line interface used to interact with the cluster.
 - `kubectl expose`: expose a resource as a new Kubernetes service
 - `kubectl run`: create a **pod** and run an image in it
 - `kubectl exec`: execute a command on a container in a pod
+  - 可用于登陆：`kubectl exec -it my-pod --container main-app -- /bin/bash`
+
 - `kubectl delete`: delete
   - pod 删除卡在 terminating 可使用 `kubectl delete pod <PODNAME> --grace-period=0 --force --namespace <NAMESPACE>`
 - `kubectl config`: 
@@ -349,7 +351,8 @@ Kubectl is Kubernetes command line interface used to interact with the cluster.
   - use-context: switch to different context
   - `KUBECONFIG=./scheduling-dev-mgmt.kubeconfig:scheduling-dev-wkld.kubeconfig kubectl config view --flatten > scheduling-dev.kubeconfig `: merge config files
 - `kubectl top pod -n namespace`: 查看所有pod，nodes中内存，CPU使用情况 
-- `kubectl cp <ns>/<podname>:/path/to/src /path/to/dst`: 复制文件：
+- `kubectl cp <ns>/<podname>:/path/to/src /path/to/dst`: 复制文件
+- `kubectl label node <node_name> key1=val1 key2=val2`: 给 node/pod/... 打标签
 
 ### Kubeadm
 
@@ -475,3 +478,19 @@ Delete subnet:
 - list values: `kubectl exec -it ds-core-etcd-0 -- etcdctl get --prefix /`
 - delete values: `kubectl exec -it ds-core-etcd-0 -- etcdctl del --prefix /`
 
+
+
+
+
+# 加载GPU资源
+
+- 安装 nvidia-container-toolkit 和 nvidia-docker2
+  - 下载并安装 gpg key
+    - `wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-keyring_1.0-1_all.deb`
+    - `sudo dpkg -i cuda-keyring_1.0-1_all.deb`
+  - 正确配置 `/etc/apt/sources.list.d/nvidia-container-toolkit.list`
+  - `apt-get update` + `apt-get install nvidia-container-toolkit nvidia-docker2`
+- 安装 nvidia-docker2 后，有选项可以自动修改 `/etc/docker/daemon.json` 并在 `runtimes` 中添加 `nvidia` 的路径等，但并未将其设置为默认，需要在文件中新增 `"default-runtime": "nvidia"`
+- 更新 systemd 配置并重启 docker daemon: `systemctl daemon-reload` + `systemctl restart docker`
+- 在集群中每个节点部署 `nvidia-device-plugin`: `$ kubectl create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml `
+- 创建 pod 时可指定资源类型为`nvidia.com/gpu`
