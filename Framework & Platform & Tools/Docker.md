@@ -97,3 +97,23 @@ docker 也是基于 containerd 做一定封装，
 - `ctr -n k8s.io image import`: 导入镜像
 
 ### crictl
+
+
+
+
+
+# Settings
+
+- `/etc/docker/daemon.json`:
+  - insecure-repository: 配置允许用户与不安全的镜像仓库进行通信
+  - registry-mirrors: 配置 registry 镜像代理源（xxx.mirror.edu...）
+
+- `/etc/systemd/system/docker.service.d/proxy.d/proxy.conf`: docker proxy
+- `/usr/lib/systemd/system/docker.service`:?
+  - `systemctl status docker.service` 查看 load 的是哪个配置文件
+  - 直接修改 `ExecStart` 等
+
+- `/etc/resolv.conf`: ?
+- `/etc/host`: ?
+- 重新加载 systemd 配置并重启 daemon：`systemctl daemon-reload` / `systemctl restart docker`
+
