@@ -220,7 +220,13 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - iostat
 
-- lspci: 可列出每个pci总线上的设备，通过grep过滤后可得到网卡设备列表等
+- lspci: 可列出每个pci/pcie总线上的设备，通过grep过滤后可得到：
+
+  - 网卡：`lspci | grep -i net`
+
+  - 显卡：`lspci | grep -i vga`
+
+  - Nvidia GPU：`lspci | grep -i nvidia` or `nvidia-smi`
 
 - Network: see Linux-network chapter
 
@@ -334,37 +340,6 @@ ccache 是一个编译器缓存，可以将编译的结果缓存到本机目录�
 
 
 
-# other commands
-
-- print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat/etc/euleros-latest`
-
-- apt withou root: `apt download <pkg>` & `dpkg -x <pkg>.deb <dir>`
-
-- 定时任务: Crontab
-  - vim编辑创建定时任务：`crontab -e`
-
-  - 从文件导入：`crontab filename`
-
-  - 查看单个用户任务：`crontab -l -u usrname`
-
-  - 查看所有用户的任务：`cat /etc/passwd | cut -f 1 -d : |xargs -I {} crontab -l -u {}`
-  
-- `pushd`/`popd`: 替代 `cd`，用一个栈存储目录 （`cd`  改变的是栈顶）
-  
-- To figure out the default shell: `echo $SHELL`
-
-
-  - To figure out all available shells: `cat /etc/shells`
-
-
-
-  - Switch between shells:`chsh -s /bin/bash`,`chsh -s /bin/zsh`
-
-
-  - Alias: defined in your shell configuration file, and act as a shortcut to reference a frequently used command, for example: `alias v="vim"`
-
-
-
 
 
 # Environment Variable
@@ -399,3 +374,50 @@ When you need to add a environment variable, better not to add directly to **/et
 
 If you are executing your files like `sh 1.sh` or `./1.sh`, you are executing it in a sub-shell. If you want the changes on environment variable to take effect in current shell, run: `. 1.sh` or `source 1.sh`
 
+
+
+
+
+# package management
+
+### apt get
+
+- apt withou root: `apt download <pkg>` & `dpkg -x <pkg>.deb <dir>`
+
+- 有时一个 package 需要公钥验证才能下载：
+
+  - 下载公钥：`wget https://xx.xx.xx.gpg`
+
+  - 修改 apt source 配置：新增 `/etc/apt/sources.list.d/xxx.list` 文件，内容大致为：
+
+    ```
+    deb [signed-by=/etc/path/to/key] https://download.src/stable/distro/arch/xxx
+    ```
+
+- xxx
+
+
+
+# other commands
+
+- print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat/etc/euleros-latest`
+- 定时任务: Crontab
+  - vim编辑创建定时任务：`crontab -e`
+
+  - 从文件导入：`crontab filename`
+
+  - 查看单个用户任务：`crontab -l -u usrname`
+
+  - 查看所有用户的任务：`cat /etc/passwd | cut -f 1 -d : |xargs -I {} crontab -l -u {}`
+- `pushd`/`popd`: 替代 `cd`，用一个栈存储目录 （`cd`  改变的是栈顶）
+- To figure out the default shell: `echo $SHELL`
+
+
+  - To figure out all available shells: `cat /etc/shells`
+
+
+
+  - Switch between shells:`chsh -s /bin/bash`,`chsh -s /bin/zsh`
+
+
+  - Alias: defined in your shell configuration file, and act as a shortcut to reference a frequently used command, for example: `alias v="vim"`
