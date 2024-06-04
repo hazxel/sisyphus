@@ -6,6 +6,10 @@
 
 Dynamically manage memory for stl containers. 考虑到小型区域可能造成内存破碎问题，SGI STL设计了双层级配置器，第一层配置器直接使用malloc()和free()，第二层配置器则视情况采用不同的策略：当配置区块超过128bytes时，调用第一层级配置器，当配置区块小于128bytes时，采用复杂的memory pool方式。
 
+### Erasable 要求
+
+所有 STL 容器都要求元素类型是完整类型并满足可擦除 (Erasable) 的要求，当然许多成员函数附带了更严格的要求。所谓可擦除，就是指一个对象可以被给定 allocator 销毁。注意，引用本质上是别名，不可被销毁，所以不符合可擦除原则。
+
 
 
 # array (fixed size array)
@@ -131,14 +135,24 @@ Since a key of a `unordered_map` or `map` is also `const`, which means the type 
 
 
 
+### compare
+
+需要一个方法判断 key 的大小关系，默认使用 `std::less<Key>`，will invoke `operator<` on type `T` unless specialized. 函数返回值为 `bool`，参数为两个 `const T&`，自定义方法参考下文关于自定义哈希的示例。
+
+
+
 # unordered_map, unordered_set (hash map)
 
 Map: `find`, `erase`
 
-Key 默认支持计算散列值的对象类型是整型、小数、指针和字符串，其他的结构需要自己定制 hash 函数：
+
+
+### hash
+
+`std::hash<T>` 已为数字、枚举、指针、字符串，以及其他一部份 STL 类型的键值定义特化；对于其他键值类型，需要自定义 `std::hash<T>`  特化或者传递哈希 callable (返回值为 `size_t`，参数为 `const & T`)：
 
 ```c++
-// #1: template specialization
+// #1: template specialization of std::hash
 namespace std {
 template <>
 class hash<Foo>{
@@ -163,6 +177,10 @@ auto hash = [](const Goo &g){ return std::hash<int>{}(g.val); };
 auto comp = [](const Goo &l, const Goo &r){ return l.val == r.val; };
 unordered_map<Goo, double, decltype(hash), decltype(comp)> m(10, hash, comp); // usage
 ```
+
+### equal_to
+
+除了哈希，还需要判断元素是否相同。默认使用 `std::equal<T>`, will invokes `operator==` on type `T` unless specialised. 函数返回值为 `bool`，参数为两个 `const T&`，自定义的方法和上述自定义哈希的方法类似。
 
 
 
