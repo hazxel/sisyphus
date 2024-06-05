@@ -175,7 +175,7 @@ A label in Kubernetes is a semantic tag that can be **attached to Kubernetes obj
 
 Resource 包括默认资源如 CPU，Memory，用户也可自定义资源 (Custom Resource Definition, CRD)
 
-Label 是在各级组件如 node，pod 上打的标签，用户也可自定义标签
+Label 是在各级组件如 node，pod 上打的标签，用户也可自定义标签，注意自定义标签的 value 必须被引号 quote！
 
 Affinity 可根据标签进行亲和调度（e.g.数据亲和）或反亲和调度（e.g.每个节点只需要一个proxy）
 
