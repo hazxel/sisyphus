@@ -222,7 +222,7 @@ shared_ptr<vector<Data>> data;
 auto fun1 = [&]() {
 	//do somthing with data 1 million times
 }; // call by fun1();
-// 使用捕获列表时，会多一次内存寻址：需要先把被捕获的对象的地址/值存在栈上（的闭包类型实例对象中），再把该栈上对象的地址作为入参传入函数。同样的，在函数内访问该捕获对象时也需要取地址两次
+// 使用捕获列表时，会多一次内存寻址：需要先把被捕获的对象的地址/值存在栈上（闭包类实例中），该栈上对象的地址相当于函数的入参。因此在函数内访问被捕获对象时，需要取地址两次
  
 auto fun2 = [](shared_ptr<vector<Data>> &d) {
 	//do somthing with data 1 million times
@@ -232,7 +232,9 @@ auto fun2 = [](shared_ptr<vector<Data>> &d) {
 
 ##### capture `*this`
 
-> **(deprecated since C++20)** The current object `*this` is implicitly captured if either capture-default is present.  `[=]` capture `this` by value (copy the value of the pointer), and `[&]` captures `*this` by reference. That is to say, the effects of `[=]` and `[&]` for capturing `this` are the same - no copy happens! 
+The current object `*this` is implicitly captured if either capture-default is present.  `[=]` capture `this` by value (copy the value of the pointer), and `[&]` captures `*this` by reference. That is to say, the effects of `[=]` and `[&]` for capturing `this` are the same - no copy happens!  
+
+> **(deprecated)** The implicit capture of `*this` when the capture default is `=` is deprecated since C++20
 
 To make a copy of the object, use: `[=, *this]` or `[&, *this]`.
 
@@ -242,28 +244,35 @@ generic lambda has `auto` in its parameter list:
 
 ```c++
 auto lambda = [](auto x, auto y) {return x + y;};
-// equivalent to:
-struct unnamed_lambda
-{
+// above is equivalent to below:
+struct unnamed_lambda {
   template<typename T, typename U>
     auto operator()(T x, U y) const {return x + y;}
 };
 auto lambda = unnamed_lambda();
 ```
 
-？？？泛型闭包：
+应用完美转发和可变形参：
 
 ```c++
-auto f3 = [](auto a) {
-  return [=]() mutable { return a = a + a; };
+auto f = [](auto&&... params) {
+    return some_templ_func(std::forward<decltype(params)>(params)...);
 };
-auto twice1 = f3(1);
-cout << twice1() << endl; // 2
-cout << twice1() << endl; // 4
-auto twice2 = f3(string{"a"});
-cout << twice2() << endl; // aa
-cout << twice2() << endl; // aaaa
 ```
+
+> 欣赏：结合 `mutable` 的一个神奇的用法：
+>
+> ```c++
+> auto f3 = [](auto a) {
+>   return [=]() mutable { return a = a + a; };
+> };
+> auto twice1 = f3(1);
+> cout << twice1() << endl; // 2
+> cout << twice1() << endl; // 4
+> auto twice2 = f3(string{"a"});
+> cout << twice2() << endl; // aa
+> cout << twice2() << endl; // aaaa
+> ```
 
 ### vs `std::bind`
 
@@ -273,7 +282,7 @@ cout << twice2() << endl; // aaaa
 
 # STL Functionals
 
-### function
+### std::function
 
 函数包装器，可包装各种类型的调用实体如：普通函数，对象方法，实现了仿函数操作符的对象，lamda表达式等：`std::function<int(int)> callback;`
 
@@ -281,13 +290,13 @@ STL中大量使用function作为算法的入参，如`sort`, `for_each`, `visit`
 
 > implementation in-deep: https://zhuanlan.zhihu.com/p/142175297
 
-### bind
+### std::bind
 
 给函数绑定参数，使之变为另一个签名的函数
 
 ### std::ref
 
-本质是一个wrapper，可以在使用bind的时候使之变为传引用（默认为传值）
+本质是一个wrapper，可以在使用bind的时候使之变为传引用（默认为传值），详见 reference 章节
 
 ### std::invoke (C++17)
 
