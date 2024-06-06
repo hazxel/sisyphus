@@ -41,7 +41,34 @@ Conclusion: for self defined header files, use `#include ""`
 
   defined as if by: `static const char __func__[] = "function-name";`
 
+- `#<YOUR_MACRO>`: stringize the macro tokens
+
+  ```c++
+  #define MY_MACRO(...) func(#__VA_ARGS__)
+  MY_MACRO(a); // func("a");
+  ```
+
+- variadic macros: declared to accept a variable number of arguments, for example:
+
+  ```c++
+  #define eprintf(...) fprintf (stderr, __VA_ARGS__)
+  ```
+
+  - `__VA_ARGS__`: replace all the tokens in its argument list including any commas
+  - `##__VA_ARGS__`: if  variable macros matched 0 args, help to delete the previous comma.
+  - `__VA_OPT__`: **(available only in GNU C, GNU C++ and C++20)** optionally expand tokens in a variadic macro if number of args greater than 0.
+  
+  ```c++
+  #define MY_MACRO_1(first,...) func(first,__VA_ARGS__)
+  #define MY_MACRO_2(first,...) func(first,##__VA_ARGS__)
+  #define MY_MACRO_3(first,...) func(first __VA_OPT__(,) __VA_ARGS__)
+  MY_MACRO_1(a); // `func(a, );  
+  MY_MACRO_2(a); // `func(a);
+  MY_MACRO_3(a); // `func(a);
+  ```
+  
 - xxx
+
 
 
 
