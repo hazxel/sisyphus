@@ -2,6 +2,14 @@ this document contains C++ basic topics, or those hard to categorize.
 
 Cpp的复杂性来源：零开销抽象&编译期求值，既要可读性，抽象，又要性能
 
+
+
+# Standard
+
+C++ 标准规定了 C++ 的语法，语言特性，以及 C++ 标准库 STL（的接口）。ISO 发布的正式 C++ 标准: C++98, C++03, C++11(C++0x), C++14(C++1y), C++17(C++1z), C++20(C++2a), C++23(C++2b) 
+
+
+
 # Operator & Expressions
 
 - 逗号运算符：取最右边的表达式的值，其他值被丢弃 (`(a, b)`的值是`b`)，优先级最低
