@@ -230,13 +230,15 @@ auto fun2 = [](shared_ptr<vector<Data>> &d) {
 // 通过参数传入引用时，和普通函数无区别
 ```
 
-##### capture `*this`
+##### capture `*this` (C++17)
 
-The current object `*this` is implicitly captured if either capture-default is present.  `[=]` capture `this` by value (copy the value of the pointer), and `[&]` captures `*this` by reference. That is to say, the effects of `[=]` and `[&]` for capturing `this` are the same - no copy happens!  
+Before C++17, current object `*this` is implicitly captured if either capture-default is present.  `[=]`-default will capture `this` by value (copy the value of the pointer); and `[&]`-default will captures `*this` by reference. That is to say, the effects of `[=]` and `[&]` for capturing `this` are the same - no copy!!
 
-> **(deprecated)** The implicit capture of `*this` when the capture default is `=` is deprecated since C++20
+这非常有迷惑性，因为直觉上 `[=]` 会捕获值，但其默认捕获 `this` 指针时，相当于使用实际地址捕获了所有成员变量（所以使用时和引用捕获类似，指针可能失效！）为了避免多线程场景下 `this` 失效的情况，可以拷贝 `this`: `[=, *this]` or `[&, *this]`. 
 
-To make a copy of the object, use: `[=, *this]` or `[&, *this]`.
+> **(deprecated since C++20)** The implicit capture of `*this` when the capture default is `[=]` is deprecated. 终于！
+
+
 
 ### generic lambda (C++14)
 
