@@ -161,3 +161,22 @@ ZeRO分为三个阶段，分别对应 O、P 和 G。每个 GPU 仅保存部分 O
 # 集合通信
 
 https://zhuanlan.zhihu.com/p/493092647#:~:text=%E9%9B%86%E5%90%88%E9%80%9A%E4%BF%A1%EF%BC%88Collective%20Communications%EF%BC%89%E6%98%AF,%E5%8E%9F%E8%AF%AD%EF%BC%8C%E6%AF%94%E5%A6%82%EF%BC%9A1%E5%AF%B9
+
+
+
+# GPU Partitioning
+
+### Multi-Stream
+
+通过创建多个 Stream，增加 Kernel 执行的并行度，提高资源利用率
+
+### Multi-Process Service (MPS)
+
+一个逻辑上的分区方式，将 SM 分组并分配给不同的进程使用，使多个进程同时在一张卡上跑（不是切时间片）
+
+### Multi-Instance GPU (GIG)
+
+在硬件上将 SM 进行分割，每个 partition 具有独立的 shared memory 带宽，保证不同进程之间的隔离性。
+
+
+
