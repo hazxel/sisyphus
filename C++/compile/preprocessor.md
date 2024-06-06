@@ -55,7 +55,7 @@ Conclusion: for self defined header files, use `#include ""`
   ```
 
   - `__VA_ARGS__`: replace all the tokens in its argument list including any commas
-  - `##__VA_ARGS__`: if  variable macros matched 0 args, help to delete the previous comma.
+  - `##__VA_ARGS__`: **(non-portable GCC syntax)** if  variable macros matched 0 args, help to delete the previous comma.
   - `__VA_OPT__`: **(available only in GNU C, GNU C++ and C++20)** optionally expand tokens in a variadic macro if number of args greater than 0.
   
   ```c++

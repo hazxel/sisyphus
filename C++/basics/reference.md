@@ -3,8 +3,13 @@
 A Reference is not a object, but an alias ot an existing object or function. Since references are not objects, there are **no arrays** of references, **no pointers** to references, and **no references** to references.
 
 - Reference **cannot be modified to refer to other objects** after init.
+
+  > 这意味着，将引用作为类成员会导致类不可赋值 (assignment operator will default to `delete`) 解决方案一般为使用指针，自定义所有特殊成员函数，或是使用 `reference_wrapper` （用法参见下文相关章节）
+
 - Reference cannot be null, and must be initialized, but 悬垂引用 (dangling reference) is still possible
+
 - There is no const reference (reference is by definition immutable, but reference to a const object is ok)
+
 - reference has type check (safer than pointer)
 
 个人理解，引用符号和cv-qualifier类似，提供类型信息以外的信息：alias所绑定的对象已经存在。右值引用进一步附加了信息：被绑定的对象是右值。
@@ -127,4 +132,69 @@ _Tp&& forward(typename remove_reference<_Tp>::type&& __t) {
 - 重载二：如果将具名引用 move 后再传给 forward，就会实例化第二个右值形参的重载。（这个做法在我看来本身就比较奇怪，因为万能引用本身就是为了方便同时接收左值和右值，但这里又forward一个固定为右值的东西）注意 `_Tp` 不能为左值引用，编译器禁止把 rvalue 转发为 lvalue，只能显示把右值复制给左值。
 
 >  `move` and `forward` both do type conversion, implemented using `static_cast`. *Efficient Modern C++* suggests that use `std::move` for rvalue reference conversion and `std:forward` for and **only for universal reference** scenarios.
+
+
+
+# STL reference helper
+
+### std::reference_wrapper
+
+Wraps a reference in a copyable, assignable object. 
+
+优点：
+
+- 让引用具象为一个可复制、可赋值的对象
+- 模拟引用，保证引用不可为 `null` 或无效，但也有悬空引用问题
+- 无默认构造，也不能用临时对象 (rvalue) 初始化
+- 有类似指针的重新绑定的灵活性
+
+缺点：
+
+- 要访问对象 `T`的成员变量或方法，必须使用 `std::reference_wrapper<T>::get` 
+- 要为被引用的对象重新赋值（而不是绑定到一个新对象），也必须使用 `get()`：
+
+Possible implementation：
+
+- 构造时使用 `std::addressof` 获取指针 `_ptr` ，存放在实例内部。
+- 通过成员函数 `constexpr T& get() const noexcept { return *ptr; }` 返回实例
+- 实现转换函数 `constexpr operator T& () const noexcept { return *_ptr; }` 以便隐式转换为对应类型的指针 can be used as arguments with the functions that take `T&`.
+- 实现 function call operator (functor) `auto operator()(Args&&... args) const { return get()(std::forward<Args>(args)...); }`，以便包装函数对象时可以直接使用函数调用运算符
+
+### std::ref
+
+`std::ref` creates a `std::reference_wrapper` with a type deduced from its argument. 因为可以自动推断，所以通常使用 `std::ref` 来创建 `std::reference_wrapper`。
+
+### Use cases：
+
+个人理解，虽然表现上和引用相似，本质上还是传指针，但更优雅和安全
+
+- 在 `std::bind` 时使一个类型被推断为引用，按引用传递绑定参数，而不是传值:
+
+  正常使用 `std::bind` 时，绑定的参数需要被复制或移动。使用 `reference_wrapper` 后，便可传递引用
+
+- 可实现引用的容器: `vector<Widget&>` 是非法的，`vector<Widget*>` 又不够安全
+
+- 使用 `std::thread` 时，按引用传递参数给函数: 
+
+  `std::thread(func, arg);` 一般都是按值传递参数，即使函数接收引用形参 `void func(const T&);`；引入 `reference_wrapper` 后，便可传递引用
+
+- 代替裸引用作为类成员时，不再导致类不可赋值 (can use default trivial assignment operator)
+
+- 按引用传递 callable 对象 (function, lambda, functor, ...)， 可避免复制大型或有状态的函数对象
+
+- `make_pair` 和 `make_tuple` 时更方便的传引用：
+
+  ```c++
+  int a=10, b=20, c=30;
+  std::pair<int&, int> p1(a b);
+  std::tuple<int&, int, int&> t1(a, b, c);
+  // 与以下方式对比 (好像写的字还变多了哈哈)
+  auto p2 = std::make_pair(std::ref(a), b);
+  auto t2 = std::make_tuple(std::ref(a), b, std::ref(c));
+  // since C++17, with CTAD:
+  std::pair p3(std::ref(m), n); 
+  std::tuple t3(std::ref(m), n, std::ref(s));
+  ```
+
+  细微差别：`make_pair `和 `make_tuple` 会通过 type trait 识别到 `reference_wrapper<T>` ，并将其 unwrap 为引用`T&`，而 CTAD 构造时则直接操作 `reference_wrapper<T>`。大部份情况无区别。
 

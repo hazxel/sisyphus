@@ -20,7 +20,7 @@ Traits 就是为了萃取元素类型而在STL中广泛采用的技法，如`ite
   template<class T, std::size_t N> struct is_array<T[N]> : std::true_type {};
   ```
 
-- `remove_reference`, `remove_cv`, `remove_const`, `remove_volatile`, ...
+- `remove_reference`, `remove_cv`, `remove_const`, `remove_volatile`, `remove_cvref`...
 
   ```c++
   template <class _Tp> struct remove_reference        {typedef _Tp type;};
