@@ -117,35 +117,19 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
 
 
 
-# pair
-
-> \#include <utility>
-
-### Special member function
-
-- CopyCtor & MoveCtor: `defaulted`
-- CopyAssignOperator is `deleted` if either type's `is_copy_assignable<T>::value` evaluates to false. 
-- MoveAssignOperator is `deleted` if either type's `is_move_assignable<T>::value` evaluates to false. 
-
-Since a key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. 这意味着遍历表类型容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
-
-
-
 # Map, Set, Multiset, Multimap (red black tree)
 
+# unordered_map, unordered_set (hash map)
 
+### 成员方法: todo
+
+- map: `find`, `erase`
+- set: xxx
+- 特有方法: xxx
 
 ### compare
 
 需要一个方法判断 key 的大小关系，默认使用 `std::less<Key>`，will invoke `operator<` on type `T` unless specialized. 函数返回值为 `bool`，参数为两个 `const T&`，自定义方法参考下文关于自定义哈希的示例。
-
-
-
-# unordered_map, unordered_set (hash map)
-
-Map: `find`, `erase`
-
-
 
 ### hash
 
@@ -184,11 +168,13 @@ unordered_map<Goo, double, decltype(hash), decltype(comp)> m(10, hash, comp); //
 
 
 
-# Constness of set and maps
+### Constness of set and maps
 
 `set` is using a **const iterator** because: Elements form a tree that accelerates operations on the set, thus all elements must be const to keep the constraints of the underlying tree.
 
 A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Elegant `auto` solution: `for(const auto& p : m)`.
+
+Since a key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. 这意味着遍历表类型容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
 
 
 
