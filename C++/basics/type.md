@@ -30,19 +30,19 @@ C style 强制类型转换, should be replaced with modern C++ style casts.
 
 ### static_cast
 
-相当于C语言中的强制类型转换的替代品。多用于**非多态类型**的转换，比如说将int转化为double。但是不可以将两个无关的类型互相转化。（在编译时期进行转换）不能包含底层const
+相当于C语言中的强制类型转换的替代品。多用于**非多态类型**的转换，比如说将 `int` 转化为 `double`。但是不可以将两个无关的类型互相转化。（在编译时期进行转换）不能包含底层const
 
  `static_cast` is used for cases where you basically want to reverse an implicit conversion, with a few restrictions and additions. static_cast performs no runtime checks. This should be used if **you know** that you refer to an object of a specific type, and thus a check would be unnecessary.
 
 ### dynamic_cast
 
-可以安全的将父类转化为子类，子类转化为父类都是安全的。所以你可以用于安全的将基类转化为继承类，而且可以知道是否成功，如果强制转换的是指针类型，失败会返回NULL指针，如果强制转化的是引用类型，失败会抛出异常。dynamic_cast 转换符只能用于含有虚函数的类, because it uses virtual funciton table to trace super class.
+`dynamic_cast` 操作符只能用于含有虚函数的类 (uses virtual funciton table to trace super class)，可以安全的将父类的**指针或引用**和子类**指针或引用**相互转化。转换失败时，如果转换的是指针类型，会返回 `nullptr` ，如果是引用类型，会抛出 `std::bad_cast` 异常。
 
- `dynamic_cast` is useful when **you don't know** what the dynamic type of the object is. It returns a null pointer if the object referred to doesn't contain the type casted to as a base class (when you cast to a reference, a bad_cast exception is thrown in that case).
+`dynamic_cast` is useful when **you don't know** what the dynamic type of the object is.
 
 ### const_cast
 
-const_cast这个操作符可以去掉变量const属性或者volatile属性的转换符，这样就可以更改const变量了
+`const_cast` 操作符可以去掉变量的 `const` 属性或者 `volatile` 属性的转换符，这样就可以更改const变量了
 
 ### reinterpret_cast
 
@@ -83,17 +83,17 @@ C++引入这个机制是为了让程序在运行时能根据基类的指针或�
 
 ### macro 开关
 
-RTTI可被编译时的宏开关启用或关闭，如 STL 源码中常见的`__cpp_rtti`, `_LIBCPP_NO_RTTI` 等，可通过形如`-fno-rtti`的指令关闭。启用RTTI时，vtable布局中会有 slot 用于存放 typeinfo 指针。有些编译器默认关闭RTTI以消除性能开销。But usually without RTTI you can't use typeid, dynamic_cast, and some STL classes are compiled differently.
+RTTI可被编译时的宏开关启用或关闭，如 STL 源码中常见的`__cpp_rtti`, `_LIBCPP_NO_RTTI` 等，也可通过形如`-fno-rtti`的指令关闭，有些编译器默认关闭RTTI以消除性能开销。启用RTTI时，vtable 布局中会增加一个 slot 用于存放 typeinfo 指针。Without RTTI you can't use typeid, dynamic_cast, and some STL classes are compiled differently.
 
-### typeid
+### typeid (operator)
 
-运算符`typeid(n)`中，参数`n`可以是类型、变量、字面量等。如果参数没有虚函数，就会直接在编译期完成运算。如果参数类型有虚函数的话，要等到运行期间才能确定值。
+运算符`typeid(n)`中，参数`n`可以是类型、变量、字面量等。如果参数类型没有虚函数，就直接在编译期完成运算。如果参数类型有虚函数，延迟等到运行期间才能确定值（读虚表）。
 
-### type_info
+### type_info (class)
 
-The class type_info holds the **name** of the type and means to compare two types for equality or collating order(有时需要比较顺序因为可能作为key放入map). This is the class returned by the typeid operator.
+`std::type_info`  is the class returned by the `typeid` operator. It holds the **name** of the type and means to compare two types for equality or collating order(可能作为key放入map，需要比较顺序). 
 
-std::type_info对象是在编译的时候决定其内容的，作为静态数据存在于最终生成的目标代码里。编译器会在静态存储空间 .data 段里为这些 type_info 对象分配空间，并生成代码来初始化它们的内容。对于遵循Itanium C++ ABI的编译器（例如GCC和Clang）来说，其中编译器给生成的初始化type_info的代码，本质上就跟自己在全局作用域里写个这样的C++代码类似 `type_info _ZTI3Foo("Foo");`, 然后根据ABI要求，将指向这些 type_info 对象的指针放进 vtable 即可。
+`std::type_info` 对象在编译期生成，编译器会在静态存储空间 .data 段里为这些 `type_info` 对象分配空间，并初始化它们的内容。遵循 Itanium C++ ABI 的编译器（例如GCC和Clang）对 `type_info` 的初始化，本质上等同于在全局作用域里加入如下 C++ 代码：`type_info _ZTI3Foo("Foo");`, 然后根据ABI要求，将指向这些 `type_info` 对象的指针放进 `vtable` 。
 
 
 
@@ -138,3 +138,13 @@ If used inside of a class or sturct, can define **member type alias**.
 The `volatile` keyword can be applied to variables, in order to prevent the compiler to optimize on it. 通常用于驱动程序的开发中
 
 ### mutable
+
+
+
+# incomplete types
+
+简而言之，就是指存在声明，但没有定义的类型，如：
+
+- void
+- arrays of unspecified length
+- structures and unions with unspecified content
