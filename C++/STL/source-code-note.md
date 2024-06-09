@@ -1,4 +1,4 @@
-# memory (clang)
+# \<memory\> header (clang)
 
 ### `__compressed_pair_elem<class _Tp, int _Idx>`: element data structure used in pair
 

@@ -1,6 +1,10 @@
-# STL Containers
+# STL Containers & Adapters
 
 > All STL containers store a copy of the inserted data!!
+
+### Adapters
+
+Container adapters are interfaces created by limiting functionality in a pre-existing container and providing a different set of functionality, for example: `stack`, `queue`, `priority_queue`
 
 ### allocator
 
@@ -81,6 +85,42 @@ In a regular queue, elements are added from the **rear** and removed from the **
 
 Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each chunk is a vector, and the queue (“map” in the graphic below) of chunks itself is also a vector.
 
+### 成员方法
+
+`front`, `back`, `push_back`, `pop_back`, `push_front`, `pop_front`
+
+
+
+# Map, Set, Multiset, Multimap (red black tree)
+
+# unordered_map, unordered_set (hash map)
+
+### 成员方法: todo
+
+- map: `find`, `erase`
+- set: insert, merge
+- 特有方法: xxx
+
+### helper function objects
+
+- compare: 有序集合/表需要一个方法判断 key 的大小关系，默认使用 `std::less<Key>`
+- hash: 无顺序集合/表需要使用哈希函数进行散列化，默认使用 `std::hash<T>`
+- equal_to: 无序集合/表还需要判断键 key 是否相等，默认使用 `std::equal<T>`
+
+上述 function object 的细节详见 STL 中的 functor 相关章节
+
+### Constness of set and maps
+
+`set` is using a **const iterator** because: Elements form a tree that accelerates operations on the set, thus all elements must be const to keep the constraints of the underlying tree.
+
+A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Elegant `auto` solution: `for(const auto& p : m)`.
+
+Since a key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. 这意味着遍历表类型容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
+
+
+
+
+
 
 
 # priority_queue (similar to heap)
@@ -114,133 +154,4 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
 ### 成员方法：
 
 `top`, `pop`, `push`, `emplace`
-
-
-
-# Map, Set, Multiset, Multimap (red black tree)
-
-# unordered_map, unordered_set (hash map)
-
-### 成员方法: todo
-
-- map: `find`, `erase`
-- set: xxx
-- 特有方法: xxx
-
-### compare
-
-需要一个方法判断 key 的大小关系，默认使用 `std::less<Key>`，will invoke `operator<` on type `T` unless specialized. 函数返回值为 `bool`，参数为两个 `const T&`，自定义方法参考下文关于自定义哈希的示例。
-
-### hash
-
-`std::hash<T>` 已为数字、枚举、指针、字符串，以及其他一部份 STL 类型的键值定义特化；对于其他键值类型，需要自定义 `std::hash<T>`  特化或者传递哈希 callable (返回值为 `size_t`，参数为 `const & T`)：
-
-```c++
-// #1: template specialization of std::hash
-namespace std {
-template <>
-class hash<Foo>{
-public:
-    size_t operator()(const Foo &name ) const {/*...*/}
-};
-}; 
-unordered_map<Foo, int> m; // usage
-
-//#2: functor
-struct my_hash_struct{ 
-    size_t operator()(const Bar & b) const {/*...*/}
-}; 
-unordered_map<Bar, int, my_hash_struct> m; // usage
-
-// #3: function
-size_t my_hash_func(const Boo & b) {/*...*/}
-unordered_map<Boo,int,function<size_t(const Boo&)>> m(10, my_hash_func); // usage
-
-// #4: lambda
-auto hash = [](const Goo &g){ return std::hash<int>{}(g.val); };
-auto comp = [](const Goo &l, const Goo &r){ return l.val == r.val; };
-unordered_map<Goo, double, decltype(hash), decltype(comp)> m(10, hash, comp); // usage
-```
-
-### equal_to
-
-除了哈希，还需要判断元素是否相同。默认使用 `std::equal<T>`, will invokes `operator==` on type `T` unless specialised. 函数返回值为 `bool`，参数为两个 `const T&`，自定义的方法和上述自定义哈希的方法类似。
-
-
-
-### Constness of set and maps
-
-`set` is using a **const iterator** because: Elements form a tree that accelerates operations on the set, thus all elements must be const to keep the constraints of the underlying tree.
-
-A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Elegant `auto` solution: `for(const auto& p : m)`.
-
-Since a key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. 这意味着遍历表类型容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
-
-
-
-# Iterator
-
-### begin，cbegin，rbegin
-
-分别为普通迭代器，只读迭代器，还有反向迭代器。降序排列元素可向 `std::sort()` 传送反向迭代器。
-
-使用时，优先考虑`const_iterator`而非`iterator`；编写通用型代码时优先考虑非成员函数 `std::begin` 以支持原生数组等类型。
-
-
-
-# Algorithms
-
-> \#include <algorithm>
-
-### swap: 
-
-？？？quick sort
-
-### find
-
-### sort
-
- ```c++
-template< class RandomIt >
-void sort( RandomIt first, RandomIt last );
-// or
-template< class RandomIt, class Compare >
-constexpr void sort( RandomIt first, RandomIt last, Compare comp );
- ```
-
- a comparator like this needed:
-
- ```
-bool compare(const MyClass& o1, const MyClass& o2);
-// or 
- 
- ```
-
-### for_each
-
-Applies the given function to the result of dereferencing every iterator in the range [`first`, `last`). The function's **return result is ignored**.
-
-```c++
-std::vector<int> v{3, -4, 2, -8, 15, 267};
-std::for_each(v.cbegin(), v.cend(), [](const int& n) { std::cout << n << ' '; });
-std::for_each(v.begin(), v.end(), [](int &n) { n++; });
-```
-
-### transform: 
-
-applies the given function to a range and **stores the function result** in another range, keeping the original elements order and beginning at 3rd paremeter, 
-
- - can be either in-place modify or non-inplace.
- - can be either unary operation or binary operation
-
- ```c++
- std::string s{"hello"}; // replace-write to the same location
- std::transform(s.cbegin(), s.cend(), s.begin(), 
-                [](unsigned char c) { return std::toupper(c); });
- std::vector<std::size_t> ordinals; // insert at back
- std::transform(s.cbegin(), s.cend(), std::back_inserter(ordinals),
-         [](unsigned char c) { return c; });
- ```
-
-  可以认为功能大于等于 for_each，因为函数的返回值也被保存下来。注意如果不是尾部插入，则要求容器中已经有相应数量的元素用于被覆盖，否则可能会 segmentation fault.
 
