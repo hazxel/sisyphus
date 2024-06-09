@@ -30,6 +30,12 @@ while (getline(ss, field, ';')) { // or ss >> field with splitter set to ' '
 
 ??? SSO?https://zhuanlan.zhihu.com/p/547694685
 
+### StringStream
+
+- `str()`: 
+  - 无参数时，get string content from stringstream
+  - 有参数时，set string content of stringstream，可用于清空：`ss.str("");`
+
 ### String 的一堆大麻烦
 
 - 为啥很多人不用string 而用char数组？
