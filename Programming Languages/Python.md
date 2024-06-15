@@ -241,7 +241,8 @@ Python 是一种解释性语言，执行时会先将 .py 文件中的源代码�
   - 在不具备编译环境的情况下直接安装： `pip install xxxx.whl`
   - `pip install` 时带上参数 `--no-index --find-links /path/to/whl` 可避免联网，直接离线安装
   - 用 unzip 解压后，可以在 `xxxx.dist-info` 文件夹中的 `METADATA` 文件中看到依赖和版本等信息
-
+  - `.whl` 文件名的后半部份，形如 *-cp36-abi3-linux_aarch64.whl* 的部份，在安装时会被用来判定平台系统是否支持此安装包
+  
 - xxxs
 
 

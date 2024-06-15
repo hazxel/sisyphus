@@ -415,9 +415,8 @@ If you are executing your files like `sh 1.sh` or `./1.sh`, you are executing it
 
   - To figure out all available shells: `cat /etc/shells`
 
-
-
   - Switch between shells:`chsh -s /bin/bash`,`chsh -s /bin/zsh`
 
 
   - Alias: defined in your shell configuration file, and act as a shortcut to reference a frequently used command, for example: `alias v="vim"`
+  - 无法 reboot 时，重启服务器：`echo "b" > /proc/sysrq-trigger`
