@@ -126,7 +126,9 @@ Virtual functions can also be inlined, but only when compiler knows the "exact" 
 
 # GCC & G++
 
- *glibc* memory allocator is a C library released by GNU, containing functions like`malloc` and `free`. It talks to the OS kernal, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)
+ *glibc* is a C library released by GNU, containing functions like`malloc` and `free`(memory allocator). It talks to the OS kernal, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)
+
+是非常基础的依赖库，被大部份程序所依赖，更新时需要十分小心，可能会导致许多程序无法使用 `mv`， `cp` 等
 
 gcc vs g++:
 
