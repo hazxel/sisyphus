@@ -4,28 +4,34 @@
 
 > \#include <algorithm>
 
-### swap: 
+### swap
 
-？？？quick sort
+Implementation: (in \<type_traits\>)
 
-### find
+```c++
+template<typename T>
+void swap(T &a,T &b) noexcept {
+    T temp = std::move(a);
+    a = std::move(b);
+    b = std::move(temp);
+}
+```
+
+### find, find_if, find_if_not
+
+```c++
+if (std::find(v.begin(), v.end(), n) == std::end(v)) { /* do sth */ }
+if (std::find_if(w.begin(), w.end(), [](int i){ return i%2==0; }) != w.end()) {}
+```
 
 ### sort
 
  ```c++
-template< class RandomIt >
-void sort( RandomIt first, RandomIt last );
-// or
-template< class RandomIt, class Compare >
-constexpr void sort( RandomIt first, RandomIt last, Compare comp );
- ```
-
- a comparator like this needed:
-
- ```
-bool compare(const MyClass& o1, const MyClass& o2);
-// or 
- 
+std::sort(s.begin(), s.end());
+std::sort(s.begin(), s.end(), std::greater<int>());
+struct { bool operator()(int a, int b) const { return a < b; }} customLess;
+std::sort(s.begin(), s.end(), customLess);
+std::sort(s.begin(), s.end(), [](int a, int b){ return a > b; });
  ```
 
 ### for_each

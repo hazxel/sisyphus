@@ -28,15 +28,19 @@ A `std::array` is a very thin wrapper around a C-style array. 其相比于内建
 
 一般直接使用花括号 `{}` 进行 aggregate initialization.
 
+### 成员函数
+
+- `data`: Returns pointer to the underlying array `T*`
+- `front`, `back`, `get`: Returns the first/last/i$_{th}$​​ element
+- `fill`: assigns a value to all elements
+
+### 非成员函数
+
+- `to_array`: (C++20) creates a `std::array` object from a built-in array
+
 
 
 # vector (dynamic array)
-
-### reserve vs resize
-
-reserve: **only** affect **capacity**, not affact size, won't initialize any instances
-
-Resize: will insert or delete elements to the vector to make it given **size** (could call constructor!)
 
 ### Capacity Growth
 
@@ -50,10 +54,21 @@ The capacity grows by double or 1.5 times of the previous size. Every time a vec
   - 插入多个相同：`v.insert(v.end(), 123, 0);`
 
   - 插入起始迭代器之间所有元素：`v.insert(v.end(), target.begin(), target.end());`
+- `assign`: (接口类似重新构造)
+  - 插入数个相同拷贝: `v.assign(5, 'a');`
 
-- `back`: 传回最后一个元素的引用
+  - 插入首位迭代器的拷贝: `v.assign(extra.begin(), extra.end());`
 
-- `emplace_back`: 原地使用构造函数构造 
+  - 插入 `initializer list`: `v.assign({'C', '+', '+', '1', '1'});`
+
+- `data`: Returns pointer to the underlying array `T*`
+- `front`, `back`, `at`, `[]`: Returns the first/last/i$_{th}$ element
+- `push_back`, `emplace_back`: 插入入参的拷贝/原地使用构造函数构造 
+- `reserve` vs `resize``
+  - ``reserve`: **only** affect **capacity**, not affact size, won't initialize any instances, 也不会删除元
+  - `resize`: will insert or delete elements to the vector to make it given **size** (could call constructor!)
+
+- Xxx
 
 ### Boolean vector: `std::vector<bool>`
 
