@@ -36,9 +36,13 @@ for n in seqIter:
 
 无序可修改。用 `{}` 表示
 
+字典解包：`**`, 可将一个 dict 解包为多个 kv pair 传递给函数，key 为形参，value 为实参
+
 ### list
 
 有序可修改。通过索引进行查找、切片。用 `[]` 表示
+
+列表解包：`*` ，可将一个 list 解包为多个参数传递给函数
 
 ### numpy.array
 
@@ -213,25 +217,39 @@ Pandas 可以简单、直观地处理关系型、标记型数据，如表格数�
 
 ### Thread(太低级！)
 
-### 异步函数(好难用！)
+### 异步函数 `async` & `await`
 
 异步函数是一种特殊类型的函数，它可以包含`await`表达式，并且在运行时可以挂起（暂停）和恢复执行。异步函数通过在 `def` 关键字前添加 `async`关键字来定义。
 
-直接调用异步函数不会返回结果，而是返回一个`coroutine`协程对象。(会触发一个warning)
+- `await` 关键字：只能出现在 `async` 修饰的函数中。将暂停当前异步函数的执行，并立即开始执行另一个异步操作，等待其操作完成后，恢复执行当前异步函数。；`await`关键字后的表达式通常是一个异步操作，比如调用另一个异步函数、调用返回`awaitable`对象的内置异步方法，或者调用一个带有异步支持的库函数。
 
-```python
-import asyncio
-async def async_function():
-    return 1
-async def await_coroutine():
-    result = await async_function()   
-    print(result) # 1
-asyncio.run(await_coroutine())
-```
+- 直接调用 `async` 函数不会执行它（还会触发一个python warning），而是返回一个 `coroutine` 协程对象
 
-`await` 关键字：只能出现在通过async修饰的函数中。将暂停当前异步函数的执行，并立即开始执行另一个异步操作，等待其操作完成后，恢复执行当前异步函数。；`await`关键字后的表达式通常是一个异步操作，比如调用另一个异步函数、调用返回`awaitable`对象的内置异步方法，或者调用一个带有异步支持的库函数。
+-  `asyncio.run(func())` 挂起当前线程，执行异步调用，等待其返回后继续执行当前线程
 
-### coroutine（好用！）
+  ```python
+  import asyncio
+  async def async_function():
+      return 1
+  async def await_coroutine():
+      result = await async_function()   
+      print(result) # 1
+  asyncio.run(await_coroutine())
+  ```
+
+- `asyncio.create_task()` 创建一个异步任务，但并不启动线程执行它
+
+- `asyncio.gather(*tasks)`  启动多个 task 并等待他们执行完毕
+
+  ```python
+  async def ws_channel_dump_tradeall_csv(inst_id_list):
+      tasks = [asyncio.create_task(foo(arg)) for arg in args]
+      await asyncio.gather(*tasks)
+  ```
+
+- xx
+
+### coroutine
 
 并发执行 example
 
