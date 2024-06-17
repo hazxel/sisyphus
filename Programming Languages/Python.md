@@ -110,6 +110,36 @@ hello("hello,","good","morning")
 
 
 
+# Syntax
+
+### with
+
+`with` 语句可用于简化资源管理，确保资源在使用完后能够正确地被释放。常见的用法是与文件操作或其他需要显式关闭的资源（如数据库连接、网络套接字等）一起使用：
+
+```python
+with open('example.txt', 'r') as file:
+    content = file.read()
+async with websockets.connect(uri) as websocket:
+    await websocket.recv()
+```
+
+他们等同于使用 `try-finally` 块手动管理资源的打开和关闭：
+
+```python
+file = open('example.txt', 'r')
+websocket = websockets.connect(uri)
+try:
+    content = file.read()
+    await websocket.recv()
+finally:
+    file.close()
+    websocket.close()
+```
+
+
+
+
+
 # 类
 
 ### 访问权限
