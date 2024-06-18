@@ -28,7 +28,7 @@ the following segments are sorted from high address to low address (in **virtual
 
 > Originally defined in C Library's \<string.h>. Use \<cstring> when writing C++, which put everything in namespace `std`
 
-动态内存开辟主要有 malloc、calloc、realloc 几种
+动态内存开辟主要有 malloc、calloc、realloc 几种，通过系统调用 brk 和 mmap 从操作系统申请内存。
 
 - `malloc(size)`：分配给定字节数大小的空间，不初始化
 - `calloc(num,size)`：在返回在堆区申请的那块动态内存的起始地址之前，会将每个字节都初始化为0，接受类型大小和个数两个参数（历史原因需要两个参数，不用管，反正malloc一般也是 num*size 来用）

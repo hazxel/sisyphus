@@ -36,7 +36,7 @@ C style 强制类型转换, should be replaced with modern C++ style casts.
 
 ### dynamic_cast
 
-`dynamic_cast` 操作符只能用于含有虚函数的类 (uses virtual funciton table to trace super class)，可以安全的将父类的**指针或引用**和子类**指针或引用**相互转化。转换失败时，如果转换的是指针类型，会返回 `nullptr` ，如果是引用类型，会抛出 `std::bad_cast` 异常。
+`dynamic_cast` 操作符只能用于含有虚函数的类 (uses virtual funciton table to trace super class)，且需要开启 RTTI。可以安全的将父类的**指针或引用**和子类**指针或引用**相互转化。转换失败时，如果转换的是指针类型，会返回 `nullptr` ，如果是引用类型，会抛出 `std::bad_cast` 异常。
 
 `dynamic_cast` is useful when **you don't know** what the dynamic type of the object is.
 

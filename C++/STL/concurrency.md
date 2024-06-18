@@ -40,10 +40,6 @@ m_.unlock();
 
 > 通常不直接调用 lock_shared()等成员函数，而是使用std::unique_lock与std::shared_lock管理共享锁定
 
-```
-
-```
-
 ```c++
 std::shared_mutex m_;
 m_.lock_shared();

@@ -8,9 +8,9 @@ def genSeq(max):
 				yeild i
 # usage
 seqIter = genSeq(100)
-print(seqIter.__next__())
-print(next(seqIter))
-for n in seqIter: 
+print(seqIter.__next__()) # 使用成员 next 方法
+print(next(seqIter))			# 使用非成员 next 方法
+for n in seqIter: 				# for 循环直接遍历
   	print(n)
 ```
 

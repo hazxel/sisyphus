@@ -1,4 +1,4 @@
-# Member Init order
+# Data Member Init order
 
 成员变量初始化的顺序为：先进行声明时初始化，然后进行初始化列表初始化，最后进行构造函数初始化
 
@@ -9,6 +9,8 @@
 1. Default Constructor (DftCtor) `Widget();` : 
 
    Implicit definition of DftCtor: empty body, empty initializer list, calls DftCtor of base classes, and of non-static members. ??? what if they don't have DftCtor? or is basic type?
+
+   > It's not possible to create an array of a class without default constructor using brackets `[]` **alone**.
 
 2. Copy constructor (CCtor) `Widget(const Widget&);` 默认为逐成员拷贝
 
@@ -40,7 +42,7 @@ Copmiler implicitly defines a default inline version for the 6 special member fu
 
 > 注意：1. **成员函数模版**不会阻止编译器生成特殊成员函数。2. `=delete`&`=default`也属于用户定义实现 3. 有一个说法是自定义的 Dtor, CCtor, CAssOp 会阻碍生成默认的 Dtor, CCtor, CAssOp，但这个说法好像是错误的
 
-这么设计的核心逻辑就是，如果资源管理很简单，编译器就用 trival 的方法代替你来实现；反之你如果定义了析构函数，拷贝或者移动，编译器就觉得你是要自己实现复杂的管理，默认的实现多半不适用了
+这么设计的核心逻辑就是，如果资源管理很简单，编译器就用 trivial 的方法代替你来实现；反之你如果定义了析构函数，拷贝或者移动，编译器就觉得你是要自己实现复杂的管理，默认的实现多半不适用了
 
 **Rule of Three**: If a class requires a custom Dtor, a custom CCtor, or a custom CAssOp, it almost certainly requires all three. (Otherwise may lead to incorrect management of resources)
 
@@ -62,8 +64,6 @@ MyOtherClass() = default;
 尽量使用 `default` , 增强可读性，且防止偶然定义阻止了 MCtor 或 MAssOp 的生成。
 
 尽量使用 `delete` 代替 undefined private, 前者报错信息更明确，且后者有时还是会延迟到链接期才报错（成员函数或友元的调用）。此外还应将 `delete`的函数声明为`public`，防止错误信息被 `private` 错误覆盖
-
- > If a class doesn't have a default constructor, it's not possible to create an array of it using brackets `[]` **alone**.
 
 
 
