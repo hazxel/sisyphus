@@ -197,8 +197,19 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - `ps aux`: 显示进程资源占用
 
+  - STAT: 进程状态：(`man ps` 可查)
+    - R: running
+    - I: idle kernal thread
+    - S: interruptible sleep (waiting for an event to complete)
+    - s: is a session leader
+    - D: uninterruptible sleep (usually IO)
+    - L: is multi-threaded (using CLONE_THREAD, like NPTL pthreads do)
+    - T: stopped, either by a job control signal or because it is being traced.
+    - <: high-priority (not nice to other users)
+    - +: is in the foreground process group.
+
   - CPU使用率，为整个进程运行周期内平均值
-  - VSS: Virtual Memory Size, 虚拟内存的大小，包含了未被加载到实际内存中的空间
+  - VSZ: Virtual Memory Size, 虚拟内存的大小，包含了未被加载到实际内存中的空间
   - RSS: Resident Set Size, 真正被加载到物理内存中的页的大小（包含共享库的内存，如果把系统中所有进程的RSS相加会比总内存大）
   - PSS: Proportional Set Size, 将共享库的内存按使用的进程个数平均分成多份，ps 命令看不到
   - USS: Unique Set Size, 全部被该进程独占的内存大小，揭示了进程终止时实际被返还给系统的内存，是针对某个进程开始有可疑内存泄露的情况，进行检测的最佳数字。
