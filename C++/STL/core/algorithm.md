@@ -61,3 +61,17 @@ std::transform(s.cbegin(), s.cend(), std::back_inserter(ordinals),
  ```
 
   可以认为功能大于等于 for_each，因为函数的返回值也被保存下来。注意如果不是尾部插入，则要求容器中已经有相应数量的元素用于被覆盖，否则可能会 segmentation fault.
+
+### copy_if
+
+
+
+### remove & remove_if
+
+If you don't actually need a new copy, `remove` and `remove_if` will removes the elements from the original container.
+
+```c++
+auto noSpaceEnd = std::remove(str1.begin(), str1.end(), ' ');
+
+```
+

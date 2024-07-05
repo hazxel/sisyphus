@@ -128,9 +128,7 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
 
 `set` is using a **const iterator** because: Elements form a tree that accelerates operations on the set, thus all elements must be const to keep the constraints of the underlying tree.
 
-A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Elegant `auto` solution: `for(const auto& p : m)`.
-
-Since a key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. 这意味着遍历表类型容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
+A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Elegant `auto` solution: `for(const auto& p : m)`. 此种方式遍历容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
 
 
 
