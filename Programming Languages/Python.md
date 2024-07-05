@@ -74,6 +74,17 @@ N 维数组（矩阵）对象，可用 list 初始化：`np.array([1, 2, 3])`
 - 一个 list 可以存放多种类型的数据，但是numpy数组中存放的数据类型必须全部相同
 - list中实际上存放的是数据的地址非数据本身，如列表 `a=[1,2,3,4]` 需要4个指针和4个数据；但`a=np.array([1,2,3,4])` 只需要存放4个数据，节省内存，读取性能好
 
+### namedtuple
+
+tuple subclasses with named fields, 
+
+- `_fields`: get a tuple of field name strings
+- `.xxx`: access data by fileld name (like dictionary, but not `['key']`-way)
+
+### heapq
+
+
+
 
 
 
@@ -174,8 +185,9 @@ static method 不接收任何 `self` 或 `cls`， 也不能访问类变量或实
 
 以双下划线开头，并且以双下划线结尾，任何人可访问，如：
 
-- `__new__`：继承自object的类才有该方法，在实例创建之前被调用，任务是创建实例然后返回该实例对象，是个静态方法，至少要有一个参数cls（代表当前类），必须有返回值（即该实例对象）
+- `__new__`：继承自object的类才有该方法，在实例创建之前被调用，任务是创建实例然后返回该实例对象，是个**静态**方法，至少要有一个参数cls（代表当前类），必须有返回值（即该实例对象）
 - `__init__`：是在实例创建完成后被调用的，设置对象属性的一些初始值，通常用在初始化一个类实例的时候，是一个实例方法，至少有一个参数self(代表当前的实例)，无需返回值
+- `__call__`：使实例对象能够像函数一样被调用，即通过使用 `()` 运算符来调用。
 - `__class__`, `__slots__`, `__doc__`, `__del__`, `__enter__`, `__exit__`, `__iter__` ???
 
 - `self` vs `cls`：
@@ -208,8 +220,18 @@ Pandas 可以简单、直观地处理关系型、标记型数据，如表格数�
 ### 数据操作
 
 - roling
+
 - truncate
+
 - set_index
+
+- `itertuples`: 将 DataFrame 的每一行作为一个 namedtuple 返回 (若 `name=None` 则返回普通 tuple )。命名元组是具有命名字段的元组，这使得你可以通过属性名称访问字段。e.g. `tuple.px` or `tuple[0]`
+
+- `iterrows`: 将 DataFrame 的每一行作为一个 (index, Series) 对返回，其中 `index` 是行的索引，`Series` 是行数据。
+
+  > `itertuples` 在大多数情况下比 `iterrows` 更快，后者将每行都转换成一个 Series 对象。如果只需要读取数据但并不修改，`itertuples` 是一个更好的选择。繁殖如果需要对数据进行复杂操作或修改，`iterrows` 更适合。
+
+- xxxx
 
 
 
