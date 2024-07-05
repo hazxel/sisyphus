@@ -411,7 +411,7 @@ If you are executing your files like `sh 1.sh` or `./1.sh`, you are executing it
 
 # other commands
 
-- print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat/etc/euleros-latest`
+- print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat /etc/euleros-latest`
 - 定时任务: Crontab
   - vim编辑创建定时任务：`crontab -e`
 
@@ -431,3 +431,8 @@ If you are executing your files like `sh 1.sh` or `./1.sh`, you are executing it
 
   - Alias: defined in your shell configuration file, and act as a shortcut to reference a frequently used command, for example: `alias v="vim"`
   - 无法 reboot 时，重启服务器：`echo "b" > /proc/sysrq-trigger`
+  - 挂载网络文件系统 (NFS): 
+
+    - 首先确保挂载路径已在 */etc/exports* 注册
+    - 修改 */etc/exports* 后记得重启 NFS 服务 `exportfs -a`
+    - 即可正常挂载 NFS, e.g. `mount -t nfs server_ip:/shared_directory /mnt/nfs_shared`
