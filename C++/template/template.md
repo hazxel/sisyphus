@@ -81,6 +81,12 @@ decltype(auto) access(Container& c, Idx i) {
 
 ### Class Template Argument Deduction (CTAD) (C++17)
 
+C++17 前，实例化类模板时必须显式指定模板参数。
+
+推导指引: `MyClass(const char*) -> MyClass<std::string>;`
+
+CTAD 并不总是能自动推导所有情况，当模板参数不能从构造函数参数中明确推导时，仍需显式指定模板参数。
+
 todo
 
 
