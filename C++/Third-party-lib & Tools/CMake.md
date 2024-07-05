@@ -3,6 +3,7 @@
 - `CMAKE_BINARY_DIR`: top level dir of the CMake build tree, specified by `-B` argument 
 - `CMAKE_SOURCE_DIR`: top level dir of the CMake source tree, specified by `-S` argument
 - `CMAKE_CURRENT_LIST_DIR`: 
+- `CMAKE_INSTALL_LIBDIR`: deside the post-fix of library install path e.g. `lib` or `lib64`
 
 
 
