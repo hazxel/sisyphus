@@ -10,16 +10,29 @@
 # Key Commands
 
 - `add_library`: define a target library with flag (shared/static) and source files
+
 - `add_executable`: define a target exetutable with source files
+
 - `target_include_directories`: add dependent header files for target
+
 - `target_link_libraries`: add dependent libraries for target
+
 - `aux_source_directory`: add source file directories to a variable
+
 - `include_directories`: Add the given directories for compiler to search for include files. 
+
 - `link_directories`: Add directories in which the linker will look for libraries.
+
 - `add_subdirectory`: a subdirectory to the build(has its own CMakeLists.txt)
+
 - `include`: Loads and runs CMake code from the file given
+
 - `message`: print desired info/variables
+
 - `find_package`: 
+  
+  cmake 自带的搜寻模块可能在：`/usr/local/cmake/cmake-3.20.5/share/cmake-3.20/Modules`
+  
   - Module mode: search for a `Find<PackageName>.cmake` file
   - Config mode: search for a `<PackageName>Config.cmake` or `<lowercasePackageName>-config.cmake` file
   - FetchContent redirection mode: redirect to a package provided by`FetchContent` module
