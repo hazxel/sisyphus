@@ -22,9 +22,14 @@ Conclusion: for self defined header files, use `#include ""`
 
 **avoid using `pragma`, it's not part of C++ standard, it's merely compiler extension**
 
-- `#pragma pack (push)`: Pushes the current packing alignment value on the internal compiler stack.
-- `#pragma pack (n)`: Specifies the value, in bytes, to be used for packing.
-- `#pragma pack (pop)`: Removes the record from the top of the internal compiler stack.
+- `#pragma pack` family:
+  - `#pragma pack (n)`: Specifies the value, in bytes, to be used for packing. (default value: 8) 会影响文件中所有后续的结构体定义，直到遇到 `#pragma pack(pop)` 指令
+  - `#pragma pack (push)`: Pushes the current alignment value to the internal compiler stack.
+  - `#pragma pack (push, n)`: Pushes the current alignment value, set `n` as current alignment value
+  - `#pragma pack (pop)`: Pop from the compiler stack and set it as the current alignment value.
+  - `#pragma pack(pop, n)`: Removes the record from the top, set `n` as current alignment value
+  - `#pragma pack(show)`: throw a compile time warning to indicate current alignment value
+
 - `#pragma once`: Specifies that the compiler includes the header file only once when compiling.
 
 
