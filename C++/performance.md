@@ -2,10 +2,12 @@
 
 ### profiling 
 
-cpu-profiling工具：valgrind、linux perf、brpc-view（CPU-profiler），可用于分析性能瓶颈、热点函数、热点开销、耗时分布等。
+cpu-profiling工具：valgrind, linux perf, brpc-view(CPU-profiler), RDTSCP (to read the CPU's cycle counter)，可用于分析性能瓶颈、热点函数、热点开销、耗时分布等。
 mem-profiling工具：brpc-view（heap-profiler），可用于分析常驻内存消耗、内存申请热点、内存泄漏等问题。
 
 cache工具: cachegrind, 分析程序的cache miss情况，可以看到函数级的cache miss。
+
+系统调用: strace
 
 ### Avoid unnecessary virtual function
 
