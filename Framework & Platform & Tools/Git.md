@@ -8,7 +8,13 @@
 
 - `git add -u`
 
-- `git stash` (or `git stash save`) & `git stash pop`
+- `git stash`
+
+  - `git stash (save)`: stash all modifications
+
+  - `git stash -p`: go through all modifications to deside which to stash
+
+  - `git stash pop`: pop a modification
 
 - `git clean -xfd`: remove f(untracked files), d(directory), x(file in .gitignore)
 
