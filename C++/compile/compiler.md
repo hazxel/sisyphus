@@ -112,15 +112,13 @@ Foo f = Foo(); // copy ctor not called
 
 ### inline (keyword)
 
-The `inline` keyword suggests the compiler to substitute the code within the function definition for every instance of a function call. 
+The `inline` keyword suggests the compiler to substitute the code within the function definition for every instance of a function call. Any functions can be `inline`.
 
-Using `inline` can improve performance because elimination of the function call overhead. The compiler can also optimize functions expanded inline in ways that aren't available to normal functions.
+`inline` 的主要目的是，对于在头文件中定义的函数，`inline` 关键字允许其被多个翻译单元 include 而不会在链接时引发重复定义错误。Member functions defined within class definition are implicitly inline functions. 但写在头文件中但位于类定义以外的函数不是隐式 inline 的，可能会导致链接时重复定义错误。
 
-Any functions can be inline. Member functions defined within class definition are implicitly inline functions.
+Using `inline` doesn't necessarily gurantee that function is inlined by compiler. 即使没有使用 `inline` 关键字，编译器也可能会內联函数。编译器内部会有一个阈值，在编译一个函数的时候，会计算每条语句所贡献的值（这个值编译器内部有一个映射算法），加完看是否超过，超过就不做inline，不超过就inline。当然这中间还有一些其他检查，看看是否能inline之类的。不同的编译器优化选项会有不同的阈值，依次来 tradeoff 性能和空间。Generally, inlining can improve performance thanks for the elimination of the function call overhead. 并且还可能会触发后续的其他优化
 
-Virtual functions can also be inlined, but only when compiler knows the "exact" class of the object. (e.g. non-dynamic resolved, local object, static/global object, etc.)
-
-编译器内部会有一个阈值，在编译一个函数的时候，会计算每条语句所贡献的值（这个值编译器内部有一个映射算法），加完看是否超过，超过就不做inline，不超过就inline。当然这中间还有一些check看看是否能inline之类的。不同的优化选项这个值会不一样，来tradeoff 性能和空间。
+Virtual functions can also be inlined, but only when compiler knows the "exact" class of the object. (e.g. non-dynamic resolved, local object, static/global object, etc.) 例如，当对象是局部对象或静态/全局对象时，编译器能够确定对象的确切类型，因而能够进行内联。
 
 
 
