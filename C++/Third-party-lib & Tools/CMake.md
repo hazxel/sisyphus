@@ -1,9 +1,18 @@
-# Built-in Variable
+# Built-in Variables
 
 - `CMAKE_BINARY_DIR`: top level dir of the CMake build tree, specified by `-B` argument 
 - `CMAKE_SOURCE_DIR`: top level dir of the CMake source tree, specified by `-S` argument
 - `CMAKE_CURRENT_LIST_DIR`: 
 - `CMAKE_INSTALL_LIBDIR`: deside the post-fix of library install path e.g. `lib` or `lib64`
+
+
+
+# C++ Variables
+
+- `CMAKE_CXX_FLAGS`:  c++ compiler flags
+- `CMAKE_EXE_LINKER_FLAGS`: linker flags for executables
+- `CMAKE_SHARED_LINKER_FLAGS`: linker flags for shared libraries
+- `CMAKE_MODULE_LINKER_FLAGS`: linker flags for module libraries
 
 
 
@@ -36,6 +45,8 @@
   - Module mode: search for a `Find<PackageName>.cmake` file
   - Config mode: search for a `<PackageName>Config.cmake` or `<lowercasePackageName>-config.cmake` file
   - FetchContent redirection mode: redirect to a package provided by`FetchContent` module
+  
+- `file(GLOB_RECURSE`: search for a specific pattern
 
 
 
