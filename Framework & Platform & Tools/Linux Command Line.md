@@ -172,6 +172,8 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - `nproc`: number of processor
 
+- `arch`: architecture of processor (x86/arm)
+
 - `free -g`: 显示系统整体内存的使用情况，包括物理内存、交换内存(swap)和内核缓冲区内存。`-g`: in GB
 
 - `fdisk -l`: 查看新插入的磁盘是否被识别

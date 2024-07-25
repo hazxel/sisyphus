@@ -129,7 +129,9 @@ Useful Functions:
 
 - `boolaplha` & `noboolaplha`: passed to any derived type of `std::basic_ostream` or receive any derived type of `std::basic_istream`. 
 
+### `\n` vs `std::endl`
 
+`std::endl` flushes the output buffer, and `\n` doesn't. If you don't want the buffer flushed frequently, use `\n`.
 
 
 
