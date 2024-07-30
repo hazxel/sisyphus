@@ -75,6 +75,27 @@ string view 本身是小值，应当 pass-by-value 传递，不要使用引用
 
 
 
+
+
+# format & vformat (C++20)
+
+### `std::format`
+
+- 格式字符串 format 中的占位符 `{}` 会被后续参数所替换。要求 format 字符串是编译时常量（`consteval` 实现，因为要检查 `{}` 和后续参数数量是否一致）
+- `std::format` 底层由 `std::vformat` 实现
+
+### `std::vformat`
+
+`std::vformat` 是一个与 `std::format` 类似的函数，但它接受一个 `std::format_args` 对象，而不是一组参数。这使得它非常适合于动态生成参数列表的场景，比如在函数中接收可变数量的参数。
+
+```c++
+std::string fmt = "Name: {}, Age: {}";
+auto args = std::make_format_args("Alice", 30);
+std::string result = std::vformat(fmt, args);
+```
+
+
+
 # Static String Best Practice
 
 - char pointer: `const char* str_ptr = "abc";`
