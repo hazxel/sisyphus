@@ -125,6 +125,13 @@ POSIX（Portable Operating System Interface）是一个标准化的操作系统�
 > macOS：良好地支持 POSIX 标准，大多数基础功能和扩展都被实现，但其文件系统和系统调用有自己的实现和扩展。
 > Windows：无原生 POSIX 标准支持，但可以通过 WSL、Cygwin、MinGW 等工具或子系统提供 POSIX 兼容的环境。
 
+### Fork
+
+- `fork`: create a new process. If success, returns 0 to the child process and returns the PID of the child process to the parent process.  Otherwise return -1 to the parent process, no child process is created, and the global variable errno is set to indicate the error.
+- `_exit(0)`: terminate the calling process (`0`表示正常退出)
+- `wait(nullptr)`: for parent process to wait a child process' termination(either one)
+- `waitpid`: wait for a specific child process' termination
+
 ### Anonymous semaphore
 
 Anonymous semaphore: used within a process to sync threads
@@ -178,3 +185,6 @@ Named semaphore is given a name ，命名信号量在文件系统的 IPC 虚拟�
 
 ### pthread
 
+### Others
+
+- `sleep`: 影响整个进程，所有线程全部挂起。现代 c++ 中建议使用 ``std::this_thread::sleep_for` 以确保更好的跨平台兼容性和代码的可维护性。

@@ -36,7 +36,7 @@
 
 - `include`: Loads and runs CMake code from the file given
 
-- `message`: print desired info/variables
+- `message`: print desired info/variables e.g. WARNING, ERROR, FATAL_ERROR (will terminate)
 
 - `find_package`: 
   
