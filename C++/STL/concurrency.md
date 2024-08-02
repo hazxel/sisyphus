@@ -133,13 +133,23 @@ private:
 ### operations
 
 - `store`: set
+
 - `load`: get
+
 - `exchange`: replaces the underlying value with a given value
-- `compare_exchange_weak`: atomically compares the value of the atomic object with non-atomic argument and performs atomic exchange if equal or atomic load if not 二者的区别在于内存中的值与expected 相等的时候，CAS 操作是否一定能成功
-  - `compare_exchanges_strong` 概率失败(as if *this != expected), but sometimes better performance
-  - `compare_exchange_strong` 一定会成功
-- `compare_exchange_strong`
+
+- `compare_exchange(expected, desired)`: atomically compares the value of the atomic object with non-atomic argument `expected` and:
+  
+  -  if equal: performs atomic exchange with `desired` , return `true`
+  - if not equal: atomic load value to `expected`, return `false`
+  
+  `compare_exchanges_weak` 和 `compare_exchanges_strong` 的区别：值与 `expected` 相等时，是否一定能成功并返回 `true`:
+  
+  - `compare_exchanges_weak`: has better performance，允许偶然的出乎意料的返回，(比如在字段值和期待值一样的时候却返回了`false`), 在一些**循环**算法中，这是可以接受的，可以认为循环一般都用 weak，因为反正循环中会经常重试，偶尔多失败一次换来每次调用的性能提升是十分划算的
+  - `compare_exchange_strong` 失败时一直重试，保证一定会成功
+  
 - `wait`: blocks the thread until notified and the atomic value changes
+
 - `notify_one`/`notify_all`: notifies one/all thread waiting on the atomic object
 
 ### memory order
