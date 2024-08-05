@@ -15,6 +15,8 @@ T declarator = {};						// possible
 
 ### List Initialization (C++11)
 
+> also capable of unnamed temporary initialization (e.g. `T{arg1, arg2, ...}`)
+
 ##### Aggregate Initialization
 
 Aggregate Initialization is a special case of List Initialization. 用花括号初始值列表初始化聚合类(Aggregate)数据成员聚合类型定义为：
@@ -38,9 +40,9 @@ Aggregate Initialization is a special case of List Initialization. 用花括号�
 
 - Ordinary initializer list: `T obj={arg1,arg2, ...}` / `T obj{arg1, arg2, ...}`
 
-  初始值的顺序必须与声明的顺序一致，若初始值列表的元素个数少于成员数量，靠前的成员被值初始化。未显式初始化的成员，先尝试调用默认初始化器，再尝试通过 `{}` 初始化。
+  初始值的顺序必须与声明的顺序一致，若初始值列表的元素个数少于成员数量，靠前的成员被值初始化。未显式初始化的成员，先尝试调用默认初始化器，再尝试通过一个空 initializer list `{}` 初始化。
 
-- Designated Initializers: 指定初始化器 **(C++20)**
+- **Designated Initializers: 指定初始化器 (C++20)**
 
   `T obj = {.des1=arg1, .des2{arg2}...}` / `T obj{.des1=arg1, .des2{arg2}...}` 
 
@@ -81,11 +83,11 @@ std::vector<int> v2(5, 6); // 5 elems: {6, 6, 6, 6, 6}
 
 所有的标准容器的构造函数都有以initializer_list为参数的构造函数。initizlizer_list的最广泛的使用就是不定长度同类型参数的情况。
 
-##### Designated Initializers(C++20)
+### direct initialization
 
-？？？
+### copy initialization
 
-
+从语义上讲，拷贝初始化涉及一个临时对象的创建。它先创建一个临时对象，然后将这个临时对象拷贝或移动到 具名对象。在现代 C++（C++11 及之后），编译器会尝试 copy elision 优化，使其和直接初始化一样高效。
 
 ### initialize static data member
 
@@ -96,4 +98,8 @@ std::vector<int> v2(5, 6); // 5 elems: {6, 6, 6, 6, 6}
 `constexpr static` data member of LiteralType must be initialized with an initializer in which every expression is a constant expression, right inside the class definition. A `constexpr static` data member is implicitly `inline`.
 
 Since C++17, a `static` data member may be declared `inline` in class.
+
+### Most Vexing Parse 最令人困惑的解析
+
+在 C++ 中，`T obj();` 被解析为一个返回类型为 `T` 的无参数函数 `obj` 的声明，而不是对象的声明。其他有参数的构造不被影响，因此当想要调用默认构造器时，最好使用 `T obj;` or `T obj{};` 等。
 
