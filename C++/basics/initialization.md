@@ -17,7 +17,7 @@ T declarator = {};						// possible
 
 ##### Aggregate Initialization
 
-Aggregate Initialization is a special case of List Initialization. 用花括号初始值列表初始化聚合类(Aggregate)数据成员，初始值的顺序必须与声明的顺序一致，若初始值列表的元素个数少于类的成员数量，则靠后的成员被值初始化。聚合类型定义为：
+Aggregate Initialization is a special case of List Initialization. 用花括号初始值列表初始化聚合类(Aggregate)数据成员聚合类型定义为：
 
 - 普通数组，如int[5]，char[]
 
@@ -35,6 +35,21 @@ Aggregate Initialization is a special case of List Initialization. 用花括号�
 标准库 `<type_traits>` 中提供了 `is_aggregate`，可帮助判断目标类型是否为聚合类型。
 
 > GCC 支持小括号初始化聚合类型，允许窄化转换，其他编译器不支持
+
+- Ordinary initializer list: `T obj={arg1,arg2, ...}` / `T obj{arg1, arg2, ...}`
+
+  初始值的顺序必须与声明的顺序一致，若初始值列表的元素个数少于成员数量，靠前的成员被值初始化。未显式初始化的成员，先尝试调用默认初始化器，再尝试通过 `{}` 初始化。
+
+- Designated Initializers: 指定初始化器 **(C++20)**
+
+  `T obj = {.des1=arg1, .des2{arg2}...}` / `T obj{.des1=arg1, .des2{arg2}...}` 
+
+  C++ 在此种场景下相较于 C，有四条额外规则：
+
+  - 初始化的顺序必须与成员声明的顺序一致
+  - Cannot mix with ordinary initializer list syntax 每个初始化项都必须提供 filed name
+  - Cannot nested (`{.a.x = 0}` is invalid)
+  - Cannot apply to array (`{[1] = 5}` is invalid)
 
 ##### For non-aggregate types
 
