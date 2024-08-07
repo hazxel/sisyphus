@@ -9,6 +9,8 @@ cache工具: cachegrind, 分析程序的cache miss情况，可以看到函数级
 
 系统调用: strace
 
+core dump?? Abort (core dumped)??
+
 ### Avoid unnecessary virtual function
 
 缺点：

@@ -260,12 +260,13 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 - include directories `-I` or `isystem`: specifying the directories in which header files are located. Ususally stored in environment variable `CPPFLAGS`
 - preprocessor flags `-D`: specifying preprocessor definitions. Ususally stored in environment variable `CPPFLAGS`
 - other compiler options: control behavior of the compiler. Ususally stored in environment variable `CFLAGS` or `CXXFLAGS`
-  - `-std=c++11` for specifying the C++ language standard
+  - `-std=c++11`: specifying the C++ language standard, default value varies, better explicitly specify
   - `-E`: generate preprocessed code
   - `-S`: generate assembly code *filename.s*
   - `-g`: enable debug
   - `-I`: provide include path
   - `-shared`: compile to shared lib
+  - `-O`: optimization level, usually defaults to `-O0`
   - `-pie ` & `-no-pie`: whether the executable is position independent. 不加载到内存固定位置，提升程序安全性
   - `-Wall`： enabling all warnings
   - `-Werror`: all warnings treated as errors 有助于确保代码质量，因为它迫使开发人员处理所有的警告
@@ -419,6 +420,7 @@ If you are executing your files like `sh 1.sh` or `./1.sh`, you are executing it
 
 # other commands
 
+- linux version: `uname -r`
 - print linux system information: `lsb_release -a` or `cat /etc/issue` or `cat /etc/euleros-latest`
 - 定时任务: Crontab
   - vim编辑创建定时任务：`crontab -e`
