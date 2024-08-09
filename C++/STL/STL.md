@@ -10,3 +10,13 @@ STL 是一个标准，对接口进行规范，其实现可以有不同版本。�
 - 空间配置器（allocator）给容器分配存储空间
 
 上述各部分收录在 STL/core 目录
+
+
+
+# STL implementations
+
+- HP STL: developed by Alexandar Stepanov and Meng Lee in Hewlett-Packard (HP) Lab, Palo Alto, 1990. C++ STL的第一个实现。后续其他版本的 STL 深受其影响，大都以其为蓝本。
+- SGI STL: Developed by Silicon Graphics International (SGI) in the mid-1990s. Main designer, STL's father - Alexandar Stepanov. A most influential early implementation of the STL.
+- GNU's STL(libstdc++): default C++ STL implementation for GCC compiler (influenced by SGI STL)
+- LLVM's STL (libc++): default C++ STL for Clang compiler.
+- Microsoft STL: The default C++ Standard Library for Microsoft's Visual C++ compiler (MSVC).
