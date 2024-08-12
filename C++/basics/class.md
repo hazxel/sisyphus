@@ -1,6 +1,6 @@
 # Data Member Init order
 
-成员变量初始化的顺序为：先进行声明时初始化，然后进行初始化列表初始化，最后进行构造函数初始化
+成员变量初始化的顺序为：先进行声明时初始化，然后进行初始化列表初始化(**按类定义的顺序，而不是初始化列表中的顺序**)，最后进行构造函数初始化
 
 
 
@@ -84,6 +84,14 @@ operator SOME_TYPE() const; // no arguments
 ```
 
 Conversion functions can be called implicitly if without specifier `explicit`. May lead to ambiguity sometimes if the receiver class also has a conversioin constructor.
+
+### auto conversion (C++14)
+
+```c++
+operator auto() {}
+```
+
+
 
 
 
@@ -219,7 +227,7 @@ Specifies that a virtual function cannot be overridden or a class cannot be deri
 
 用于引入基类中的成员函数或成员变量到派生类中，主要有以下几种场景：
 
-- 子类无法隐式使用父类的构造函数，需要写`Derived(int arg): Base(int arg) {}` 略麻烦
+- 子类不会隐式继承使用父类的构造函数，需要写`Derived(int arg): Base(int arg) {}` 略麻烦
 - 子类的同名函数会隐藏基类的实现（即使是参数列表不同的重载）
 
 但引入 base class 成员函数时只能指定名字并引入所有同名重载
@@ -228,7 +236,8 @@ Specifies that a virtual function cannot be overridden or a class cannot be deri
 
 - Constructor are not inherited. (but still possible via `using Base::Base;`)
 - If derived class doesn't call base class DftCtor explicitly (i.e.`Child():Father(){}`), compiler will call it implicitly. If super class doesn't have DftCtor, then an other Ctor must be called explicitly.  
-- Assignment operators (CAssOp/MAssOp) are not inherited. 
+- Assignment operators (CAssOp/MAssOp) are not implicitly inherited. 
+- Dtor is not implicitly inherited
 
 
 

@@ -8,6 +8,12 @@
 
 
 
+# C Standard
+
+`glibc`（GNU C Library）是一个具体的 C 标准库实现，为 GNU/Linux 系统提供标准的 C 库功能。除了 `glibc`，还有其他的 C 标准库实现，例如：musl libc, BSD libc, MSVC CRT 等
+
+
+
 # Global variable 
 
 ### C++ rules

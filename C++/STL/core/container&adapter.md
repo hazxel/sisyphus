@@ -148,6 +148,8 @@ A key of a `unordered_map` or `map` is also `const`, which means the type of `pa
 
 - Functional 比较的方式。使用基本数据类型时，默认是大顶堆
 
+  > 小顶堆：`    std::priority_queue<int, std::vector<int>, std::greater<int>> minHeap;`
+
 ### 初始化
 
 - 传 Functional 类型：`priority_queue<T,Container<T>,Cmptor)> pq;`

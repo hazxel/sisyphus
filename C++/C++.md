@@ -95,6 +95,7 @@ In a constexpr if statement, the value of condition must be a contextually conve
 
 `sizeof` is a compile time operator:
 
+- when applied to an array, result in the length of it. (只能在数组定义所在的scope中获得)
 - size of an object of an **empty class** is 1, in order to "ensure that the addresses of two different objects will be different." And the size can be 1 because alignment doesn't matter here, as there is nothing to actually look at.
 - Existence of **virtual function(s)** will add 4 bytes of a virtual table pointer in the class. In this case, if the base class of the class already has virtual function(s) either directly or through its base class, then this additional virtual function won't add anything to the size of the class. Virtual table pointer will be common across the class hierarchy.
 - Using of **virtual inheritance** will add 4 bytes of a virtual base table pointer in the class. A class will only maintain one virtual base table pointer.
@@ -102,6 +103,7 @@ In a constexpr if statement, the value of condition must be a contextually conve
 - alignment: alignment with the "widest" **basic** type (maybe inside a compound type), and compound types are treated as a whole ({double, char}, char -> 24)
   - ordering matters here because of byte padding (char, short, int -> 8 ; char, int, short -> 12)
   - char: 1, short: 2, int: 4, double: 8 (depends on GCC version, platform, etc.)
+- when applied to an expression, parenthesis is optional (`sizeof 1`)
 
 
 
@@ -193,3 +195,4 @@ struct bs{
 - 对位域的赋值操作都会自动按照位数自动截断。
 - 可以定义未命名位域，这将空出相应位数的空间不使用。
 - 可以定义宽度为 0 的未命名位域，这将强制将下一个位域与下一个类型边界对齐。
+- 不能取地址

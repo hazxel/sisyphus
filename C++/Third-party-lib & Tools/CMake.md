@@ -22,6 +22,8 @@
 
 - `add_executable`: define a target exetutable with source files
 
+- `include_directories`: add dependent header files for all targets in this module and submodules (not recommended - 某些情况下可能导致包含路径的混乱或非预期的行为，尤其是在大型项目中)
+
 - `target_include_directories`: add dependent header files for target
 
 - `target_link_libraries`: add dependent libraries for target

@@ -75,3 +75,7 @@ The `#pragma <xxx>` usage is ignored by the preprocessor and passed to the compi
 
 
 
+# Invoke Python
+
+- Python.h
+- Pybind
