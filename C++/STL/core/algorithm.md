@@ -6,6 +6,22 @@
 
 ### swap
 
+> **Argument-Dependent Lookup (ADL)** (also known as Koenig lookup)
+>
+> Enables the compiler to find functions in namespace based on the types of their arguments. This is particularly important when working with the `std::swap`. for example:
+>
+> ```c++
+> namespace MyNamespace {
+>     struct MyType {};
+>     void foo(MyType);
+> }
+> 
+> int main() {
+>     MyNamespace::MyType obj;
+>     foo(obj);  // without MyNamespace::foo
+> }
+> ```
+
 Implementation: (in \<type_traits\>)
 
 ```c++
