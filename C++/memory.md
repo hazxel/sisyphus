@@ -238,4 +238,18 @@ smart pointers are not thread safe.
 
 # Allocator
 
+### GNU C Allocator
+
+`malloc` is defined in C standard, may be implemented by syscall `brk` and `mmap`. 
+
+GNU C Library, *glibc*'s  `malloc` is derived from `ptmalloc` (pthreads malloc) (`ptmalloc` is based on Doug Lea's `dlmalloc`) , 并针对多线程环境进行了优化。
+
 *glibc* memory allocator talks to the OS kernel, request and release the virtual memory for the processes in a wise way. (e.g. request a large virtual memory from the OS, and allocate them to processes eventually)
+
+### C++ Allocator
+
+ in C++, the `new` and `delete` operators are typically implemented on top of the C library functions `malloc` and `free`. 
+
+### C++ STL Allocator
+
+See STL/core/allocator.md
