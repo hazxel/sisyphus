@@ -2,7 +2,20 @@
 
 ### Architecture
 
-AMD
+##### AMD X86
+
+x86 是强内存序架构，即使不显式使用内存屏障，编译器和硬件都会强制确保内存操作的顺序
+
+##### ARM AArch64
+
+AArch64 架构是弱内序的，这意味着内存操作可以被重排序
+
+##### SMP（Symmetric Multiprocessing）vs UP（Uniprocessor）
+
+SMP（Symmetric Multiprocessing）和 UP（Uniprocessor）是计算机体系结构中的两个概念，分别描述了处理器的配置和多处理能力。
+
+- SMP 中有多个处理器（或核心）共享同一个内存空间和操作系统。这些处理器通常是对称的，即它们具有相同的能力和访问相同的硬件资源（如内存和I/O设备），操作系统和应用程序可以动态地将任务分配给任意处理器，从而提高并行处理能力和系统性能。
+- UP 中系统只有一个处理器（或核心），所有计算任务都由这一个处理器来处理。
 
 
 
@@ -11,6 +24,43 @@ AMD
 即内存管理单元，是 cpu 可选的硬件模块，主要功能是**将虚拟地址转换为物理地址**。传统计算机系统中，内存控制器位于北桥芯片内部，CPU与内存的数据交换需要经过 “CPU-北桥-内存-北桥-CPU”5步，延迟较大，后逐步集成至 CPU 中。
 
 硬件MMU就可以在地址翻译的过程中根据PTE的标志位来检测访问是否合法，这也是为什么PTE是一个软件实现的东西，但又必须按照处理器定义的格式去填充，这可以理解为软硬件之间的一种约定。那可以用软件去检测PTE么？当然可以，但肯定没有用专门的硬件单元来处理更快嘛。
+
+
+
+### Barrier
+
+##### Compiler Scheduling Barriers：
+
+作用在编译器层面，确保编译器不对内存操作进行重排序，通过语言级别的原子操作和内存序选项实现。
+
+compiler barrier: `asm volatile ("" ::: "memory");` 
+
+- `asm ("")` 是一个空的汇编指令
+- `volatile` 防止编译器优化掉这个空指令。
+- `:::"memory"` 表示这是一个内存屏障，告诉编译器此处涉及到对内存的访问，防止对该点前后的内存操作进行重排序。
+- This compiler barrier is a possible implementation of `atomic_thread_fence(memory_order_release)` on x86, but not on AArch64. 因为 x86 是强内存序架构，而 AArch64 架构是弱内序的。为了实现 `memory_order_release` 的语义，必须使用汇编指令限定内存序， 如`__asm__ volatile ("dmb ish" ::: "memory");` （详见下）
+
+##### Hardware Memory Barriers：
+
+作用在硬件层面，确保处理器和内存操作的顺序性，通过低级汇编指令或特定的硬件同步机制实现。
+
+- x86 processor 
+  - write barrier: `asm volatile("sfence" ::: "memory");`
+  - read barrier: `asm volatile("lfence" ::: "memory");`
+  - read-write barrier: `asm volatile("mfence" ::: "memory");` 
+- aarch processor 内存屏障指令 `dmb`、`dsb` 和 `isb`
+
+##### Linux interface
+
+建议尽量用linux提供的API，直接根据架构对上述内容做了封装，除第一个外都为 CPU 屏障：
+
+- `barrier()` 编译器优化屏障
+- `mb()` 读写内存屏障，用于SMP和UP
+- `rmb()`读内存屏障，用于SMP和UP
+- `wmb()`写内存屏障，用于SMP和UP
+- `smp_mb()`用于SMP场合的内存屏障，对于 UP 不存在 memory order 的问题（对汇编指令），因此，在 UP 系统上仅被定义为一个优化屏障，确保汇编和 c 代码的 memory order 是一致的
+- `smp_rmb()`用于SMP场合的读内存屏障
+- `smp_wmb()`用于SMP场合的写内存屏障
 
 
 
