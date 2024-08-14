@@ -48,11 +48,38 @@ compiler barrier: `asm volatile ("" ::: "memory");`
   - write barrier: `asm volatile("sfence" ::: "memory");`
   - read barrier: `asm volatile("lfence" ::: "memory");`
   - read-write barrier: `asm volatile("mfence" ::: "memory");` 
-- aarch processor 内存屏障指令 `dmb`、`dsb` 和 `isb`
+  
+- aarch processor 内存屏障指令:
+
+  - `dmb`: Data Memory Barrier，其后的存储器访问动作必须在之前的存储器访问都执行完毕后执行
+
+    等价 x86 的屏障指令：`dmb ishld` - 读屏障 ｜ `dmb ishs t` - 写屏障 ｜ `dmb ish` - 读写屏障
+
+  - `dsb`: Data Synchronous Barrier，更严格，其后的任何指令都在之前的存储器访问完成后执行，有些版本的 Kernel 转而用 `dsb` 实现上面的读写屏障
+
+  - `isb`: Instruction Synchronous Barrier，刷新 CPU pipeline 和 prefetch buffer，这意味着 ISB 后的指令需要重新从 cache 或 memory 取值，以保证所有之前的指令都执行完毕
+
+  而其后又可跟如下参数：
+
+  - Non-shareable：core 独享区域
+
+    `NSHLD`: Load -Load, Load - Store | `NSHST`: Store - Store | `NSH`: Any - Any
+
+  - Inner shareable：可被多核共享，但不需要都可访问。一个系统中可能有多个Inner shareable区域
+
+    `ISHLD`: Load-Load & Load-Store | `ISHST`: Store-Store | `ISH`: Any-Any
+
+  - Outer shareable：Outer Shareable 操作会隐性影响其中所有 Inner Shareable 区域，反之不成立
+
+    `OSHLD`: Load -Load, Load - Store | `OSHST`: Store - Store | `OSH`: Any - Any
+
+  - Full System：影响系统中的所有observer
+
+    `LD`: Load -Load, Load - Store | `ST`: Store - Store | `SY`: Any - Any
 
 ##### Linux interface
 
-建议尽量用linux提供的API，直接根据架构对上述内容做了封装，除第一个外都为 CPU 屏障：
+建议尽量用 linux 提供的 API，适配不同架构做了封装，（除第一个外都为 CPU 屏障）：
 
 - `barrier()` 编译器优化屏障
 - `mb()` 读写内存屏障，用于SMP和UP
@@ -194,6 +221,8 @@ PCIe 总线目前主要用于连接 GPU 与 CPU
 
 NVIDIA 开发的互联架构 NVLink 便是为了解决该问题。单条 NVLink 具备双路双工共40GB/s的带宽。如 P100 上集成了4条NVLink 后可具备 160GB/s 的带宽。除了实现 GPU 间的互联，部分 CPU 也开始支持 NVLink 标准（如 IBM 的 Power 处理器）
 
+### CXL
+
 
 
 
@@ -204,8 +233,6 @@ NVIDIA 开发的互联架构 NVLink 便是为了解决该问题。单条 NVLink 
 
 
 # RDMA
-
-
 
 
 
