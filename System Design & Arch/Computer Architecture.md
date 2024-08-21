@@ -195,6 +195,21 @@ cache is between CPU and memory, buffer is between memory and disk. cache accele
 
 闪存的耗电量小，但速度比 DRAM 慢，且有写入擦除寿命问题（几千次 P/E循环）。闪存正在逐步取代磁盘作为计算机尤其是终端的辅助存储器。细分类型有或非门闪存 NOR Flash，与非门闪存 NAND Flash （用来生产固态硬盘）等。
 
+> ### Latency Numbers everyone should know
+>
+> |            Access             |   Time    | Cycles  |
+> | :---------------------------: | :-------: | :-----: |
+> |    execute cpu instruction    |   1 ns    |   1+    |
+> |         read L1 cache         |  0.5 ns   |         |
+> | read L2 cache (L1 cache miss) |   7 ns    |  10~20  |
+> |       atomic operations       |   10 ns   |  10~20  |
+> |       mutex lock/unlock       | 25-100 ns |  100+   |
+> |  read memory (L2 cache miss)  |  100 ns   | 50~100+ |
+> |             SRAM              |   10 ns   |         |
+> |             DRAM              |   60 ns   |         |
+> |             Flash             |           |         |
+>
+
 
 
 # Interconnect

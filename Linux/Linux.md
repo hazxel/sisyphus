@@ -75,6 +75,21 @@ OS 使用 VMA 来对进程的地址空间进行管理，包括被映射 ELF 中�
 - T (TASK_STOPPED or TASK_TRACED)，暂停状态或跟踪状态
 - X：退出状态，进程即将被销毁
 
+> ### Inverview question: Process vs Thread
+>
+> - Context Switch: Switching processes is super expensive:
+>   - Process switching uses an interface in an operating system, while swithing/creating threads doesn't require a kernel call.
+>   - Process switching involves:
+>     - Loading the corresponding Process Control Block (PCB) from the PCB table (in kernel stack). 
+>     - Loading CPU state info (registers) and memory management info (segmentation tables, page tables) from PCB.
+>     - Flush Translation Lookaside Buffer (TLB), to ensure correct virtual-pyhsical address translation
+>   - Thread switching involves much smaller context: 
+>     - thread program counter, registers, stack pointers
+> - Communication: Threads in the same process share the same virtual memory space, so thread communication can be as simple as sharing a variable or object.However, processes's memory are usually isolated, and requires Inter Process Communication (IPC), which is not very efficient. 
+> - Isolation: Processes are usually isolated, while a crash in a thread takes down the whole process.
+>
+> 一次起500个线程 会怎样？崩溃？
+
 
 
 # Paging
@@ -82,6 +97,38 @@ OS 使用 VMA 来对进程的地址空间进行管理，包括被映射 ELF 中�
 ### 四种paging模式？？？
 
 计算机发展到现在（x86体系），paging模式已经有了四种，分别是32-bit paging、PAE paging、4-level paging、5-level paging。我们可以将其做粗略划分，前两种模式是应用于32位平台，后两种模式是应用于64位平台。
+
+### Memory Management
+
+##### Segmentation
+
+- **Segments**: A program is usually divided to logical segments (e.g. global data segment, main function, etc). Inside a segment, address starts from 0, and is stored continuously in physical memory.
+- **Logical Address**: composed of segment id and offset within the segment
+- **Segment Table**: map logical address to physical address. also segment limit
+- **Segmentation selector**: identify segment in either **Global Descriptor Table** or  **Local Descriptor Table.** GDT is the global level (first level), LDT is the local level (second level)
+- **Segmentation discriptor**:  describe the address, size and access control info of segment
+
+##### **Paging**
+
+- **Page Table**: **Page Table Entries (PTE)** hold the mapping between **Physical Frame Number (PFN)** and **Virtual Page Number (VPN)**, and other kinds of info.  
+- Paged memory functionality is usually hardwired into **Memory Management Unit (MMU)**, which translates virtual addresses to physical address by looking up page table.
+
+> Multi-level Page Table: single level page table can be very big
+
+> Table Lookaside Buffer (TLB): a physical cache in CPU, storing the most frequent accessed  Page Table Entry (PTE)
+
+##### Segmentation + Paging
+
+- **Segment Table**: map segment number to page table address
+- **Page Table**: map page number to Physical Frame Number
+
+##### Linux Memory Management
+
+>  In x86 architecture, segmentation is compulsory, while paging is optional. Paging and segmentation are redundant in some ways. So, Linux finds out a way to work around without engaging too much with segmentation.
+
+linux中逻辑地址等于线性(虚拟)地址，因为Linux所有的段（用户代码段、用户数据段、内核代码段、内核数据段）的线性地址都是从 0x00000000 开始，这样 线性地址=逻辑地址+ 0x00000000，逻辑地址等于线性地址了。所以 Linux 操作系统，并没有使用到全部的分段功能。但分段可以做权限审核和访问越界检测。
+
+
 
 
 
@@ -114,6 +161,34 @@ Each digit in the octal representation is an octal (base-8) number, which transl
 - **Read (r)**: The permission to read the file. (1 in the binary representation)
 - **Write (w)**: The permission to modify the file. (2 in the binary representation)
 - **Execute (x)**: The permission to execute the file. (4 in the binary representation)
+
+
+
+# syscall
+
+系统调用在 Linux 内核中实现，他们的定义可以在 Linux 内核源代码中找到。系统调用通常通过 `::syscall` 接口进行访问，而不是通过标准的 C 库或用户空间库头文件直接定义。可以在 `/usr/include/bits/syscall.h` 找到 syscall 的定义。
+
+### io_uring
+
+3 related syscall: 
+
+- `io_uring_setup`: 初始化并分配内存
+  - `u32 entries`: the minimum size of SQ and CQ
+  - `struct io_uring_params *p`: contains options passed to kernel, other fields filld by kernel
+  - return an `int` fd for subsequent operations on the io_uring instance
+- `io_uring_enter`: 提交请求到内核执行
+- `io_uring_register`:  注册文件描述符或缓冲区，使其可在 I/O 操作中被引用，避免重复传递，并且由于已提前 mmap，也能减少延迟
+
+encapsulation & helper provided by liburing: 
+
+- `io_uring_queue_init`: calls `io_uring_setup` and xxx ???
+- `io_uring_submit`: calls `io_uring_enter`
+- `io_uring_prep_*`: prepare SQE，包含所有异步 I/O 操作需要的信息。
+- `io_uring_submit`: 一般仅更新 SQ，某些情况下 call `io_uring_enter` 来唤醒内核线程 `io_sq_thread` 
+- `io_uring_wait_cqe`: block and loop to wait for a new CQE (no sys call)
+- `io_uring_cqe_seen`: update CQ head, kernel will handle processed entries (no syscall)
+- `io_uring_register_files`, `io_uring_register_eventfd`: calls `io_uring_register`
+- `io_uring_queue_exit`: `munmap` 解除提交队列和完成队列的共享内存内存映射，`close` 关闭 ring 的文件描述符，（io_uring 实例本身似乎是内核负责释放？？？）
 
 
 
@@ -188,3 +263,63 @@ Named semaphore is given a name ，命名信号量在文件系统的 IPC 虚拟�
 ### Others
 
 - `sleep`: 影响整个进程，所有线程全部挂起。现代 c++ 中建议使用 ``std::this_thread::sleep_for` 以确保更好的跨平台兼容性和代码的可维护性。
+
+> ### Interview question: IPC pros and cons
+>
+> Inter-process communication is a mechanism provided by the OS for communications between several processes.
+>
+> > Transmission Modes:
+> >
+> > - simplex: Only one of the two parties on a link can transmit, the other can only receive.
+> > - half-duplex: each party can both transmit and receive, but not at the same time.
+> > - full-duplex: both parties can transmit and receive simultaneously.
+>
+> - Pipe: half-duplex
+>
+>   A pipe is an important mechanism in Unix-based systems that allows us to communicate data from one process to another without storing anything on the disk. The following two kinds of pipes are very similar except for creating and deleting.
+>
+>   - Named Pipe (FIFO):
+>
+>     A named pipe can last as long as the system is up. Usually a named pipe appears as a file, and generally processes attach to it for IPC.
+>
+>     - Advantages: allows communication between unrelated processes
+>     - Disadvantages: Long-term storage in the system, improper use is prone to errors. Limited buffer
+>
+>   - Anonymous pipe (pipe): `|`
+>
+>     Typically a parent program opens anonymous pipes, and creates a new process that inherits the other ends of the pipes, or creates several new processes and arranges them in a pipeline. When no process is holding a reference to a pipe, it will be closed automatically.
+>
+>     - Advantages: simple and convenient
+>     - Disadvantages: Can only be created between its processes and their related processes. Limited buffer
+>
+> - Semaphore: a **counter** that can be used to control access to shared resources by multiple threads.
+>
+>   P and V are atomic operations, P(sv) will decrease sv by 1 and suspend if sv=0, while V(sv) will increase sv by 1 and invoke the suspended process.
+>
+>   - Advantages: can synchronize processes
+>   - Disadvantage: just a counter, not very expressive
+>
+> - Signal: The only asyncronous communication in IPC.  It's complex and used to notify the process that an event has occurred. It's like the software-level interrupt. A process receiving a signal is like a processor receiving an interrupt.
+>
+> - Message Queue: a linked list of messages, stored in the kernel and identified by the message queue identifier
+>
+>   A data stream similar to a socket, but which usually preserves message boundaries. Typically implemented by the operating system, they allow multiple processes to read and write to the message queue without being directly connected to each other.
+>
+>   - Advantages: Easy to implement. Allow communication between any process. Send and Receive through system call, and no need to consider synchronization issues.
+>   - Disadvantages: Copying information requires additional CPU time, which is not suitable for situations with large amounts of information or frequent operations
+>
+> - Shared Memory: A common memory created in RAM, and can be accessed by multiple processes.
+>
+>   - Advantages: fastest, bidirectional, large amount of information, can be used by multiple processes
+>   - Disadvantages: Require concurrency control (e.g. semaphore, mutex)
+>
+> - Socket: can be used for process communication between different computers
+>
+>   Socket 是对 TCP/IP 协议族的一种封装，是应用层与TCP/IP协议族通信的中间软件抽象层。从设计模式的角度看来，Socket其实就是一个门面模式，它把复杂的TCP/IP协议族隐藏在Socket接口后面，对用户来说，一组简单的接口就是全部，让Socket去组织数据，以符合指定的协议。
+>
+>   - Advantages:
+>     1. The transmission data is byte level, the transmission data can be customized, the data volume is small and the efficiency is high
+>     2. Short data transmission time and high performance
+>     3. Suitable for real-time information exchange between client and server
+>     4. Can be encrypted, strong data security
+>   - Disadvantages: The transmitted data needs to be parsed and converted into application-level data.

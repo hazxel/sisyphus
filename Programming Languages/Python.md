@@ -69,6 +69,10 @@ N 维数组（矩阵）对象，可用 list 初始化：`np.array([1, 2, 3])`
   - `np.squeeze(a, axis=n)`: Remove $n_{th}$​ axes if length is 1
   - `np.squeeze(a, axis=(x,y,z))`: Remove all axes in tuple if lengths all equal to 1
 
+##### random
+
+`linspace`: 生成指定范围内的等间距数值序列
+
 ##### VS list
 
 - 一个 list 可以存放多种类型的数据，但是numpy数组中存放的数据类型必须全部相同
@@ -246,6 +250,10 @@ Pandas 可以简单、直观地处理关系型、标记型数据，如表格数�
 
 # Multi-threading
 
+### Process 进程
+
+- `subprocess.Popen`: 接收 list of args, 默认安全机制 `shell=False`, 防止 shell 注入
+
 ### Thread 线程
 
 > 全局解释器锁 (Global Interpreter Lock, GIL) 
@@ -330,6 +338,12 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
 
 
 
+# Memory View
+
+？？？
+
+
+
 
 
 # Python Interpreter
@@ -396,6 +410,8 @@ Cython 是具有 C 数据类型的 Python，几乎所有 Python 代码都是有�
   - 绝对路径导入: 比较清晰，不容易出错，可维护性差一些
 
   - 相对路径导入: `import .xxxx` / `import ..xxxx `（TODO：比较复杂，python 用 `__name__`  来决定一个模块在包中的结构）
+
+  - `import a.b` 时，b 不可以是一个类/函数/对象；`import b from a` 时，可以。
 
 - `__init__.py`: a python package need to include this in its root directory (can be empty)
 

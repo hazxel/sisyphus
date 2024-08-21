@@ -195,9 +195,25 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - `top`: 分析进程性能，包括 pid, user, priority, virtual memory, shared memory, state(S/R/I/...), CPU, Mem, time, command。按 1 可查看瞬时CPU占用
 
+- `htop`: 是 `top` 命令的增强版， 一启动就显示所有信息，使用颜色来区分不同的资源使用类型，并提供更丰富的快捷键，交互，批量操作，以及自定义排序筛选 (F1 for help)
+
+  - CPU: Blue - low priority threads ｜ Green - normal priority threads | Red - Kernel threads
+
+  - Memory: Green - used memory | Blue - buffers | Yellow - cache
+
+    > buffer vs cache
+
 - `ps -ef`: check process, 显示进程父，子，COMMAND
 
 - `ps aux`: 显示进程资源占用
+
+  > `-ef` vs `aux`: 如果关心是进程的资源使用，使用 `ps aux`；如果关心的是进程的父子关系或完整的启动命令，使用 `ps -ef`。
+  >
+  > - `a`: 显示所有用户的进程，包括其他用户的进程。
+  > - `u`: 以用户友好的格式显示进程信息，包括用户、CPU 使用率、内存使用率、启动时间、进程状态等。
+  > - `x`: 显示没有控制终端的进程（通常是后台进程）。
+  > - `-e`: 显示所有进程（类似于 `ps aux` 中的 `a`）。
+  > - `-f`: 以全格式显示进程信息，包括进程的父进程 ID (PPID) 和启动命令的完整路径。
 
   - STAT: 进程状态：(`man ps` 可查)
     - R: running
