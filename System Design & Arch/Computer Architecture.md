@@ -21,9 +21,13 @@ SMP（Symmetric Multiprocessing）和 UP（Uniprocessor）是计算机体系结�
 
 ###  MMU (Memory Management Unit) 
 
-即内存管理单元，是 cpu 可选的硬件模块，主要功能是**将虚拟地址转换为物理地址**。传统计算机系统中，内存控制器位于北桥芯片内部，CPU与内存的数据交换需要经过 “CPU-北桥-内存-北桥-CPU”5步，延迟较大，后逐步集成至 CPU 中。
+即内存管理单元，是 cpu 可选的硬件模块，通常每个核心都配备一个，主要功能是**将虚拟地址转换为物理地址**。传统计算机系统中，内存控制器位于北桥芯片内部，CPU与内存的数据交换需要经过 “CPU-北桥-内存-北桥-CPU”5步，延迟较大，后逐步集成至 CPU 中。MMU 主要包括：
 
-硬件MMU就可以在地址翻译的过程中根据PTE的标志位来检测访问是否合法，这也是为什么PTE是一个软件实现的东西，但又必须按照处理器定义的格式去填充，这可以理解为软硬件之间的一种约定。那可以用软件去检测PTE么？当然可以，但肯定没有用专门的硬件单元来处理更快嘛。
+- **Table Lookaside Buffer (TLB)**: a physical cache in CPU, storing the most frequent accessed  Page Table Entry (PTE)，当 CPU 访问一个虚拟地址时，首先通过 TLB 查找虚拟地址的物理地址映射。
+
+PTE 是操作系统软件层面的概念，但必须按照处理器定义的格式去填充，MMU 在地址翻译的过程中根据 PTE 的标志位来检测访问是否合法。
+
+但处理器不能自动同步它们自己的TLB高速缓存，因为决定线性地址和物理地址之间映射何时不再有效的是内核，而不是硬件。处理器侧，以 Intel 为例，提供了两种 invalidate TLB 的方法，向 cr3 寄存器写入值，或 `invlpg` 汇编指令。而 Linux 内核则提供了比较丰富的 TLB 方法 `flush_tlb_xxxx`。
 
 
 
@@ -92,6 +96,11 @@ compiler barrier: `asm volatile ("" ::: "memory");`
 
 
 # Cache
+
+每个 CPU 核心都有缓存单元，主要包括：
+
+- 硬件缓存内存 (hardware cache memory)：一般为 SRAM，容量小速度快，存放内存中真正的行
+- 缓存控制器 (cache controller)：存放一个表项数组，管理每个缓存行到物理地址的映射。不涉及虚拟地址
 
 ### Hierarchy
 
