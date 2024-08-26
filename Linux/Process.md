@@ -1,5 +1,9 @@
 # Process
 
+###  process descriptor 进程描述符
+
+###  
+
 ### create process：
 
 ##### 表层系统调用：
@@ -43,3 +47,5 @@
 > - Isolation: Processes are usually isolated, while a crash in a thread takes down the whole process.
 >
 > 一次起500个线程 会怎样？崩溃？
+
+

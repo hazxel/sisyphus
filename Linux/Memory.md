@@ -52,9 +52,10 @@ Linux 主要采用分页机制（X86叫保护模式，arm叫MMU机制）来对�
 
 ### Page & Page Frame
 
-线性地址被分成以固定长度为单位的组，称为 page，其内部连续的线性地址被映射到连续的物理地址。页内的所有地址的存取权限也相同。页大小的典型值是 4 KB，但也有称为大页 (Huge Page) 的 2 MB 的页，以及 1 GB 的超大页 (Gigantic Page)。一般 “页” 既指一组线性地址，又指包含在这组地址中的数据，是个比较抽象的概念。
-
-分页单元把 RAM 分成固定长度的页框 (page frame，又称物理页)，其长度与页的长度一致，毎一个页框可以存放一个页。页框指的是一个储存区域，是个比较具体的概念。
+- 线性地址被分成以固定长度为单位的组，称为 page，其内部连续的线性地址被映射到连续的物理地址。页内的所有地址的存取权限也相同。页大小的典型值是 4 KB，但也有称为大页 (Huge Page) 的 2 MB 的页，以及 1 GB 的超大页 (Gigantic Page)。一般 “页” 既指一组线性地址，又指包含在这组地址中的数据，是个比较抽象的概念。
+- 分页单元把 RAM 分成固定长度的页框 (page frame，又称物理页)，其长度与页的长度一致，毎一个页框可以存放一个页。页框指的是一个储存区域，是个比较具体的概念。
+- System uses a `struct page` as a "descriptor" to keep track of the nature and state of a page frame. 大小为 32 字节，存放于 `mem_map` 数组中，可通过  `pfn_to_page(pfn)`  得到物理页框号 PFN 对应的页描述符地址 。该数据结构描述了页框是否空闲，所属内核还是用户等。
+- 内核的分区页框分配器 (zoned page frame allocator) 可负责处理对连续页框的分配和释放请求
 
 ### Page Table
 
@@ -78,7 +79,7 @@ Linux 主要采用分页机制（X86叫保护模式，arm叫MMU机制）来对�
 
 ### paging models
 
-目前主流的 paging 模式有 32-bit paging、PAE paging、4-level paging、5-level paging 等。粗略划分，前两种模式应用于32位平台，后两种模式应用于64位平台。
+目前主流的 paging 模式有 32-bit paging、PAE paging、4-level paging、5-level paging 等。前两种模式一般应用于32位平台，后两种模式应用于64位平台。
 
 ##### Physical Address Extension (PAE)
 
@@ -91,6 +92,30 @@ x86-64架构下的四级页表层级通常包括：页全局目录（PML4）、�
 
 
 # Process Address Space Management
+
+##### VMA (Virtual Memory Area) / memory region 线性区
+
+OS 使用线性区（又叫 VMA）来对进程的地址空间进行管理，包括映射 ELF 中的各个Segment，管理运行时的堆栈等。VMA 由起始地址、长度和访问权限来描述，起始地址和线性区的长度都必须是4096的倍数， 以便完全利用分配给它的页框。
+
+划分VMA的基本原则是将相同权限属性的，有相同映像文件的映射成一个VMA，一个进程基本上可以分为如下几种VMA区域：
+
+- CODE VMA：可读、可执行： (`.text`, `.rodata`, ...)
+- DATA VMA：可读写、可执行；有映像文件 (`.data`, ...)
+- BSS VMA：可读写；无映像文件，匿名 (`.bss`, ...)
+- HEAP VMA：可读写、可执行；无映像文件，匿名，可向上扩展
+- STACK VMA：可读写、不可执行；无映像文件，匿名，可向下扩展
+
+> 堆栈这种没有指定特定的映像文件的 VMA 通常被称为匿名虚拟内存区域 (Anonymous Virtual Memory Area, AVMA)。
+
+一个进程通常由加载一个 ELF 文件启动。 ELF 文件是由若干 segments 组成的，进程地址空间也由许多不同属性的 segments 组成。ELF 将读写执行权限相同的 Sections 合并为 Segment，然后将 Segment 作为一个整体映射到虚拟内存空间和实际物理空间，一个 Segment 对应一个 VMA。（如果依赖的动态库多，segments数量会很大）（与分段 segmentation 机制不是同一个概念！）
+
+##### memory descriptor 内存描述符
+
+包含与进程地址空间有关的全部信息，类型为 `mm_struct` ，系统中所有的内存描述符统一存放在一个双向链表中，而每个进程描述符的 `mm` 字段会指向各自的内存描述符结构。内存描述符包含 `mm_count` 字段，用于计数使用者，当其递减时检查其是否为零并删除之。
+
+（用户进程的）内存描述符的一个重要功能是记录线性区，每个线性区对应一个 `vm_area_struct` 数据结构。线性区不会重叠，内核会尽量把新线性区紧邻的现有线性区，并根据访问权限进行合并。进程所拥有的所有线性区通过双向链表（早期内核使用单向链表）链接在一起，并按地址升序排列。为了应对线性区数量过多的场景，Linux 2.6 中新增了红黑树用于存放线性区，与链表结构同时存在，红黑树用来查找含有指定地址的线性区，链表用于扫描整个线性区集合。
+
+内核对进程内存分配采用推迟策略，进程请求内存时，不直接获得页框，仅获得 VMA 的使用权。Linux 的缺页异常（Page Fault）处理程序会利用 `vm_area_struct` 来区分编程错误引起的非法访问，以及由于物理页框未分配引起的异常。主要检查线性地址是否属于该进程地址空间，以及访问权限是否匹配。
 
 ##### Virtual memory: 32-bit
 
@@ -111,22 +136,6 @@ On 32-bit architecture, the **highest 1GB** of virtual memory is **kernel space*
 
 在64位系统中内核的虚拟地址空间足够大，可以直接映射所有物理内存，不再需要动态映射。
 
-##### VMA (Virtual Memory Area)
-
-OS 使用 VMA 来对进程的地址空间进行管理，包括被映射 ELF 中的各个Segment，管理运行时的堆和栈等。堆栈这种没有指定特定的映像文件的 VMA 通常被称为匿名虚拟内存区域 (Anonymous Virtual Memory Area, AVMA)
-
-划分VMA的基本原则是将相同权限属性的，有相同映像文件的映射成一个VMA，一个进程基本上可以分为如下几种VMA区域：
-
-- CODE VMA：可读、可执行： (`.text`, `.rodata`, ...)
-- DATA VMA：可读写、可执行；有映像文件 (`.data`, ...)
-- BSS VMA：可读写；无映像文件，匿名 (`.bss`, ...)
-- HEAP VMA：可读写、可执行；无映像文件，匿名，可向上扩展
-- STACK VMA：可读写、不可执行；无映像文件，匿名，可向下扩展
-
-一个进程通常由加载一个elf文件启动，而elf文件是由若干segments组成的，而进程地址空间也由许多不同属性的segments组成。ELF 将读写执行权限相同的 Sections 合并为 Segment，然后将Segment作为一个整体映射到虚拟内存空间和实际物理空间，一个Segment对应一个 VMA。（如果依赖的动态库多，segments数量会很大）（这与硬件的 segmentation 机制不是同一个概念！）
-
-一个 VMA 由许多的虚拟内存页组成，并按起始地址递增存放于双向链表（早期内核使用单向链表）。VMA 同时还通过红黑树组织起来，以加速通过虚拟地址对 VMA 的查找 (e.g. page fault)。
-
 ##### 段地址对齐
 
 可执行文件被 OS 装载运行时，一般是通过虚拟内存的页映射机制，以页为单位装载指令和数据。也就是说，要映射的内存长度必须是整数个页，且这段空间在物理内存和进程虚拟地址空间的起始地址必须也是页大小的整数倍。
@@ -135,3 +144,17 @@ OS 使用 VMA 来对进程的地址空间进行管理，包括被映射 ELF 中�
 
 - 最简单的方案：段长度不足一页时补齐一页，然后分别映射。缺点：页对齐产生的内存碎片浪费磁盘空间。
 - UNIX解决方案：段地址对齐 - 各个段在物理内存中紧凑排列，接壤部分的物理页面分别映射到两个（甚至多个）虚拟页面。这也意味着各个段的虚拟地址不再是系统页面长度的整数倍了。
+
+
+##### heap 堆
+每个 Unix 进程都拥 一个特殊的线性区，堆(heap)。内存描述符的 start_brk 与 brk 字段限定了堆的起止地址。
+
+- start_brk: 确定的堆的起始地址，位于 bss 段结束地址后（开启 ASLR 保护时增加一个 random brk offset）
+- brk (program break): 标志堆的结束地址，会动态改变，小于 brk 的地址空间都是已经分配的堆内存。程序启动时，brk 指针被设置在 start_brk，此时堆的大小为 0
+
+常用的分配动态内存的 C 接口，如 malloc、calloc、realloc，都是通过系统调用 brk 和 mmap：
+
+- brk 调用：传入一个地址，做检查后直接以此更新 program break location。brk 分配的内存需要等到高地址内存释放以后才能释放，容易产生内存碎片，glibc 中只有小于 128KB 的内存请求使用 brk 分配
+- mmap 调用：直接从堆栈区寻找一块空闲的地址进行分配，mmap分配的内存可以单独释放
+
+有关 malloc 等函数的具体实现，详见 C++/memory 章节

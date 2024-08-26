@@ -35,7 +35,9 @@ the following segments are sorted from high address to low address (in **virtual
 - `realloc(ptr,new_size)`：重新分配之前由 `malloc`、`calloc` 或 `realloc` 分配的内存块的大小，可扩容或截断
 - `alloca`：在栈上分配内存，有些平台不支持
 
-调用 malloc 时，并不会真正申请物理内存，不会影响 RSS，只是移动 `brk` 指针，即一个表示进程虚拟内存空间中 `堆空间` 的顶部的指针。而且物理内存的申请延迟到对虚拟内存进行读写的时候，通过缺页异常来实现。
+一般小块内存分配会使用 `brk` 或 `sbrk` 调整堆的边界，大块内存请求则调用 `mmap`。阈值默认为 128KB，可通过 `MMAP_THRESHOLD` 修改。
+
+调用 malloc 时，并不会真正申请物理内存，不会影响 RSS。以 brk 调用为例，其仅移动 `brk` 指针，一个表示进程虚拟内存空间中 `堆空间` 的顶部的指针。物理内存的申请延迟到对虚拟内存进行读写的时候，通过缺页异常来实现。
 
 内存操作：
 
