@@ -81,18 +81,6 @@ compiler barrier: `asm volatile ("" ::: "memory");`
 
     `LD`: Load -Load, Load - Store | `ST`: Store - Store | `SY`: Any - Any
 
-##### Linux interface
-
-建议尽量用 linux 提供的 API，适配不同架构做了封装，（除第一个外都为 CPU 屏障）：
-
-- `barrier()` 编译器优化屏障
-- `mb()` 读写内存屏障，用于SMP和UP
-- `rmb()`读内存屏障，用于SMP和UP
-- `wmb()`写内存屏障，用于SMP和UP
-- `smp_mb()`用于SMP场合的内存屏障，对于 UP 不存在 memory order 的问题（对汇编指令），因此，在 UP 系统上仅被定义为一个优化屏障，确保汇编和 c 代码的 memory order 是一致的
-- `smp_rmb()`用于SMP场合的读内存屏障
-- `smp_wmb()`用于SMP场合的写内存屏障
-
 
 
 # Cache

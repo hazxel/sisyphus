@@ -63,6 +63,8 @@ Linux 2.6 引入, 用于网络层和虚拟文件系统
 
 系统调用在 Linux 内核中实现，他们的定义可以在 Linux 内核源代码中找到。系统调用通常通过 `::syscall` 接口进行访问，而不是通过标准的 C 库或用户空间库头文件直接定义。可以在 `/usr/include/bits/syscall.h` 找到 syscall 的定义。
 
+`::systemcall` 的入参是用户进程传递的系统调用号，返回值是一个整数的错误码（和 `::open`  这些 C 标准库的封装例程不同，系统调用不设置 `errno` 变量）
+
 ### mmap & brk - 详见 Memory 章节
 
 ### io_uring
