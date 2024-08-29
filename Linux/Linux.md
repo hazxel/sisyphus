@@ -6,6 +6,10 @@ Unix 哲学 KISS：keep it simple, stupid。一切看上去十分复杂的逻辑
 
 
 
+# Linux 2.6
+
+Linux 2.6 is released in 2003, marked a significant shift in the development model. (version below that is really old).
+
 
 
 # Service
