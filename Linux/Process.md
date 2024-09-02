@@ -2,11 +2,28 @@
 
 ###  process descriptor 进程描述符
 
-###  
+Linux 将进程和线程视为同一种实体，统称为 task 任务。因此进程描述符对应的数据结构 `task_struct` 事实上存放了进程和线程的管理信息，是 Linux 下进程控制块 (PCB) 的具体实现。其中的字段：
+
+- `pid`: 进程的 pid 或线程对应的轻量级进程的 pid，是内核感知的 pid
+- `tgid`: 所属线程组的 id，即线程组中的主线程的 `pid`。这个字段是`getpid` 系统调用返回的值，也即用户感知的 pid (ps 命令打印的 pid)。
+- `pgid`: 标识 process group 进程组，即一个或多个进程组成的集合
+- `sid`: 标识 session 会话，即一个或多个进程组的集合
+- `state`: 进程状态，主要有：
+  - R：running，教科书一般将正在CPU上执行的进程定义为RUNNING状态、可执行但是尚未被调度执行的进程定义为READY状态，这两种状态在linux下统一为 TASK_RUNNING状态。
+  - Z：僵尸状态，进程在退出的过程中，处于TASK_DEAD状态。 在这个退出过程中，进程占有的所有资源将被回收，除了task_struct结构（以及少数资源）以外。于是进程就只剩下task_struct这么个空壳，故称为僵尸。
+  - S (TASK_INTERRUPTIBLE)，可中断的睡眠状态。
+  - D (TASK_UNINTERRUPTIBLE)，不可中断的睡眠状态。
+  - T (TASK_STOPPED or TASK_TRACED)，暂停状态或跟踪状态
+  - X：退出状态，进程即将被销毁
+- `thread_info`: 指向线程信息结构体的指针，
+
+单线程进程被看作只有一个线程的线程组，它的 `task_struct` 代表整个进程，也代表该进程唯一的线程。
+
+内核需要同时处理很多线程和进程，因此进程描述符被分配在动态内存，通过双向循环链表相连，该链表的头是 idle 进程的描述符。特别的，内核将每个进程的 `thread_info` 与该进程在内核态下的堆栈存放在相邻的两个页框中 (内核控制路径只使用很少的栈，8KB已足够)，`thread_info` 处于该内存区底部，而栈从顶部向下增长。这样做的主要好处是可以方便的从标志栈顶地址的寄存器 esp 获得 `thread_info` 起始地址 (屏蔽掉低 13 位)。
 
 ### create process
 
-传统的 Unix 操作系创建进程时总是复制父进程的所有资源，效率非常低。Linux 有三个相关的系统调用，不同程度上解决了该问题 (fork 的 cow，vfork共享内存，轻量级进程)。他们最终都会调用核内函数 `do_fork()`，但只有 `fork` 是 POSIX 规定的 API
+传统的 Unix 操作系创建进程时总是复制父进程的所有资源，效率非常低。Linux 有三个相关的系统调用，不同程度上解决了该问题 (fork 的 cow，vfork共享内存，clone 传特定 flag 创建 LWP)。他们最终都会调用核内函数 `do_fork()`，但只有 `fork` 是 POSIX 规定的 API
 
 - fork: copy all the resources of father
 
@@ -28,14 +45,7 @@
 
 用户态 C 标准库的库函数，如 `execl`, `execle`或`execv`，封装了 `execve` 系统调用。
 
-### process status
-
-- R：running，教科书一般将正在CPU上执行的进程定义为RUNNING状态、可执行但是尚未被调度执行的进程定义为READY状态，这两种状态在linux下统一为 TASK_RUNNING状态。
-- Z：僵尸状态，进程在退出的过程中，处于TASK_DEAD状态。 在这个退出过程中，进程占有的所有资源将被回收，除了task_struct结构（以及少数资源）以外。于是进程就只剩下task_struct这么个空壳，故称为僵尸。
-- S (TASK_INTERRUPTIBLE)，可中断的睡眠状态。
-- D (TASK_UNINTERRUPTIBLE)，不可中断的睡眠状态。
-- T (TASK_STOPPED or TASK_TRACED)，暂停状态或跟踪状态
-- X：退出状态，进程即将被销毁
+- 
 
 
 
@@ -67,7 +77,7 @@ Linux 内核的早期版本没有提供多线程的支持，用户进程的多�
 
 ### 轻量级进程 (LWP)
 
-Linux 内核在 2.0 版本引入了轻量级进程，改变了早期的线程模型。LWP 指的是使用 clone 系统调用并传递 `CLONE_VM` flag 创建的进程，该 flag 意味着共享内存描述符和所有的页表，与父进程共享进程地址空间。除此之外还可以使用 `CLONE_FS`、`CLONE_FILES`、`CLONE_SIGHAND` 等标志来指定其他资源是否共享。
+LWP 不是 Linux 发明的，而是一个 general 的概念，指的是共享某些资源的一些进程。Linux 内核在 2.0 版本引入了轻量级进程，可以使用 clone 系统调用并传递 `CLONE_VM` flag 创建。`CLONE_VM` 意味着共享内存描述符和所有的页表，与父进程共享进程地址空间。除此之外 `CLONE_FS`、`CLONE_FILES`、`CLONE_SIGHAND` 等标志可以指定其他资源是否共享。
 
 Linux 下 pthread 库（glibc 的一部分）提供的 LinuxThreads、NPTL 和 NGPT 都使用轻量级进程实现。
 
@@ -95,7 +105,7 @@ Linux 2.6 版本引入了 NPTL，一个真正的内核级线程库，提供了�
 
 NPTL 中线程的同步不再依赖信号，转而使用一个新的线程同步原语 fast userspace mutex (futex)。futex 基于共享内存，通过对内存的原子操作来检测是否有竞争发生，没有竞争时不需要陷入内核，有竞争时需要执行系统调用来 wait 或 wake-up。
 
-NPTL 利用了线程组的概念，内核中统一使用 `task_struct` 结构体来存放进程和线程的管理信息，其中字段 `tgid` 存放真正的 pid (ps 看到的 pid)，而  `pid` 字段存放线程 id，主进程的 `task_struct`  中 `pid` 和 `tgid` 相等，进程中的所有线程 `tgid` 相同。 给线程组中的任何一个线程发送信号时整个线程组能收到信号。
+NPTL 利用了线程组的概念，给线程组中的任何一个线程发送信号时整个线程组能收到信号。
 
 NPTL 还利用了内核中改进的信号处理、调度算法、线程局部存储、分层的内核锁和增强的内存管理等。todo
 
