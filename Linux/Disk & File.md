@@ -10,11 +10,44 @@ Linux 使用 `struct buffer_head` 结构体来描述块设备的缓存，以管�
 
 
 
-# VFS
+# Virtual File System (VFS) 虚拟文件系统
+
+VFS 是 Linux 提供的一个软件抽象层，提供统一的文件访问接口，与不同类型的文件系统交互，而内核负责把它们替换成相应文件系统的实际函数。
+
+### 文件系统类型
+
+VFS 支持的文件系统可以划分为三种主要类型:
+
+- 磁盘文件系统：ext4、NTFS、FAT、ISO 9660 等
+- 网络文件系统：NFS 、Coda、AFS (Andrew 文件 系统)、CIFS (用于MicrosoftWindows的通用网络文件系统)以及NCP(Novell)
+- 特殊文件系统：提供一种容易的方式来与内核或硬件交互，如 *proc*, *socketfs*, *shm*, *pipefs* 等
+
+### 通用文件模型
 
 
 
-### page cache vs buffer cache
+### super block 超级块
+
+
+
+### inode 索引节点
+
+- 符号链接？
+
+
+
+### 文件对象
+文件对象在文件被打开时创建，对应一个 `struct file` 结构体，描述进程怎样与一个打开的文件交互。
+
+
+
+### 目录项对象
+
+- 目录项高速缓存？
+
+
+
+# page cache vs buffer cache
 
 The page cache caches pages of files to optimize file I/O. The buffer cache caches disk blocks to optimize block I/O.
 
@@ -30,4 +63,16 @@ VFS 和 各种文件系统以 block 为单位组织磁盘数据。
 
 
 ### dirty page
+
+
+
+# VFS 系统调用
+
+### open 
+
+### read
+
+### write
+
+
 
