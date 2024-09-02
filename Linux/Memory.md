@@ -42,7 +42,7 @@ A program is usually divided to logical segments (e.g. data seg, stack seg, etc)
 
 In x86 architecture, segmentation is compulsory, while paging is optional. Paging and segmentation are redundant in some ways. So, Linux finds out a way to work around without engaging too much with segmentation.
 
-Linux 主要采用分页机制（X86叫保护模式，arm叫MMU机制）来对用户态与内核态进行隔离，也对进程与进程之间进行隔离。无奈在X86架构下，使用分页机制前，必须打开分段机制。所以Linux采用了讨巧的办法，“哄骗”硬件来绕过分段机制（以32位为例）：令每个段的线性地址都是从 0x00000000 开始，限长都为 4GB，使 虚拟地址=逻辑地址+0x00000000，即逻辑地址等于虚拟地址。剩下的管理全由分页机制来实现，仅使用分段做权限审核和访问越界检测。
+Linux 主要采用分页机制（X86叫保护模式，arm叫MMU机制）来对用户态与内核态进行隔离，也对进程与进程之间进行隔离。无奈在X86架构下，使用分页机制前，必须打开分段机制。所以Linux采用了讨巧的办法，“哄骗”硬件来绕过分段机制（以32位为例）：令每个段的线性地址都是从 0x00000000 开始，限长都为 4GB，使 虚拟地址=逻辑地址+0x00000000，即逻辑地址等于虚拟地址。剩下的管理全由分页机制来实现，仅使用分段做权限审核和访问越界检测。（段地址对齐）
 
 
 
@@ -58,13 +58,11 @@ Linux 主要采用分页机制（X86叫保护模式，arm叫MMU机制）来对�
 
 分页单元把 RAM 分成固定长度的 page frame，其长度与页的长度一致，毎一个页框可以存放一个页。页框指的是一个储存区域，是个比较具体的概念。
 
-System uses a `struct page` as a "descriptor" to keep track of a page frame. 大小为 32 字节，描述了页框是否空闲，所属内核还是用户等。所有描述符存放于 `mem_map` 数组中，可通过  `pfn_to_page(pfn)`  从物理页框号 PFN 得到页描述符地址 。`struct page` 中存在 lru 链表指针字段用于 PFRA 页框回收。
-
-内核的**分区页框分配器** (zoned page frame allocator) 可负责处理对连续页框的分配和释放请求。
+System uses a `struct page` as a "descriptor" to keep track of a page frame. **页描述符**，不过我倾向于称其为**页框描述符**，大小为 32 字节，描述了页框是否空闲，所属内核还是用户等。所有描述符存放于 `mem_map` 数组中，可通过  `pfn_to_page(pfn)`  从物理页框号 PFN 得到页描述符地址 。`struct page` 中存在 lru 链表指针字段用于 PFRA 页框回收。
 
 ### Page Table
 
-页表负责把线性地址映射到物理地址，存放在主存中，由内核进行管理。每个进程的用户态页表是独立的，但内核空间通常是统一的。
+页表负责把线性地址映射到物理地址，存放在主存中，由内核进行管理。每个进程的用户态页表是独立的，内核态下使用统一的内核页表，但每个内核线程和用户进程一样有自己的页表。
 
 如果为每个页都保存一个 4B 的页表项，仅 4GB 的线性地址空间，每个页表就需要占用 4MB 内存。因此，操作系统一般会使用多级页表，一开始只维护上层的表，仅当进程实际需要一个页表时才给该后续层级的页表分配内存。（32位系统一般两级就足够，64位 linux 采用三级或四级）
 
@@ -74,13 +72,11 @@ System uses a `struct page` as a "descriptor" to keep track of a page frame. 大
 
 - **Page Table Entries (PTE)** hold the mapping between **Physical Frame Number (PFN)** and **Virtual Page Number (VPN)**, and other kinds of info.  
 
-  > **Memory Management Unit (MMU) & Table Lookaside Buffer (TLB)**: hardware that translates virtual addresses to physical address by looking up page table. 详见 Architecture 章节。
+- **Memory Management Unit (MMU) & Table Lookaside Buffer (TLB)**: hardware that translates virtual addresses to physical address by looking up page table. 详见 Architecture 章节。
 
-  PTE 是操作系统软件层面的概念，但必须按照处理器定义的格式去填充，因为 MMU 在地址翻译的过程中需要根据 PTE 的标志位来检测访问是否合法等。
+PTE 是操作系统软件层面的概念，但必须按照处理器定义的格式去填充，因为 MMU 在地址翻译的过程中需要根据 PTE 的标志位来检测访问是否合法等。
 
-  但处理器不能自动同步它们自己的TLB高速缓存，因为决定线性地址和物理地址之间映射何时不再有效的是内核，而不是硬件。处理器侧，以 Intel 为例，要触发 invalidate TLB，可以向 cr3 寄存器写入值，或调用汇编指令 `invlpg` 。另一方面， Linux 内核则提供了比较丰富的 TLB 方法 `flush_tlb_xxxx`。
-
-- xxx
+但处理器不能自动同步它们自己的TLB高速缓存，因为决定线性地址和物理地址之间映射何时不再有效的是内核，而不是硬件。处理器侧，以 Intel 为例，要触发 invalidate TLB，可以向 cr3 寄存器写入值，或调用汇编指令 `invlpg` 。另一方面， Linux 内核则提供了比较丰富的 TLB 方法 `flush_tlb_xxxx`。
 
 ### paging models
 
@@ -96,9 +92,51 @@ x86-64架构下的四级页表层级通常包括：页全局目录（PML4）、�
 
 
 
-# Process Address Space Management
+# Kernel Space vs User Space
 
-##### VMA (Virtual Memory Area) / memory region 线性区
+### Virtual memory: 32-bit
+
+On 32-bit architecture, the **highest 1GB** of virtual memory is **kernel space**, and the **lowest 3GB** is **user space**. 早期的 Linux 系统需要处理两种硬件约束:
+
+- ISA 总线的直接内存访问单元 (DMA) 只能对RAM的 前16MB 寻址
+- 32位计算机中线性地址空间只有 4GB，CPU 无法直接访问超过 4GB 的物理内存
+
+因此 Linux 把物理内存划分为不同的管理区 (Zone) 进行管理
+
+- ZONE_DMA：物理内存的前 16MB， 由老式基于 ISA 的设备通过 DMA 使用
+- ZONE_NORMAL：物理内存的 16MB 到 896MB 之间的区域。提供给内核动态分配，如页表、进程描述符、内存管理结构（如 slab 分配器）、中断处理程序所需的内存等
+- ZONE_HIGHMEM: 物理内存 896MB 以上的所有区域，需要动态映射才能访问
+
+ZONE_DMA 和 ZONE_NORMAL 合计 896MB 的物理地址空间被称为直接（线性）映射区，会连续线性的映射到内核空间的起始 896MB 。
+
+内核虚拟内存空间剩下的 128M 被用于映射 ZONE_HIGHMEM。（由于其大小通常会超过 128M，需要采用动态映射：某段物理内存和这128MB的内核虚拟空间建立映射并完成所需操作后，需要断开与这部分虚拟空间的映射关系，以便映射其他物理内存。）内核内存映射具体的介绍如下：
+
+> ### 内核内存映射
+>
+> - 直接映射：ZONE_DMA 和 ZONE_NORMAL 合计 896MB 的物理地址被线性映射到内核空间的起始 896MB。直接映射并不意味着内核独占该物理内存，而是指该区间的虚拟地址到物理地址的映射不再通过页表，而是直接加/减偏移 `PAGE_OFFSET` 来计算。(`PAGE_OFFSET` 为 3GB，划分了虚拟地址空间中内核空间和用户空间)
+> - Fixed Mapping 固定映射：以类似直接映射的方式将物理地址映射到线性地址，但可以映射任意物理地址。固定映射的线性地址集中在线性地址空间的最末端，内核使用 `set_fixmap` 和 `clear_fixmap` 来建立和撤销固定映射。内核常使用固定映射来代替值从不改变的指针变量。
+>
+> 内核可以采用三种不同的机制将页框映射到高端内存，分别叫做永久内核映射、临时内核映射及非连续内存分配
+>
+> - 永久内核映射：`kmap` 和 `kunmap` 函数负责建立和撤销永久内核映射，内部通过哈希表记录高端内存页框与线性地址的映射关系。该分配方式可能会阻塞。
+> - 临时内核映射：`kmap_atomic` 和 `kunmap` 函数负责建立和撤销临时内核映射，内部通过为每个 CPU 预留的少量页表项来。比永久内核映射实现更简单，不会阻塞。
+> - 非连续内存分配
+
+### Virtual memory: 64-bit
+
+64位地址空间达到了 16EB，大部份操作系统和应用程序完全不需要这么大的空间。目前 x64 仅使用 48 位用于address translation (page table lookup)，剩下的高 16 位留作为符号扩展。而在ARM 体系中，以ARMv8-A为例，它的页大小和页表层级有多种组合。采用 4KB 页，4级页表时，虚拟地址也为48位。
+
+使用48位虚拟地址时可用空间 256TB ，内核空间和用户空间各占 128 TB，此时用户空间和内核空间不再是挨着的，用户空间占据底部（最高的17位为0），内核空间占据顶部（最高17位为1），用户空间和内核空间中间的，最高17位不同的地址被称为 canonical address，对其的访问是非法的。
+
+>  **canonical address**: the most significant 16 bits of any virtual address, bits 48 through 63, must be copies of bit 47. 也就是最高的17位必须相同，对于内核空间就全是1，用户空间全是0，而他们之间的偌大的区域为 non-canonical address
+
+64 位系统中线性地址空间映射所有物理内存，不再需要动态映射，此时 ZONE_HIGHMEM 为空。
+
+
+
+# 用户进程内存分配
+
+### VMA (Virtual Memory Area) / memory region 线性区
 
 OS 使用线性区（又叫 VMA）来对进程的线性地址空间进行管理，包括映射 ELF 中的各个Segment，管理运行时的堆栈等。VMA 由起始地址、长度和访问权限来描述，起始地址和线性区的长度都必须是4096的倍数， 以便完全利用分配给它的页框。
 
@@ -111,7 +149,7 @@ OS 使用线性区（又叫 VMA）来对进程的线性地址空间进行管理�
 - 权限：read/write/execute
 - 线性区地址：可选
 
-相同权限属性的，相同映像文件的文件一般会被映射到同一个 VMA，而堆栈这种没有指定特定的映像文件的 VMA 通常被称为匿名虚拟内存区域 (Anonymous Virtual Memory Area, AVMA)。
+相同权限属性的，相同映像文件的映射一般会被映射到同一个 VMA，而堆栈这种没有指定特定的映像文件的 VMA 通常被称为匿名虚拟内存区域 (Anonymous Virtual Memory Area, AVMA)。
 
 > 一个进程通常由加载一个 ELF 文件启动。 ELF 文件是由若干 segments 组成的，进程地址空间也由许多不同属性的 segments 组成。ELF 将读写执行权限相同的 Sections 合并为 Segment，然后将 Segment 作为一个整体映射到虚拟内存空间和实际物理空间，一个 Segment 对应一个 VMA。（如果依赖的动态库多，segments数量会很大）（这里的 segments 与分段 segmentation 机制不是同一个概念！），一个进程一般会有如下几种 VMA 区域：
 >
@@ -121,7 +159,7 @@ OS 使用线性区（又叫 VMA）来对进程的线性地址空间进行管理�
 > - HEAP VMA：可读写、可执行；无映像文件，匿名，可向上扩展
 > - STACK VMA：可读写、不可执行；无映像文件，匿名，可向下扩展
 
-##### memory descriptor 内存描述符
+### memory descriptor 内存描述符
 
 内存描述符包含与进程地址空间有关的全部信息，类型为 `mm_struct` ，系统中所有的内存描述符统一存放在一个双向链表中，进程描述符的 `mm` 字段会指向该进程的内存描述符。内存描述符包含 `mm_count` 字段，用于计数使用者，当其递减时检查其是否为零并删除之。
 
@@ -129,37 +167,17 @@ OS 使用线性区（又叫 VMA）来对进程的线性地址空间进行管理�
 
 内核对进程内存分配采用**推迟策略**，进程请求内存时，不直接获得页框，仅获得 VMA 的使用权。Linux 的缺页异常（Page Fault）处理程序会利用 `vm_area_struct` 来区分编程错误引起的非法访问，以及由于物理页框未分配引起的异常。主要检查线性地址是否属于该进程地址空间，以及访问权限是否匹配。在处理对磁盘文件进行映射的线性区时，会首先在 page cache 中查找所请求的页，如果没有找到则必须从磁盘上读取。
 
-##### Virtual memory: 32-bit
-
-On 32-bit architecture, the **highest 1GB** of virtual memory is **kernel space**, and the lowest 3GB is user space. 内核虚拟内存的前 896M 区域被称为直接（线性）映射区，包含 DMA区、NORMAL区，会连续的映射到物理内存中最低 896M 区域的 ZONE_DMA 和 ZONE_NORMAL 中，偏移为 PAGE_OFFSET=3GB。当然内核还是会使用虚拟地址访问该内存。
-
-> - **ZONE_DMA**：大小为 16MB，因为 X86 下 ISA 总线的 DMA 控制器，只能对物理内存的前 16MB 进行寻址
-> - **ZONE_NORMAL**：紧接在DMA区之后，通常占据 16MB 到 896MB 之间的物理内存区域。提供给内核动态分配，如页表、进程控制块（PCB）、内存管理结构（如slab分配器）、中断处理程序所需的内存等
-> - **PAGE_OFFSET**: 是虚拟地址空间中内核和用户空间的分界线，之前是用户空间的地址，之后是内核空间的地址。
-
-这样，内核虚拟内存空间还剩128M，用于映射并访问物理内存中多达 3200M 的高端内存 ZONE_HIGHMEM 区域。由于剩余空间过小，需要采用动态映射：某段物理内存和这128MB的内核虚拟空间建立映射并完成所需操作后，需要断开与这部分虚拟空间的映射关系，以便映射其他物理内存。
-
-##### Virtual memory: 64-bit
-
-64位地址空间达到了 16EB，大部份操作系统和应用程序完全不需要这么大的空间。目前 x64 仅使用 48 位用于address translation (page table lookup)，剩下的高 16 位留作为符号扩展。而在ARM 体系中，以ARMv8-A为例，它的页大小和页表层级有多种组合。采用 4KB 页，4级页表时，虚拟地址也为48位。
-
-48位虚拟地址空间的范围为 256TB ，内核空间和用户空间各占128TB。此时用户虚拟空间和内核虚拟空间不再是挨着的，但用户空间仍在底部，内核空间占据顶部。kernel space的高17位都为1，user space的高17位都为0，此时用户空间和内核空间中间地址被称为 canonical address。
-
->  **canonical address**: the most significant 16 bits of any virtual address, bits 48 through 63, must be copies of bit 47. 也就是最高的17位必须相同，对于内核空间就全是1，用户空间全是0，而他们之间的偌大的区域为 non-canonical address，访问是非法的。
-
-在64位系统中内核的虚拟地址空间足够大，可以直接映射所有物理内存，不再需要动态映射。
-
-##### 段地址对齐
+### 段地址对齐
 
 可执行文件被 OS 装载运行时，一般是通过虚拟内存的页映射机制，以页为单位装载指令和数据。也就是说，要映射的内存长度必须是整数个页，且这段空间在物理内存和进程虚拟地址空间的起始地址必须也是页大小的整数倍。
 
 首先明确一点，不同Segment在虚拟地址空间中不能在一个页中有交集，因为不同 segment 权限不同，需要依靠虚拟地址做访问权限控制，因此产生了如下两种方案：
 
 - 最简单的方案：段长度不足一页时补齐一页，然后分别映射。缺点：页对齐产生的内存碎片浪费磁盘空间。
-- UNIX解决方案：段地址对齐 - 各个段在物理内存中紧凑排列，接壤部分的物理页面分别映射到两个（甚至多个）虚拟页面。这也意味着各个段的虚拟地址不再是系统页面长度的整数倍了。
+- UNIX解决方案：段地址对齐 - 各个段在物理内存中紧凑排列，接壤部分的物理页面分别映射到两个或多个虚拟页面。（这意味着各个段的起始虚拟地址不再是系统页面长度的整数倍）
 
 
-##### heap 堆
+### heap 堆
 每个 Unix 进程都拥 一个特殊的线性区，堆(heap)。内存描述符的 start_brk 与 brk 字段限定了堆的起止地址。
 
 - start_brk: 确定的堆的起始地址，位于 bss 段结束地址后（开启 ASLR 保护时增加一个 random brk offset）
@@ -174,17 +192,70 @@ On 32-bit architecture, the **highest 1GB** of virtual memory is **kernel space*
 
 
 
-# Buddy System 伙伴系统
+# 内核内存分配
 
-Linux 使用名为伙伴系统的内存分配算法管理物理内存的分配和回收。伙伴系统将内存分割成块，每个块的大小都是 2 的幂次方，最小时通常是一页（4 KB），最大时则取决于整个系统的内存规模。
+内核是系统中优先级最高的成份，且内核信任自己，因此内核中的函数以非常直接的方式获取动态内存。
+
+In the kernel, malloc() is not available, and the kernel its own memory allocation functions: `kmalloc`, `vmalloc`, `alloc_pages`,  `__get_free_pages`
+
+### 保留页框
+
+Linux 系统初始化时，将一部分物理地址范围记为保留页框，包括：
+
+- 映射硬件设备 I/O 的共享内存的页框
+- 含有 BIOS 数据的页框
+- 含有内核代码和数据的页框
+
+保留页框中的页永远不能被动态分配或 swap 到磁盘。保留页框之外的线性地址空间被称为动态内存。
+
+### zoned page frame allocator 分区页框分配器
+
+分区页框分配器负责处理对连续页框的分配和释放请求。它分别管理不同的 Zone，尽可能保存小而珍貴的ZONE_DMA内存管理区，维护保留的页框池。当内存不足（且允许阻塞当前进程）时触发页框回收算法，待页框释放再尝试分配。 页框分配和释放的相关函数有：
+
+- `alloc_pages(gfp_mask,order)`: 请求 $2^{order}$ 个连续页框，返回页框描述符地址，失败返回 `NULL`
+- `__get_free_pages(gfp_mask,order)`: 请求 $2^{order}$ 个连续页框，返回分配的首个页框对应的线性地址
+- `__free_page(page,order)`: 释放 `page` 指向的页描述符对应的页框开始的 $2^{order}$ 个连续页框
+-  `free_pages(addr,order)`: 释放线性地址 `addr` 对应的页框开始的 $2^{order}$ 个连续页框
+
+请求页框请求时可通过标志位指定 ZONE，是否阻塞等。此外，32 位系统下 HIGHMEM_ZONE 的分配必须使用返回页描述符的方式分配，因为其不能直接映射在内核线性地址空间。
+
+##### Buddy System 伙伴系统
+
+在每个管理区内，Linux 使用名为伙伴系统的内存分配算法管理物理内存的分配和回收。伙伴系统将内存分割成块，每个块的大小都是 2 的幂次方，最小时通常是一页（4KB），最大时则取决于整个系统的内存规模。
 
 当需要分配一块内存时，伙伴系统会找到最小的足够容纳请求大小的块。如果找到的块太大，它会被拆分成两个伙伴块，并继续尝试在较小的块中找到合适的内存。当块被释放时，系统会尝试将该块与其伙伴合并（如果伙伴也空闲），以减少内存碎片。
 
 系统使用多个链表来管理大小相同的块，这些链表存放于 free_area 数组中。当内存块被释放时，系统会检查它的伙伴块是否也空闲。如果是，系统会将这两个块合并为一个更大的块，并将其返回到更高一级别的链表中。
 
+##### 保留的页框池
+
+一些内核控制路径在请求内存时不能被阻塞，例如处理中断或执行临界区代码时。使用 `GEP_ATOMIC` 标志产生原子内存分配请求，如果没有足够的空闲页，仅返回分配失败而不阻塞。为了尽量减少原子内存分配失败，内核在 ZONE_DMA 和 ZONE_NORMAL 中为原子内存分配请求保留了一个页框池，仅在内存不足时使用。
+
+### slab 分配器（`kmalloc`）
+
+slab 分配器从 Buddy 分配器中申请大块内存后，再划分为小块内存细分管理。这个模式显而易见的节省了内存资源，避免小块内存申请占用整个页框。其次，伙伴系统的调用链较长，会污染 L1 缓存，需要避免频繁使用。
+
+内核中许多数据结构的初始化时间也不可忽略，slab 分配器以已初始化状态缓存这些数据结构。slab 中的 **cache 缓存**（软件概念，和硬件无关）管理了相同种类的对象，由 `kmem_cache` 数据结构描述，并用双向链表链接。缓存分为两种：普通和专用。普通高速缓存由 slab 分配器自己使用， 专用高速缓存由**内核**的其余部分使用。
+
+- 普通：大小预先指定为 8/16/32/... 字节，名字为 `kmalloc-xxx`。该缓存在系统初始化期间由 `kmem_cache_init` 和 `kmem_cache _sizes_init` 来创建，后续通过 `kmalloc` 申请内存
+
+  > 普通缓存中有一块特殊的缓存 `kmem _cache`，包含由内核使用的其余高速缓存的高速缓存描述符
+
+- 专用：特定结构体内存，如 `vm_area_struct`, `mm_struct` 等，由 `kmem_cache _create` 函数创建，后续通过 `kmem_cache_alloc` 申请内存
+
+缓存由许多 slab 组成，`kmem_cache` 中用双向循环链表分别记录了空闲的、已满的、以及部分占用的 slab。每个 slab 由 2 的幂次个连续页框组成。每个 slab 包含许多已初始化的对象作为提供内存的最小单位。slab 分配器使用 `kmem_getpages` 和 `keme_freepages` 函数从分区页框分配器获取和归还页框。
+
+slab 分配器通过 slab 着色提高 CPU cache 的利用率。slab 着色将对象放置在 slab 中的不同起始偏移处，尝试使不同 slab 中的对象使用 cache 的不同行，防止不同 slab 中相同偏移量的对象相互抢占 cache。分配器将名为 color 的随机数分配给每个 slab，使用将对象包装到SLAB中后剩余的未使用空间。
+
+### 非连续内存区（`vmalloc`）
+
+如果对内存区的请求不太频繁， 通过连续的线性地址来访问非连续的页框就会很有意义：这种模式避免了外碎片，但必须打乱内核页表。通过 vmalloc 或 vmalloc_32 可获得一块非连续内存。
 
 
-# 回收页框
+
+# 页框回收
+
+> 主要探讨 Linux 系统如何强制回收页框 - 进程持有且未主动归还的页框
 
 当系统负载较低时，大部分内存由 page cache 即磁盘缓存占用。当系统负载增加时，需要缩小 page cache 从而给进程页让出空间。这需要内核从用户态进程和内核高速缓存“窃取” 页框，以补充伙伴系统的空闲块列表。
 
