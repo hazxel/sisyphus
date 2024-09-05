@@ -336,13 +336,12 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
 
 
 
-
-
 # Memory View
 
-？？？
+`memoryview()` 函数返回给定参数的内存视图对象 memory view。内存视图对象，对支持缓冲区协议的数据进行包装，在不需要复制的基础上允许 Python 代码操作大块数据，可以简单理解为就是对内存地址的直接访问。
 
-
+- 可以通过切片和索引来访问 `memoryview` 对象的数据
+- 不过 `memoryview` 不支持对不可变对象如 `bytes` 进行修改
 
 
 
@@ -392,8 +391,6 @@ Cython 是具有 C 数据类型的 Python，几乎所有 Python 代码都是有�
 ### io
 
 - `BytesIO`: 用于在内存中读写二进制数据，用法类似于文件对象，但是数据存储在内存中的字节串。 可以像文件对象一样对其进行读写、查找和截断等操作， 通常用来操作二进制数据，如图片、音频、视频等。
-
-
 
 
 
