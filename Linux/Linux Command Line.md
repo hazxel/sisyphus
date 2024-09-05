@@ -174,7 +174,9 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
 - `arch`: architecture of processor (x86/arm)
 
-- `free -g`: 显示系统整体内存的使用情况，包括物理内存、交换内存(swap)和内核缓冲区内存。`-g`: in GB
+- `free`: 显示系统整体内存的使用情况，包括物理内存、交换内存(swap)和内核缓冲区内存。`-g`: in GB
+
+- `vmstat`: 监视虚拟内存使用
 
 - `fdisk -l`: 查看新插入的磁盘是否被识别
 
@@ -201,11 +203,7 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
 
   - Memory: Green - used memory | Blue - buffers | Yellow - cache
 
-    > buffer vs cache
-
 - `ps -ef`: check process, 显示进程父，子，COMMAND
-
-- `ps aux`: 显示进程资源占用
 
   > `-ef` vs `aux`: 如果关心是进程的资源使用，使用 `ps aux`；如果关心的是进程的父子关系或完整的启动命令，使用 `ps -ef`。
   >
@@ -215,45 +213,31 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
   > - `-e`: 显示所有进程（类似于 `ps aux` 中的 `a`）。
   > - `-f`: 以全格式显示进程信息，包括进程的父进程 ID (PPID) 和启动命令的完整路径。
 
-  - STAT: 进程状态：(`man ps` 可查)
-    - R: running
-    - I: idle kernal thread
-    - S: interruptible sleep (waiting for an event to complete)
-    - s: is a session leader
-    - D: uninterruptible sleep (usually IO)
-    - L: is multi-threaded (using CLONE_THREAD, like NPTL pthreads do)
-    - T: stopped, either by a job control signal or because it is being traced.
-    - <: high-priority (not nice to other users)
-    - +: is in the foreground process group.
+- `ps aux`: 显示进程资源占用
 
+  - STAT: 进程状态：(`man ps` 可查)
+  
   - CPU使用率，为整个进程运行周期内平均值
   - VSZ: Virtual Memory Size, 虚拟内存的大小，包含了未被加载到实际内存中的空间
   - RSS: Resident Set Size, 真正被加载到物理内存中的页的大小（包含共享库的内存，如果把系统中所有进程的RSS相加会比总内存大）
   - PSS: Proportional Set Size, 将共享库的内存按使用的进程个数平均分成多份，ps 命令看不到
   - USS: Unique Set Size, 全部被该进程独占的内存大小，揭示了进程终止时实际被返还给系统的内存，是针对某个进程开始有可疑内存泄露的情况，进行检测的最佳数字。
+  
+- pstack: 跟踪进程栈， 定位程序挂起/卡死位置
 
-  > memory info all read from `/proc/meminfo`, 
-  >
-  > - buffer: data that has yet to be "written" to disk. 
-  > - cache: data has been "read" from the disk and stored for later use. 在操作系统中指 page cache，页高速缓存，内核实现的磁盘缓存，把对磁盘的访问变为对物理内存的访问
-  > - swap: 当内存不足的时候，把一部分硬盘空间虚拟成内存使用。内存的容量有限，只需要当文件的某部分内容真正被访问到时再调入内存（demand paging）
-  >
-  > 活跃和非活跃的内存页分为两种：
-  >
-  > - file-backed pages（文件背景页）
-  > - anonymous pages（匿名页）
-  >
-  > 进程的代码段、映射的文件都是**file-backed**，而进程的堆、栈不与文件对应，属于匿名页。RSS包括匿名页
-  >
-  > file-backed pages在内存不足的时候可以直接写回对应的硬盘文件里，称为page-out，不需要用到交换区(swap)；而anonymous pages在内存不足时就只能写到硬盘上的交换区(swap)里，称为swap-out。
+- strace: 监测系统调用数量和延迟
+
+- `lsof`: 查看系统中打开的文件，无参数打印系统中所有 open file， `-p` 按 pid 筛选，`-u` 按用户筛选，`-i` 筛选所有网络连接，`-i tcp` 筛选所有 tcp 链接，`-i :port` 列出网络端口占用
+
+- `ipcs`: 查看系统中信号量、共享内存、队列等 IPC 资源占用
+
+- `iostat`: 查看 cpu，网卡，磁盘，tty 等设备的活动情况
 
 - `kill`:
 
   - `-9`: 发送不可捕获和不可忽略的 `SIGKILL` 信号，直接导致进程立即终止，没有机会进行清理操作。
 
   - `-15`: 默认为此模式，发送请求进程终止的信号 `SIGTERM` ，进程可以捕获这个信号并执行一些清理操作然后正常退出。`SIGTERM` 给进程提供了一个机会来保存数据、释放资源等。 
-
-- iostat
 
 - lspci: 可列出每个pci/pcie总线上的设备，通过grep过滤后可得到：
 
