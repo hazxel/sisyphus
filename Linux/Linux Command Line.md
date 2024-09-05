@@ -223,9 +223,11 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
   - PSS: Proportional Set Size, 将共享库的内存按使用的进程个数平均分成多份，ps 命令看不到
   - USS: Unique Set Size, 全部被该进程独占的内存大小，揭示了进程终止时实际被返还给系统的内存，是针对某个进程开始有可疑内存泄露的情况，进行检测的最佳数字。
   
-- pstack: 跟踪进程栈， 定位程序挂起/卡死位置
+- `sar`: 查看历史系统活动报告，包括 cpu 使用率，进程，内存，页面交换，串口使用等。
 
-- strace: 监测系统调用数量和延迟
+- `pstack`: 跟踪进程栈， 定位程序挂起/卡死位置
+
+- `strace`: 监测系统调用数量和延迟
 
 - `lsof`: 查看系统中打开的文件，无参数打印系统中所有 open file， `-p` 按 pid 筛选，`-u` 按用户筛选，`-i` 筛选所有网络连接，`-i tcp` 筛选所有 tcp 链接，`-i :port` 列出网络端口占用
 
@@ -339,6 +341,10 @@ LDD Search:
 ### objdump
 
 Different from *ld*, simply dumping what the object itself lists as libraries containing unresolved symbols. 可用于分析目标文件（object file）和可执行文件（executable file），可以显示二进制文件的汇编代码、符号表、段信息等，是理解程序底层实现、调试和逆向工程的有力助手。
+
+### readelf
+
+和 objdump 类似，但信息更具体且不依赖 bfd 库。
 
 ### ccache
 
