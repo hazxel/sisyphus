@@ -62,7 +62,9 @@ The capacity grows by double or 1.5 times of the previous size. Every time a vec
   - 插入 `initializer list`: `v.assign({'C', '+', '+', '1', '1'});`
 
 - `data`: Returns pointer to the underlying array `T*`
-- `front`, `back`, `at`, `[]`: Returns the first/last/i$_{th}$ element
+- `front`, `back`, `at`, `[]`: Returns the first/last/i$_{th}$​ element
+  - `at` vs `[]`: `[]` access is unchecked, `at` will throw `out_of_range` exception
+
 - `push_back`, `emplace_back`: 插入入参的拷贝/原地使用构造函数构造 
 - `reserve` vs `resize``
   - ``reserve`: **only** affect **capacity**, not affact size, won't initialize any instances, 也不会删除元
@@ -86,6 +88,10 @@ No random access, only bidirectional iteration.
 
 `insert` allows you to select new element's position.
 
+`size`: return the size of container. used to have linear complexity, become constant in C++11
+
+`splice`: transform elements from one list to another, used to have constant time complexity, but sometimes linear since C++11 introduce a `size_` member variable for list.
+
 
 
 # forward_list (linked list)
@@ -106,15 +112,13 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
 
 
 
-# Map, Set, Multiset, Multimap (red black tree)
+# Set & Map
 
-# unordered_map, unordered_set (hash map)
+### Ordered & unordered
 
-### 成员方法: todo
+- Map, Set, Multiset, Multimap (red black tree)
 
-- map: `find`, `erase`
-- set: insert, merge
-- 特有方法: xxx
+- unordered_map, unordered_set (hash map)
 
 ### helper function objects
 
@@ -122,17 +126,37 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
 - hash: 无顺序集合/表需要使用哈希函数进行散列化，默认使用 `std::hash<T>`
 - equal_to: 无序集合/表还需要判断键 key 是否相等，默认使用 `std::equal<T>`
 
-上述 function object 的细节详见 STL 中的 functor 相关章节
+上述 function object 的细节详见 STL/core 中的 functor 相关部分
 
 ### Constness of set and maps
 
-`set` is using a **const iterator** because: Elements form a tree that accelerates operations on the set, thus all elements must be const to keep the constraints of the underlying tree.
+对集合中元素和映射键值的直接修改会破坏容器的有序性或哈希结构，需要保证不可变性：
 
-A key of a `unordered_map` or `map` is also `const`, which means the type of `pair` is actually `std::pair<const KEY, VAL>`. Unfortunately, if you iterate throught them via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered, thus introduce overhead. Elegant `auto` solution: `for(const auto& p : m)`. 此种方式遍历容器时，由于 KEY 带有 const 修饰，pair 将是不可拷贝/移动赋值的，需要多加注意。
+- `set` and `unordered_set` use **const iterator**
 
+- `unordered_map` and `map` use **const key**, and their ` value_type` is `std::pair<const KEY, VAL>`. 
 
+  > Thus, if iterate via `std::pair<KEY, VAL>`, a copy and an emplicit conversion will be triggered. Elegant solution: `for(const auto& p : m)`. 此时由于 KEY 为 const，pair 不可拷贝/移动赋值，需要多加注意。
 
+### Map
 
+##### insert and update
+
+- `operator[]`: return a reference to the mapped value
+  
+  - 要求 `Val` 类型 *CopyConstructible* and *DefaultConstructible*
+  
+  - if key not existed, will insert a `std::pair<const Key, T>(k, T())`
+  
+    > **not efficient** if insert new elements: `m[k] = v;` will insert a pair with DftCtor of T, then assign `v` to it, involving `T`'s Ctor, Dtor, and AssOp.
+  
+- `insert`: construct pair, copy or move (if *MoveConstrctivle*) to container. Won't update when key existed, **ALWAYS** construct pair
+
+- `emplace` (c++11): in-place construct pair, won't update when key existed, **ALWAYS** construct pair
+
+- `try_emplace` (c++17): in-place construct pair, won't update and **WON'T** construct pair if key existed
+
+- `insert_or_assign` (c++17): if key exists, update, ohterwise insert. Return `std::pair<Iter,bool>`, boolean value indicating insert or update (more information than `operator[]`)
 
 
 

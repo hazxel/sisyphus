@@ -234,7 +234,7 @@ f(stack_widget); // ok -- now this works
 
 ### Thread Safe
 
-smart pointers are not thread safe.
+**ONLY** the reference counter is thread safe, the managed data are not thread safe. 只保证并发的拷贝/析构会正确更新引用计数。
 
 
 

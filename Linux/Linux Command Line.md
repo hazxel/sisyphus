@@ -273,6 +273,7 @@ Vim 可按层级浏览文件夹，压缩文件，甚至jar包（本质上是个�
   - `-Wall`： enabling all warnings
   - `-Werror`: all warnings treated as errors 有助于确保代码质量，因为它迫使开发人员处理所有的警告
   - `-Wl,aaa,bbb,ccc`: a comma-separated list of tokens that will be passed to linker as space-separated list as `ld aaa bbb ccc`
+  - `-fsanitize=address`: enable gcc address sanitizer (ASAN) to detect memory faults
 
 ### GNU Linker (`ld`) options
 
