@@ -118,7 +118,8 @@ For creating arrays of instances. 若是自定义的数据类型，用new []申�
 
 Allows exactly one owner of the underlying pointer. 相当于对内存的独占，所以为只可移动类型，不支持拷贝赋值和拷贝构造，支持移动赋值和移动构造。
 
-`unique_ptr`可以轻松高效的转换为`shared_ptr`：
+- `shared_ptr` 有接收 `unique_ptr<>&&` 的构造函数，可轻松进行转换。
+- `release` 成员方法会释放对资源的所有权，返回裸指针，不释放资源本身
 
 支持自定义的删除器。删除器类型是`unique_ptr`类型的一部分。使用默认删除器时，`unique_ptr`对象和原始指针大小相同。自定义删除器可以实现为函数或者*lambda*时，尽量使用*lambda*，因为函数指针形式的删除器会使`unique_ptr`的大小从一个字（*word*）增加到两个。
 
