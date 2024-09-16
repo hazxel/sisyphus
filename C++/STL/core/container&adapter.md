@@ -150,13 +150,15 @@ Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each
   
     > **not efficient** if insert new elements: `m[k] = v;` will insert a pair with DftCtor of T, then assign `v` to it, involving `T`'s Ctor, Dtor, and AssOp.
   
-- `insert`: construct pair, copy or move (if *MoveConstrctivle*) to container. Won't update when key existed, **ALWAYS** construct pair
+- `insert`: user pass pair, copy or move (if *MoveConstrctivle*) to container. Won't update when key existed(C++11), pair **ALWAYS** constructed (before calling `insert`)
 
 - `emplace` (c++11): in-place construct pair, won't update when key existed, **ALWAYS** construct pair
 
 - `try_emplace` (c++17): in-place construct pair, won't update and **WON'T** construct pair if key existed
 
-- `insert_or_assign` (c++17): if key exists, update, ohterwise insert. Return `std::pair<Iter,bool>`, boolean value indicating insert or update (more information than `operator[]`)
+- `insert_or_assign` (c++17): **if key exists, update**, ohterwise insert. Return `std::pair<Iter,bool>`, boolean value indicating insert or update (more information than `operator[]`)
+
+the later two, `try_emplace` and `insert_or_assign` are best practices when inserting. 前者用于不覆写场景，后者用于覆写场景。如果确定 key 存在，`operator[]` 也有相近性能。
 
 
 
