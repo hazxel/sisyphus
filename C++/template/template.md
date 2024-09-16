@@ -150,45 +150,79 @@ Informally "A is more **specialized** than B" means "A accepts fewer types than 
 
 # variadic templates (C++11)
 
+`sizeof...(args)` 可得到参数包中参数个数。
+
 ```c++
 template <class... T>
 void func(T... args) // args is a template parameter pack
 { Foo(args...); }
 ```
 
+最原始的展开 - 递归展开：
+
+```c++
+template<typename T, typename... Rest> 
+void print(T first, Rest... rest) {
+    std::cout << first << std::endl;
+    print(rest...);
+}
+```
+
 ### pack expansion
 
-??? https://zhuanlan.zhihu.com/p/670867561
+`<pattern>...`a pattern followed by an ellipsis, pattern is an expression contains the pack name，会将 pack 中每个参数都代入表达式，展开为逗号分隔的多个表达式。这种展开出现的位置被严格要求，主要包括：
+
+- 函数参数列表内（括号内）
+- 括号初始化（括号内）
+- 花括号初始化（花括号内）
+- 模版参数列表（尖括号内）
+- 类的基类声明（冒号后）（还需要在成员初始化列表中展开来调用基类 ctor，同样是冒号后）
+- lambda 捕获列表（方括号内）
+
+以下为一个使用逗号运算符进行展开的例子，需要借助一个 `std::initializer_list`：
+
+```c++
+template <class ...Args>
+void FormatPrint(Args... args) {
+   (void)std::initializer_list<int>{ (std::cout << "[" << args << "]", 0)... };
+   std::cout << std::endl;
+}
+```
 
 ### Fold Expressions (C++17)
 
-可以简化对参数包的处理：???似乎是直接就地展开 ??? 和上一个有啥区别？？？
+C++11 前，处理参数包十分麻烦，fold expressions 可以简化对参数包的处理：
+
+- unary right fold: `pack op ...`
+- unary left fold: `... op pack`
+- binary right fold: `pack op ... op init`
+- binary left fold: `init op ... op pack`
+
+其中 `op` 必须为双元操作符，`pack` 为包含 pack-name 的表达式，`init` 为不包含 pack-name 的表达式
 
 ```c++
-template<typename T>
-string format(T t) {
-    std::stringstream ss;
-    ss << "[" << t << "]";
-    return ss.str();
-}
-
 template<typename... Args>
-void FormatPrint(Args... args)
-{
+void FormatPrint(Args... args) {
     (std::cout << ... << format(args)) << std::endl;
 }
 ```
 
 ### 继承 variadic template
 
-如下面这个例子，多继承所有模版参数类，并显式启用所有functor。这种场景一般继承的是 lambda（variant 的 visit），如果出现基本类型会无法通过编译。
+如下面这个例子，多继承所有模版参数类，并显式启用所有 functor。这种场景一般继承的是 lambda（variant 的 visit），如果出现基本类型会无法通过编译。
 
 ```c++
 template<class... Ts>
 struct overloads : Ts... { using Ts::operator()...; };
 ```
 
+### pack indexing (C++26)
 
+```c++
+consteval auto first_plus_last(auto... args) {
+    return args...[0] + args...[sizeof...(args) -1];
+}
+```
 
 
 
