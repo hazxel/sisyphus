@@ -36,6 +36,10 @@ while (getline(ss, field, ';')) { // or ss >> field with splitter set to ' '
   - 无参数时，get string content from stringstream
   - 有参数时，set string content of stringstream，可用于清空：`ss.str("");`
 
+### 原始字符串字面量 (C++11)
+
+使用 `R"( ... )"` 的语法定义字符串，无需转义任何特殊字符，包括 双引号 和 反斜杠，可读性好，尤其是用于构建包含大量特殊字符（例如双引号和反斜杠）的复杂 JSON、正则表达式、HTML 等嵌套结构的字符串
+
 ### String 的一堆大麻烦
 
 - 为啥很多人不用string 而用char数组？

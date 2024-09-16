@@ -45,8 +45,6 @@ Linux 将进程和线程视为同一种实体，统称为 task 任务。因此�
 
 用户态 C 标准库的库函数，如 `execl`, `execle`或`execv`，封装了 `execve` 系统调用。
 
-- 
-
 
 
 # thread 线程
@@ -112,6 +110,8 @@ NPTL 还利用了内核中改进的信号处理、调度算法、线程局部存
 > ### Next Generation Posix Threading Package (NGPT) 
 >
 > IBM 为了改进 LinuxThreads 启动的项目，使用多对多的两极线程模型，和 NTPL 是竞争关系，在 2003 年停止开发；大约同一时间，Redhat Linux 9 中发布了最初的 NPTL。
+
+> Main 函数执行到最后并返回时，会调用 `exit` ，给所有线程发送信号来终止进程，但如果提前终止主线程，例如调用`pthread_cancel`，整个进程并不会被终止，其他线程会照常运行。 
 
 ### 内核线程
 

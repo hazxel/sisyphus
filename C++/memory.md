@@ -6,6 +6,8 @@ the following segments are sorted from high address to low address (in **virtual
 
 - Stack segment: local variable (automatic, continuous memory, grow from high to low address)
 
+  > Stack memory is small, on linux the main thread has only 8MB stack memory by default
+
 - Heap segment: dynamic storage (large pool of memory, not contiguous, programmer controlled e.g. `new`, grow from low to high address).
 
  > Heap allocation algorithm:

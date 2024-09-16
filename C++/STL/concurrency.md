@@ -179,7 +179,11 @@ private:
 
 
 
-# async
+# Task-based programming
+
+应优先考虑基于任务的并发编程，而非基于线程的模式，以避免接触线程管理的各种琐碎细节。
+
+### async
 
 ```c++
 template< class Function, class... Args >
@@ -201,9 +205,7 @@ Async启动一个异步任务，最终返回一个std::future对象，可通过f
 >  - `std::launch::async`: executed on a different thread, potentially by creating and launching it first (asynchronous evaluation)
 >  - `std::launch::deferred`: executed on the calling thread the first time its result is requested (lazy evaluation)
 
-
-
-# promise
+### promise
 
 ```c++
 promise<int> prom;
@@ -231,7 +233,7 @@ promise 和 future 成对出现，可以看作是一个一次性管道：一个�
 
 # packaged_task
 
-packaged_task 则把一个函数打包，它可以像正常函数一样被执行，也可以传递给 thread 在新线程中执行。你可以从它得到一个未来量：
+packaged_task 把一个函数打包，它可以像正常函数一样被执行，也可以传递给 thread 在新线程中执行。你可以从它得到一个未来量：
 
 ``` c++
 packaged_task<int()> task{work};

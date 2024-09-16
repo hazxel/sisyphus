@@ -91,3 +91,10 @@ auto noSpaceEnd = std::remove(str1.begin(), str1.end(), ' ');
 
 ```
 
+
+
+### binary search - requires sorted container
+
+`binary_search`: Checks if an element appears within the range [`first`, `last`).
+
+`lower_bound`: find the smallest element that is larger than or equal to a given value. within the range.

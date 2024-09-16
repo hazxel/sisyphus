@@ -208,6 +208,8 @@ static method 不接收任何 `self` 或 `cls`， 也不能访问类变量或实
   > `self` is used for object methods
   >
   > `cls` is used for class methods
+  
+  > 在 Python 中约定使用 `self` 指代实例自身。在实例方法中，第一个参数通常命名为 `self`，但实际上可以使用任意其他名称
 
 ### property
 
@@ -423,4 +425,6 @@ Cython 是具有 C 数据类型的 Python，几乎所有 Python 代码都是有�
 
   - `pip3 config list`: 查看源配置等
   - 配置文件路径：`~/.config/pip/pip.conf` or `~/.pip/pip.conf`
+  
+- `zip`: 当输入不是list，而是字符串时，会将它们逐字符配对，直到最短的字符串结束（即按最短长度截断）
 
