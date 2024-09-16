@@ -50,24 +50,21 @@ void exampleUsage(const Base<T> &foo) { foo.interface(); }
 
 # Mixin
 
- Mixin is complementary to the CRTP. A Mixin template defines a generic behavior, and inherit from the type you wish to plug functionality onto. 
+ Mixin is complementary to the CRTP. A Mixin template defines a generic behavior, and inherit from the type you wish to plug functionality onto, to isolate the generic functionality.
 
 ```c++
-class Name {
-  void print() const;
-};
+class Name { void print() const; };
 
 template<typename Printable>
-struct RepeatPrint : Printable {
+struct RepeatPrint : Printable { // this is a generic functionality
   explicit RepeatPrint(Printable const& printable) : Printable(printable) {}
   void repeat(unsigned int n) const {
     while (n-- > 0)
-      this->print(); // won't compile w/o "this->", names in template base classes ignored in C++
+      this->print(); // names in template base classes ignored, won't compile w/o "this"
   }
 };
 
-// for auto type deduction
-template<typename Printable>
+template<typename Printable> // deduce template args, no need explicit specify
 RepeatPrint<Printable> repeatPrint(const Printable &printable) {
   return RepeatPrint<Printable>(printable);
 }
@@ -75,4 +72,17 @@ RepeatPrint<Printable> repeatPrint(const Printable &printable) {
 Name name("Eddard", "Stark");
 repeatPrint(name).repeat(10);
 ```
+
+In the above example, we could add a `repeat` method to the `Name` class. But the concept of repeatedly call the `print` method is something that could apply to other classes, like a `PhoneNumber` class that could also have a `print()` method.
+
+Minxin can also be a pack:
+
+```c++
+template<class... Mixins>
+sturct X : public Mixins... {
+  X(const Mixins&... mixins) : Mixinx(mixins)... {}
+}
+```
+
+
 
