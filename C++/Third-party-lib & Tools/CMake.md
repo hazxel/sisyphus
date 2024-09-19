@@ -34,6 +34,12 @@
 
 - `link_directories`: Add directories in which the linker will look for libraries.
 
+  - `PRIVATE`: 仅对当前目标可见，依赖于此目标的其他目标不会继承这些链接库。
+
+  - `PUBLIC`: 对当前目标及依赖此目标的其他目标都可见。依赖于此目标的其他目标将继承这些链接库。
+
+  - `INTERFACE`: 当前目标本身不需要链接这些库，但依赖于此目标的其他目标会继承这些库。
+
 - `add_subdirectory`: a subdirectory to the build(has its own CMakeLists.txt)
 
 - `include`: Loads and runs CMake code from the file given
@@ -41,13 +47,13 @@
 - `message`: print desired info/variables e.g. WARNING, ERROR, FATAL_ERROR (will terminate)
 
 - `find_package`: 
-  
+
   cmake 自带的搜寻模块可能在：`/usr/local/cmake/cmake-3.20.5/share/cmake-3.20/Modules`
-  
+
   - Module mode: search for a `Find<PackageName>.cmake` file
   - Config mode: search for a `<PackageName>Config.cmake` or `<lowercasePackageName>-config.cmake` file
   - FetchContent redirection mode: redirect to a package provided by`FetchContent` module
-  
+
 - `file(GLOB_RECURSE`: search for a specific pattern
 
 
