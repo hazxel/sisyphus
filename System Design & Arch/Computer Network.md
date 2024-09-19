@@ -142,6 +142,8 @@ Upgrade: websocket
 Sec-WebSocket-Accept: Oy4NRAQ13jhfONC7bP8dTKb4PTU=
 ```
 
+Sec-WebSocket-Key 与 Sec-WebSocket-Accept 配套，提供基本的安全验证。
+
 ### WebSocket Frame
 
 在 WebSocket 协议中，客户端与服务端数据交换的最小信息单位叫做帧 frame，一条消息由一个或多个帧按次序组成。帧的结构按如下顺序排列：
@@ -149,13 +151,14 @@ Sec-WebSocket-Accept: Oy4NRAQ13jhfONC7bP8dTKb4PTU=
 - FIN(1bit): if set, indicating this frame is the last frame of the message
 - RSV1, RSV2, RSV3 (1bit each): websocket extension bits, usually all zero 
 - opcode(4bits): decide how to deal with the data payload
-  - `0x0`: 采用数据分片
+  - `0x0`: 继续帧 Continuation Frame，用于标识数据分片中的后续帧。
   - `0x1`: 表示 text frame
   - `0x2`: 表示 binary frame
+  - `0x8`: 结束帧 close frame
   - `0x9`：ping
   - `0xA`：pong
   - other: reserved
-- mask(1bit): whether to mask the payload or not 客户端向服务端发送数据时必须进行掩码；从服务端向客户端发送数据时不需要
+- mask(1bit): whether to mask the payload or not. A **client must mask** all frames sent to the server. A **server must not mask** any frames sent to the client.
 - payload length(7bits or 7+16bits or 7+64 bits): translate the first 7 bits to an unsigned integer $x$
   - $x\in[0,125]$: payload length is x bytes
   - $x=126$: payload length in bytes represented by the following 2 bytes
@@ -164,6 +167,12 @@ Sec-WebSocket-Accept: Oy4NRAQ13jhfONC7bP8dTKb4PTU=
 - payload data: 
 
 After the hand-shake, the overhead of the extra layering is very light (2-byte header for non-masking small frames)
+
+### Fragmentation 分片
+
+- 起始帧: 当发送文本数据时，第一帧的操作码为 `0x1`，FIN 标志位为 `0`，标识一个数据分片的起始帧。
+- 分片帧: 随后的帧的操作码为 `0x0`，FIN 标志位依然为 `0`，表示这是继续传输数据。
+- 结束帧: 最后一帧的操作码为 `0x1`，FIN 标志位为 `1`，表示数据传输完毕。
 
 ### Keep Alive
 
@@ -179,12 +188,12 @@ WebSocket 的帧格式中为心跳定义了 ping 和 pong 操作
 
 不管是大端还是小端，**数据一定是从内存的低地址依次向高地址读取和写入**。
 
-- Big Endian:  stores the most significant **byte** of a **word** at the smallest memory address. (TCP)
-- Little Endian:  stores the most significant **byte** of a **word** at the smallest memory address.
+- Big Endian:  stores the most significant byte of a word at the smallest memory address.
+- Little Endian:  stores the least significant byte of a word at the smallest memory address.
 
-> Big-endianness is the dominant ordering in networking protocols. (transmitting the most significant byte first.)
+> Big-endianness is the dominant ordering in **networking protocols**. (transmitting the most significant byte first.)(TCP, Websocket, ...)
 
-> a word is the natural unit of data used by a particular processor design. A word is a fixed-sized datum handled as a unit by the instruction set or the hardware of the processor.
+> a **word** is the natural unit of data used by a particular processor design. (e.g. 4 bytes on 32-bit systems)
 
 > C++ has `std::endian` for compile-time endian-info check
 
