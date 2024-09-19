@@ -1,7 +1,13 @@
 # Parallelism
 
 - 指令级并行（Instruction Level Parallelism, ILP）：主要指指令之间的并行性，当指令之间不存在相关时，这些指令可以在处理器流水线上重叠起来并行执行。现代处理器有多种较为成熟的技术挖掘指令级并行性，包括指令流水线、多发射、动态调度、寄存器重命名、转移猜测等。
+
+  > 详见 Architecture/CPU 章节
+
 - 数据级并行（Data Level Parallelism, DLP）是指对集合或者数组中的元素同时执行相同的操作。数据级并行性比较易于处理，典型应用有 SIMD，SPMD ，Map-Reduce 等。
+
+- 数据并行（Data Parallelism）是一种并行计算模式，它强调同一个操作应用于大量数据的多个元素上。与数据级并行（Data Level Parallelism, DLP）概念相似，但更多指的是如何将计算任务分解为对大规模数据的并行处理，从而利用多个计算单元同时工作，以提高计算效率。
+
 - 任务级并行（Task Level Parallelism）是将不同的任务（如进程或线程）分布到不同的处理单元上执行。
 
 
