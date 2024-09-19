@@ -16,6 +16,12 @@ array都是在栈上储存，超出作用域会自动销毁
 
 # String
 
+- `std::string` 是 `std::basic_string<char>` 特化
+- `std::wstring` 是 `std::basic_string<wchar_t>` 特化
+
+- `c_str()` 会返回一个有效长度为 `size()+1` 的 `char[]`， 最后一位保证设置为 `\0`. 
+- `clear()` 会清空内容，但不改变 capacity （C++ 标准未规定，但现有的 STL 实现都是这么做的）
+
 ### Split
 
 STL string don't have a split function. Current work around is:

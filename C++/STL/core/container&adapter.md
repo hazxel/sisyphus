@@ -60,16 +60,14 @@ The capacity grows by double or 1.5 times of the previous size. Every time a vec
   - 插入首位迭代器的拷贝: `v.assign(extra.begin(), extra.end());`
 
   - 插入 `initializer list`: `v.assign({'C', '+', '+', '1', '1'});`
-
 - `data`: Returns pointer to the underlying array `T*`
 - `front`, `back`, `at`, `[]`: Returns the first/last/i$_{th}$​ element
   - `at` vs `[]`: `[]` access is unchecked, `at` will throw `out_of_range` exception
-
 - `push_back`, `emplace_back`: 插入入参的拷贝/原地使用构造函数构造 
-- `reserve` vs `resize``
-  - ``reserve`: **only** affect **capacity**, not affact size, won't initialize any instances, 也不会删除元
+- `reserve` vs `resize`
+  - `reserve`: **only** affect **capacity**, not affact size, won't initialize or delete any instances
   - `resize`: will insert or delete elements to the vector to make it given **size** (could call constructor!)
-
+- `clear`: Erases all elements from the container, `size()` returns zero, `capacity()` unchanged
 - Xxx
 
 ### Boolean vector: `std::vector<bool>`
