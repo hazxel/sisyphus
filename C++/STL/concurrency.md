@@ -19,6 +19,14 @@ std::thread (thread_fun_para, 100).detach();
 
 Code after `join` won't be executed unless thread terminates. If using `detach`, main thread won't wait for child thread to terminate (child thread will be killed if main thread terminates). 
 
+##### jthread (C++20)
+
+ jthread 在析构时自动 join
+
+##### reference parameter
+
+The arguments to the thread function are moved or copied by value. If a reference needs to be passed, it has to be wrapped with `std::ref` or `std::cref`. (otherwise won't compile)
+
 
 
 # Mutex & Lock
