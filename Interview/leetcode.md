@@ -25,6 +25,12 @@ The basic idea of cucbkoo hashing is to resolve collisions by using two hash fun
 
 Rehash usually happens before number of items goes over half the table size. Need to go through old array and inser teach item to the new one. Array size usually prime, double size by find the next prime above double.
 
+### Bloom filter 布隆过滤器
+
+由一个很长的二进制向量和一系列随机映射函数组成，用于检索一个元素是否在一个集合中。当一个元素加入集合时，通过多个散列函数将其映射到多个 bits，并置1。检索元素时查看这些 bits：如果有0，则被检元素一定不在；如果都是1，则被检元素很可能在。
+
+> vs bitmap: bitmap 为一一对应，占用空间较大，但能提供 100%的准确，bloom filter 可能有假阳性。
+
 
 
 # Heap
