@@ -203,6 +203,8 @@ static method 不接收任何 `self` 或 `cls`， 也不能访问类变量或实
 
 - `__class__`, `__slots__`, `__doc__`, `__iter__` ???
 
+- `__sizeof__`用于查看对象的内部表示大小，主要用于内存分析。
+
 - `self` vs `cls`：
 
   > `self` is used for object methods

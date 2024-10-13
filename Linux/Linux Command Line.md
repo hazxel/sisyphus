@@ -315,6 +315,14 @@ If you are executing your files like `sh 1.sh` or `./1.sh`, you are executing it
 
 - xxx
 
+### yum install
+
+- check installed package: `yum list installed | grep xxx`
+- check available versions: `yum --showduplicates list xxx`
+- download specific version: `sudo yum install <package name>-<version info>`
+
+
+
 
 
 # other commands
