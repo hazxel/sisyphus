@@ -266,7 +266,7 @@ auto f = [](auto&&... params) {
 >
 > ```c++
 > auto f3 = [](auto a) {
->   return [=]() mutable { return a = a + a; };
+>   	return [=]() mutable { return a = a + a; };
 > };
 > auto twice1 = f3(1);
 > cout << twice1() << endl; // 2

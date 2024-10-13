@@ -58,9 +58,10 @@ C++使用全局new或delete可以很轻松的操控内存，但也很容易引�
 
 # OS difference
 
+malloc 是 C 标准库的一部份，但各个平台又有各自的一些内存分配接口：
+
 ### POSIX standard
 
-- `malloc`: xxx, use `free` to release memory
 - `posix_memalign`: 针对页大小对齐 The address of the allocated memory will be a multiple of *alignment*, which must be a power of two and a multiple of `sizeof(void *)`. use `free` to release memory
 
 ### Sun Solaris

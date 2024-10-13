@@ -86,10 +86,19 @@ std::transform(s.cbegin(), s.cend(), std::back_inserter(ordinals),
 
 If you don't actually need a new copy, `remove` and `remove_if` will removes the elements from the original container.
 
+- `remove`: remove all given value
+- `remove_if`: remove if condition fulfills
+
 ```c++
 auto noSpaceEnd = std::remove(str1.begin(), str1.end(), ' ');
-
+auto newArr = std::remove_if(vec.begin(), vec.end(), [](int x) { return x % 2 == 0; });
 ```
+
+
+
+### min element
+
+`min_element`: Finds the smallest element in the given range, time complexity: O(n).
 
 
 

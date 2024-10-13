@@ -106,7 +106,7 @@ int (*ptrMat)[2] = mat;	// only consider the first layer
  ```
 
 - `+` and `-`: step size is `sizeof()` element type, 和指针区别是不可以自增 (理解为 `const T*`)
-- `*` and `&`: actual type of pointer and reference
+- `*` and `&`: pointer and reference to an array
 
  ```c++
 int (*parr)[10] = &arr;	

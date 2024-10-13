@@ -106,13 +106,15 @@ const T operator++(T& t, int); 	// post-increase
 const T T::operator++(int);		// post-increase in T's namespace
 ```
 
+> C++ 为后置递增操作符添加一个虚拟的 `int` 参数来区分后置与前置递增，编译器会自动将一个 `int` 值传递给这个函数，调用方不需要显式传递任何值。
+
 ### `->` operator
 
-???
+通常在智能指针类中重载 `operator->`，以便像普通指针一样访问对象的成员。重载的 `operator->` 必须返回一个**指针**或者是定义了 `operator->` 的类（这意味着可以递归地重载，最后返回一个真正的指针类型）
 
 ##### this
 
-当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是 `this` 指针。如果是用 `new` 创建的对象可以`delete this`指针。但是一经`delete`之后其所有成员都不能再被访问。
+当一个对象调用某成员函数时编译器会隐式传入一个参数， 这个参数就是 `this` 指针。用 `new` 创建的对象可以 `delete this`，但 `delete` 后其所有成员都不能再被访问。
 
 ### Function call operator
 
@@ -121,6 +123,15 @@ SOME_TYPE operator()(SOME_TYPE a);
 ```
 
 使类能像函数一样被调用 (Functor)，相比普通函数好处是可以存放状态
+
+### Heap allocation
+
+```c++
+void* operator new(size_t);   
+void operator delete(void*);
+```
+
+Implement as `delete` can forbid heap allocation.
 
 
 
@@ -145,9 +156,10 @@ public:
 
 A virtual function is a member function that you expect to be redefined in derived classes. When you refer to a derived class object using a pointer or a reference to the base class, you can call a virtual function for that object and execute the derived class's version of the function. 
 
-> **Constructor** cannot be virtual, since it's impossible to use a super class pointer to call a child class' constructor. Also, when constucting an instance, vptr has not been initialized, can't find the virtual function.
+> **Virtual Ctor vs Virtual Dtor**
 >
-> On the other hand, **destructors** could be, and are often virtual.
+> - Ctors cannot be virtual, since it's impossible to use a super class pointer to call a child class' constructor. Also, when constucting an instance, vptr has not been initialized, can't find the virtual function.
+> - Dtors could be, and are often virtual.
 
 > Avoid calling virtual function in constuctors. 当构造函数被调用时，它做的首要的事情之一就是初始化VPTR。然而，它只能知道它属于“当前”类——即构造函数所在的类，完全不知道这个对象是否是基于其它类。构造函数会先调用父类构造函数，此时子类还没有构造，所以此时的对象还是父类的，不会触发多态。(构造和析构期间，virtual函数不是virtual函数)
 
@@ -297,7 +309,7 @@ Scoped enum is usually better because it:
 
 - 限域`enum`总是可以前置声明，因为他们的默认底层类型是 `int`。非限域`enum`由于出现较早，仅当指定它们的底层类型时才能前置。不能前置声明最大的缺点就是可能增加编译依赖（改动头文件触发大量重新编译）
 
-  > 可以显式指定 enum 的底层类型
+  > 可以显式指定 enum 的底层类型，但必须是**整型类型**
 
 - 至少有一种情况下非限域`enum`是很有用的：使用`std::tuple`时替换`std::get<1>`使之更有可读性
 
