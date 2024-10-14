@@ -92,6 +92,14 @@ malloc 是 C 标准库的一部份，但各个平台又有各自的一些内存�
 
  - if success, return pointers of the corresponding type; if fail, throw exception
 
+### 使用参数构造函数
+
+可以使用 `new T(args)`，其中 `args` 是构造对象所需的参数。可应对没有默认构造函数的情况。
+
+### 分配内存而不构造对象
+
+全局的 `operator new` 可以分配内存但不构造对象 `void* ptr = ::operator new(sizeof(MyClass)); `
+
 ### placement new: 
 
 允许向 new 传递额外的地址参数，从而在预先指定的内存区域创建对象。可用于在栈上创建对象，缓解堆上开辟内存的开销

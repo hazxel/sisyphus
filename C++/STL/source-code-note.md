@@ -17,7 +17,7 @@ save memory whenever possible, will `static_assert(!is_same<_T1, _T2>::value)`
 - define `virtual void __on_zero_shared()`
 - implement `__add_shared` and `__release_shared`, update `__shared_owners_` atomically
 
-### `__shared_weak_count`: weak owenr counter
+### `__shared_weak_count`: weak owner counter
 
 - inherit  `__shared_count`
 - data member`long __shared_weak_owners_;`

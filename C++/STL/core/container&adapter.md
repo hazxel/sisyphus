@@ -6,10 +6,6 @@
 
 Container adapters are interfaces created by limiting functionality in a pre-existing container and providing a different set of functionality, for example: `stack`, `queue`, `priority_queue`
 
-### allocator
-
-Dynamically manage memory for stl containers. 考虑到小型区域可能造成内存破碎问题，SGI STL设计了双层级配置器，第一层配置器直接使用malloc()和free()，第二层配置器则视情况采用不同的策略：当配置区块超过128bytes时，调用第一层级配置器，当配置区块小于128bytes时，采用复杂的memory pool方式。
-
 ### Erasable 要求
 
 所有 STL 容器都要求元素类型是完整类型并满足可擦除 (Erasable) 的要求，当然许多成员函数附带了更严格的要求。所谓可擦除，就是指一个对象可以被给定 allocator 销毁。注意，引用本质上是别名，不可被销毁，所以不符合可擦除原则。
@@ -54,12 +50,12 @@ The capacity grows by double or 1.5 times of the previous size. Every time a vec
   - 插入多个相同：`v.insert(v.end(), 123, 0);`
 
   - 插入起始迭代器之间所有元素：`v.insert(v.end(), target.begin(), target.end());`
-- `assign`: (接口类似重新构造)
-  - 插入数个相同拷贝: `v.assign(5, 'a');`
+- `assign`:  replace the contents of the container (接口类似重新构造)
+  - 替换为数个相同元素的拷贝: `v.assign(5, 'a');`
 
-  - 插入首位迭代器的拷贝: `v.assign(extra.begin(), extra.end());`
+  - 替换为首尾迭代器之间元素的拷贝: `v.assign(extra.begin(), extra.end());`
 
-  - 插入 `initializer list`: `v.assign({'C', '+', '+', '1', '1'});`
+  - 接收 `initializer list`: `v.assign({'C', '+', '+', '1', '1'});`
 - `data`: Returns pointer to the underlying array `T*`
 - `front`, `back`, `at`, `[]`: Returns the first/last/i$_{th}$​ element
   - `at` vs `[]`: `[]` access is unchecked, `at` will throw `out_of_range` exception
@@ -68,7 +64,6 @@ The capacity grows by double or 1.5 times of the previous size. Every time a vec
   - `reserve`: **only** affect **capacity**, not affact size, won't initialize or delete any instances
   - `resize`: will insert or delete elements to the vector to make it given **size** (could call constructor!)
 - `clear`: Erases all elements from the container, `size()` returns zero, `capacity()` unchanged
-- Xxx
 
 ### Boolean vector: `std::vector<bool>`
 
@@ -82,13 +77,10 @@ The capacity grows by double or 1.5 times of the previous size. Every time a vec
 
 No random access, only bidirectional iteration.
 
-`push_back` puts a new element at the end of the `vector` 
-
-`insert` allows you to select new element's position.
-
-`size`: return the size of container. used to have linear complexity, become constant in C++11
-
-`splice`: transform elements from one list to another, used to have constant time complexity, but sometimes linear since C++11 introduce a `size_` member variable for list.
+- `push_back` puts a new element at the end of the `vector` 
+- `insert` allows you to select new element's position.
+- `size`: return the size of container. used to have linear complexity, become constant in C++11
+- `splice`: transform elements from one list to another, used to have constant time complexity, but sometimes linear since C++11 introduce a `size_` member variable for list. (可能不是插入一整个list，只凭首尾迭代器无法判断有多少元素，需要遍历)
 
 
 
@@ -102,7 +94,7 @@ In C++, the STL `deque` is a sequential container that provides the functionalit
 
 In a regular queue, elements are added from the **rear** and removed from the **front**. However, in a deque, we can insert and remove elements from both the **front** and **rear**. Deque also support random access of its elements.
 
-Internally it maintains a double-ended queue of *chunks* of **fixed size**. Each chunk is a vector, and the queue (“map” in the graphic below) of chunks itself is also a vector.
+Implementation: maintains a double-ended queue of *chunks* of **fixed size**. Each chunk is a vector, and the queue of chunks itself is also a vector.
 
 ### 成员方法
 

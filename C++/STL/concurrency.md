@@ -33,8 +33,6 @@ The arguments to the thread function are moved or copied by value. If a referenc
 
 ### mutex
 
-> 通常使用 lock_guard 持有 mutex，离开作用域自动析构并解锁，也可以确保在发生异常时被正确解锁，也避免调用`mtx.lock()，mtx.unlock();`的繁琐。
-
 ```c++
 #include <mutex>
 std::mutex m_;
@@ -44,9 +42,7 @@ m_.lock(); 		// lock the mutex, blocks if mutex not available
 m_.unlock();
 ```
 
-### shared_mutex （读写锁）
-
-> 通常不直接调用 lock_shared()等成员函数，而是使用std::unique_lock与std::shared_lock管理共享锁定
+### shared_mutex
 
 ```c++
 std::shared_mutex m_;
@@ -58,7 +54,7 @@ m.unlock();
 
 若一个线程已获取独占性锁（通过 lock 、 try_lock ），则无其他线程能获取该锁（包括共享的）。 仅当任何线程均未获取独占性锁时，共享锁能被多个线程获取（通过 lock_shared 、 try_lock_shared ）。
 
-解读成读写锁： 共享互斥体在能由任何数量的线程同时读共享数据，但一个线程只能在无其他线程同时读写时写同一数据。
+可解读成读写锁： 可以有任何数量的线程同时读数据，但一个线程只能在无其他线程读写时写数据。
 
 ### lock_guard
 
@@ -96,7 +92,11 @@ int main() {
 
 ### shared_lock (read lock)
 
+`shared_lock`call `mutex.lock_shared()` in constructor, call `mutex.unlock_shared()` in destructor. 
+
 ### scoped_lock (C17)
+
+`std::scoped_lock` 相比上述的其他 RAII 锁，提供了更高级的功能，允许同时锁定多个互斥量，并提供了一种避免死锁的机制。
 
 
 
